@@ -16,8 +16,8 @@ Dr. Python Solutions is a high-performance web agency specializing in scalable d
 
 ## 🛠️ Tech Stack
 
-- **Core**: [Next.js 14](https://nextjs.org/) (App Router)
-- **Styling**: [Tailwind CSS](https://tailwindcss.com/)
+- **Core**: [Next.js 16](https://nextjs.org/) (App Router)
+- **Styling**: [Tailwind CSS V4](https://tailwindcss.com/)
 - **Animations**: [Framer Motion](https://www.framer.com/motion/)
 - **Icons**: [Lucide React](https://lucide.dev/)
 - **Architecture**: Modular Component-Based Design
