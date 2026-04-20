@@ -10,7 +10,7 @@ Dr. Python Solutions is a high-performance web agency specializing in scalable d
 ![Desktop Preview](./public/images/previews/desktop-preview.png)
 
 ### Mobile Optimized
-![Mobile Preview](./public/images/previews/mobile-preview.png)
+<img src="./public/images/previews/mobile-preview.png" alt="Mobile Preview" width="300" />
 
 ---
 
