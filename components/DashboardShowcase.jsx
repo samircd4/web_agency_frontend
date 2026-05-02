@@ -37,6 +37,7 @@ export default function DashboardShowcase() {
                                     src={dashboardScreenshot}
                                     alt="E-commerce Dashboard"
                                     fill
+                                    sizes="(max-width: 1024px) 100vw, 60vw"
                                     className="object-cover group-hover:scale-[1.02] transition-transform duration-700"
                                 />
 
@@ -73,6 +74,7 @@ export default function DashboardShowcase() {
                                     src={mobileScreenshot}
                                     alt="E-commerce Dashboard"
                                     fill
+                                    sizes="144px"
                                     className="object-cover"
                                 />
                                 <div className="absolute top-2 left-1/2 -translate-x-1/2 w-10 h-1 bg-slate-800 rounded-full" />

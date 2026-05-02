@@ -14,9 +14,9 @@ export default function MockupSection() {
 
             <div className="container mx-auto px-4 md:px-6 relative z-10">
                 <div className="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
-                    
+
                     {/* Visual Column - The Mockups */}
-                    <motion.div 
+                    <motion.div
                         initial={{ opacity: 0, x: -50 }}
                         whileInView={{ opacity: 1, x: 0 }}
                         viewport={{ once: true }}
@@ -25,50 +25,48 @@ export default function MockupSection() {
                     >
                         {/* Laptop Frame Shadow/Glow */}
                         <div className="absolute -inset-4 bg-emerald-500/20 rounded-[2.5rem] blur-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none" />
-                        
+
                         {/* Laptop Frame */}
                         <div className="relative z-10 bg-slate-900/80 p-3 rounded-2xl border border-white/10 shadow-2xl transition-transform duration-700 group-hover:-translate-y-2">
                             <div className="overflow-hidden rounded-xl border border-white/5 bg-slate-950 aspect-[16/10] relative">
-                                <Image 
-                                    src="/dashboard_mockup_preview.png" 
+                                <Image
+                                    src="/dashboard_mockup_preview.png"
                                     alt="Dashboard Preview"
-                                    fill
-                                    className="object-cover opacity-90 group-hover:opacity-100 transition-opacity duration-700"
+                                    className="object-contain opacity-90 group-hover:opacity-100 transition-opacity duration-700"
                                     priority
                                 />
                                 {/* Glass Overlay Reflection */}
                                 <div className="absolute inset-0 bg-gradient-to-tr from-white/5 to-transparent pointer-events-none" />
                             </div>
-                            
+
                             {/* Laptop Base Lip */}
                             <div className="mt-2 h-1.5 w-1/3 mx-auto bg-slate-800 rounded-full border-t border-white/5" />
                         </div>
 
                         {/* Floating Mobile Mockup */}
-                        <motion.div 
+                        <motion.div
                             initial={{ y: 20, opacity: 0 }}
                             whileInView={{ y: 0, opacity: 1 }}
                             transition={{ delay: 0.5, duration: 0.8 }}
-                            className="absolute -bottom-10 -right-4 w-32 md:w-48 aspect-[9/19] bg-slate-900 rounded-3xl p-2 border border-white/10 shadow-2xl z-20 group-hover:-translate-y-4 group-hover:translate-x-2 transition-transform duration-700"
+                            className="absolute -bottom-16 left-1/2 -translate-x-1/2 w-32 md:w-48 aspect-[9/19] bg-slate-900 rounded-3xl p-2 border border-white/10 shadow-2xl z-20 group-hover:-translate-y-4 transition-transform duration-700"
                         >
                             <div className="h-full w-full rounded-2xl bg-slate-950 overflow-hidden relative border border-white/5">
-                                <Image 
-                                    src="/dashboard_mockup_preview.png" 
+                                <Image
+                                    src="/dashboard_mockup_preview.png"
                                     alt="Mobile Mockup"
-                                    fill
-                                    className="object-cover object-left opacity-90"
+                                    className="object-contain object-left opacity-90"
                                 />
                                 {/* AI Glow Pulse */}
                                 <div className="absolute inset-0 bg-indigo-500/5 animate-pulse" />
                             </div>
-                            
+
                             {/* Device Dot */}
                             <div className="absolute top-3 left-1/2 -translate-x-1/2 w-8 h-1 bg-slate-800 rounded-full" />
                         </motion.div>
                     </motion.div>
 
                     {/* Content Column */}
-                    <motion.div 
+                    <motion.div
                         initial={{ opacity: 0, y: 30 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
@@ -87,8 +85,8 @@ export default function MockupSection() {
                         </h2>
 
                         <p className="text-slate-400 text-lg mb-10 leading-relaxed max-w-lg">
-                            Empower your team with real-time intelligence. Our custom dashboards transform 
-                            raw scraped data into actionable insights for inventory tracking, 
+                            Empower your team with real-time intelligence. Our custom dashboards transform
+                            raw scraped data into actionable insights for inventory tracking,
                             pricing volatility, and deep competitor analysis.
                         </p>
 
@@ -99,7 +97,7 @@ export default function MockupSection() {
                                 "Deep historical price trend visualizations",
                                 "Custom AI-driven market prediction models"
                             ].map((feature, i) => (
-                                <motion.div 
+                                <motion.div
                                     key={i}
                                     initial={{ opacity: 0, x: 20 }}
                                     whileInView={{ opacity: 1, x: 0 }}

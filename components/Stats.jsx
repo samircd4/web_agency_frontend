@@ -14,9 +14,9 @@ export default function Stats() {
     return (
         <section className="py-12 md:py-24 relative overflow-hidden bg-slate-950">
             {/* Engineering Grid Background */}
-            <div className="absolute inset-0 opacity-[0.03] pointer-events-none" 
-                 style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '30px 30px' }} />
-            
+            <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
+                style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '30px 30px' }} />
+
             <div className="container mx-auto px-4 md:px-6 relative z-10">
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-12 text-center">
                     {stats.map((stat, index) => (

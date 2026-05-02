@@ -1,99 +1,90 @@
 'use client';
 
 import React from 'react';
-import { Mail, MessageSquare, Send, Globe, ChevronRight } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { Send, Mail, MessageSquare, Globe } from 'lucide-react';
 
 export default function Contact() {
     return (
-        <section className="py-16 md:py-32 relative bg-[#0f172a]" id="contact">
-            {/* Background elements */}
-            <div className="absolute bottom-0 right-0 w-[600px] h-[600px] bg-brand-red/5 rounded-full blur-[180px] pointer-events-none" />
+        <section id="contact" className="py-24 bg-background relative overflow-hidden">
+            <div className="absolute top-1/2 right-0 w-[40rem] h-[40rem] bg-brand-teal/5 rounded-full blur-[150px] pointer-events-none" />
             
-            <div className="container mx-auto px-4 md:px-6 relative z-10">
-                <div className="max-w-5xl mx-auto">
-                    
-                    <div className="text-center mb-12 md:mb-20">
-                        <motion.span 
-                            initial={{ opacity: 0 }}
-                            whileInView={{ opacity: 1 }}
-                            className="text-[10px] font-black uppercase tracking-[0.4em] text-brand-red mb-6 block"
-                        >
-                            Get in Touch
-                        </motion.span>
-                        <h2 className="text-4xl md:text-7xl font-black mb-8 text-white tracking-tighter">
-                            Initialize a <br/> <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-red to-brand-blue">Solution.</span>
-                        </h2>
-                    </div>
-
-                    <div className="bg-slate-900/40 border border-white/5 rounded-[40px] overflow-hidden backdrop-blur-xl shadow-2xl flex flex-col md:flex-row">
+            <div className="container mx-auto px-6 relative z-10">
+                <div className="max-w-6xl mx-auto glass border-white/5 rounded-[3rem] overflow-hidden shadow-premium">
+                    <div className="grid lg:grid-cols-2">
                         
-                        {/* System Status / Info (Left Side) */}
-                        <div className="md:w-2/5 p-6 md:p-12 bg-white/[0.02] border-r border-white/5">
-                            <h3 className="text-2xl font-black text-white mb-8 tracking-tight">Project Inbound</h3>
-                            <p className="text-slate-400 mb-12 text-sm leading-relaxed">
-                                Our engineering team is currently accepting high-impact projects in E-commerce, API Development, and Industrial Automation.
-                            </p>
-
-                            <div className="space-y-8">
-                                <div className="flex items-center gap-5 group">
-                                    <div className="w-12 h-12 rounded-2xl bg-brand-blue/10 flex items-center justify-center text-brand-blue group-hover:scale-110 transition-transform">
-                                        <Mail size={20} />
-                                    </div>
-                                    <div>
-                                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Direct Channel</p>
-                                        <p className="text-white font-bold text-sm">initialize@drpython.tech</p>
-                                    </div>
+                        {/* Info Side */}
+                        <div className="p-12 lg:p-20 bg-white/[0.02] border-r border-white/5">
+                            <motion.div 
+                                initial={{ opacity: 0, x: -20 }}
+                                whileInView={{ opacity: 1, x: 0 }}
+                                viewport={{ once: true }}
+                            >
+                                <span className="text-xs font-black uppercase tracking-[0.4em] text-brand-teal mb-6 block">Contact Us</span>
+                                <h2 className="text-5xl md:text-6xl font-black text-white mb-8 tracking-tighter leading-[0.9]">
+                                    Start your <br/>
+                                    <span className="text-gradient-teal">next project.</span>
+                                </h2>
+                                <p className="text-slate-400 text-lg mb-12 leading-relaxed max-w-md">
+                                    Ready to scale your operations? Our team is here to help you build the right solution.
+                                </p>
+                                
+                                <div className="space-y-6">
+                                    {[
+                                        { icon: <Mail className="text-brand-teal" />, text: "hello@drpython.solutions", label: "Email" },
+                                        { icon: <MessageSquare className="text-brand-red" />, text: "+1 (555) DR-PYTHON", label: "Phone" },
+                                        { icon: <Globe className="text-brand-indigo" />, text: "Silicon Valley, CA", label: "Location" }
+                                    ].map((item, i) => (
+                                        <div key={i} className="flex items-center gap-6 group">
+                                            <div className="w-14 h-14 rounded-2xl glass border-white/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-500 shadow-2xl">
+                                                {item.icon}
+                                            </div>
+                                            <div>
+                                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">{item.label}</p>
+                                                <p className="text-white font-bold text-lg">{item.text}</p>
+                                            </div>
+                                        </div>
+                                    ))}
                                 </div>
-                                <div className="flex items-center gap-5 group">
-                                    <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
-                                        <Globe size={20} />
-                                    </div>
-                                    <div>
-                                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Service Region</p>
-                                        <p className="text-white font-bold text-sm">Global Operations</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="mt-16 p-6 rounded-2xl bg-emerald-500/5 border border-emerald-500/10">
-                                <div className="flex items-center gap-3 mb-2">
-                                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400">System Ready</span>
-                                </div>
-                                <p className="text-[11px] text-slate-500 font-medium">Response baseline: 12-24 hours</p>
-                            </div>
+                            </motion.div>
                         </div>
 
-                        {/* Control Interface / Form (Right Side) */}
-                        <div className="md:w-3/5 p-6 md:p-12 bg-white/[0.01]">
+                        {/* Form Side */}
+                        <div className="p-12 lg:p-20">
                             <form className="space-y-8">
-                                <div className="grid md:grid-cols-2 gap-6 md:gap-8">
-                                    <div className="group">
-                                        <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3 group-focus-within:text-brand-blue transition-colors">Client Identity</label>
-                                        <input type="text" className="w-full bg-slate-800/50 border border-white/5 rounded-2xl px-6 py-4 text-white focus:border-brand-blue outline-none transition-all placeholder:text-slate-600 font-medium" placeholder="Full Name" />
+                                <div className="grid md:grid-cols-2 gap-8">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Name</label>
+                                        <input 
+                                            type="text" 
+                                            placeholder="Your Name" 
+                                            className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:outline-none focus:border-brand-teal/50 transition-all placeholder:text-slate-600 font-bold"
+                                        />
                                     </div>
-                                    <div className="group">
-                                        <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3 group-focus-within:text-brand-blue transition-colors">Transmission Address</label>
-                                        <input type="email" className="w-full bg-slate-800/50 border border-white/5 rounded-2xl px-6 py-4 text-white focus:border-brand-blue outline-none transition-all placeholder:text-slate-600 font-medium" placeholder="Email@work.com" />
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Email</label>
+                                        <input 
+                                            type="email" 
+                                            placeholder="Your Email" 
+                                            className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:outline-none focus:border-brand-teal/50 transition-all placeholder:text-slate-600 font-bold"
+                                        />
                                     </div>
                                 </div>
-                                <div className="group">
-                                    <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3 group-focus-within:text-brand-blue transition-colors">Service Protocol</label>
-                                    <select className="w-full bg-slate-800/50 border border-white/5 rounded-2xl px-6 py-4 text-white focus:border-brand-blue outline-none transition-all cursor-pointer font-medium appearance-none">
-                                        <option>Premium E-commerce Website</option>
-                                        <option>Scalable API Development</option>
-                                        <option>Web Automation / Scraping</option>
-                                        <option>Industrial Consultation</option>
-                                    </select>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-4">Message</label>
+                                    <textarea 
+                                        rows="4" 
+                                        placeholder="How can we help you?" 
+                                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:outline-none focus:border-brand-teal/50 transition-all placeholder:text-slate-600 font-bold resize-none"
+                                    ></textarea>
                                 </div>
-                                <div className="group">
-                                    <label className="block text-[10px] font-black uppercase tracking-widest text-slate-500 mb-3 group-focus-within:text-brand-blue transition-colors">Project Brief</label>
-                                    <textarea rows={4} className="w-full bg-slate-800/50 border border-white/5 rounded-2xl px-6 py-4 text-white focus:border-brand-blue outline-none transition-all placeholder:text-slate-600 font-medium resize-none" placeholder="Describe the system requirements..."></textarea>
-                                </div>
-                                <button className="group w-full bg-emerald-600 hover:bg-emerald-500 py-6 rounded-2xl font-black uppercase tracking-[0.2em] text-white flex items-center justify-center gap-3 transition-all shadow-2xl shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:-translate-y-1 active:scale-95">
-                                    Transmit Message <Send size={20} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                                <button className="w-full py-6 bg-brand-teal hover:bg-brand-teal/90 text-white rounded-2xl font-black text-sm uppercase tracking-[0.2em] transition-all flex items-center justify-center gap-3 shadow-2xl shadow-brand-teal/20 hover:-translate-y-1 active:scale-95 group">
+                                    Send Message
+                                    <Send size={18} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
                                 </button>
+                                <p className="text-center text-[10px] font-bold text-slate-600 uppercase tracking-widest">
+                                    We usually respond within 24 hours
+                                </p>
                             </form>
                         </div>
 
