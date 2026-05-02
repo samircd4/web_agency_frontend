@@ -12,7 +12,7 @@ const stats = [
 
 export default function Stats() {
     return (
-        <section className="py-12 md:py-24 relative overflow-hidden bg-slate-950">
+        <section className="py-8 md:py-12 relative overflow-hidden bg-slate-950">
             {/* Engineering Grid Background */}
             <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
                 style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '30px 30px' }} />

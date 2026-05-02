@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowRight, Sparkles, ShoppingCart, Code2, Database, Zap, Terminal, Activity, Cpu } from 'lucide-react';
-import { motion, AnimatePresence, useScroll, useTransform, useMotionValue } from 'framer-motion';
+import { motion, AnimatePresence, useTransform, useMotionValue } from 'framer-motion';
 
 const slidingTexts = [
     "E-commerce Ecosystems",
@@ -33,22 +33,19 @@ export default function Hero() {
         return () => clearInterval(timer);
     }, []);
 
-    const { scrollY } = useScroll();
-    const opacity = useTransform(scrollY, [0, 300], [1, 0]);
-
     return (
         <section
             ref={containerRef}
             onMouseMove={handleMouseMove}
-            className="relative min-h-[90vh] flex items-center pt-20 pb-12 md:pt-32 md:pb-24 overflow-hidden bg-background"
+            className="group relative min-h-[90vh] flex items-center pt-20 pb-12 md:pt-32 md:pb-24 overflow-hidden bg-background"
         >
             {/* Interactive Glow */}
             <motion.div
-                className="pointer-events-none absolute -inset-px opacity-0 transition duration-300 group-hover:opacity-100"
+                className="pointer-events-none absolute -inset-px opacity-0 transition duration-500 group-hover:opacity-100"
                 style={{
                     background: useTransform(
                         [mouseX, mouseY],
-                        ([x, y]) => `radial-gradient(600px circle at ${x}px ${y}px, rgba(42, 157, 143, 0.06), transparent 40%)`
+                        ([x, y]) => `radial-gradient(600px circle at ${x}px ${y}px, rgba(42, 157, 143, 0.08), transparent 40%)`
                     ),
                 }}
             />
@@ -58,7 +55,12 @@ export default function Hero() {
             <div className="absolute bottom-[-10%] left-[-10%] w-[50%] h-[50%] bg-brand-red/5 rounded-full blur-[120px] animate-pulse-slow" style={{ animationDelay: '2s' }} />
             <div className="absolute inset-0 opacity-[0.1] pointer-events-none [background-image:radial-gradient(var(--color-surface-700)_1px,transparent_1px)] [background-size:40px_40px]" />
 
-            <motion.div style={{ opacity }} className="container mx-auto px-6 relative z-10">
+            <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.8 }}
+                className="container mx-auto px-6 relative z-10"
+            >
                 <div className="grid lg:grid-cols-2 gap-16 items-center">
 
                     {/* Left Content */}
@@ -66,6 +68,7 @@ export default function Hero() {
                         <motion.div
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.2 }}
                             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-brand-teal text-[10px] font-black tracking-[0.3em] uppercase mb-8 backdrop-blur-md"
                         >
                             <Sparkles size={14} className="text-brand-red animate-pulse" />
@@ -75,7 +78,7 @@ export default function Hero() {
                         <motion.h1
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+                            transition={{ delay: 0.3, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
                             className="text-5xl md:text-7xl font-black text-white tracking-tight leading-[1.05] mb-8"
                         >
                             Engineering <br />
@@ -102,7 +105,7 @@ export default function Hero() {
                         <motion.p
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.2, duration: 0.8 }}
+                            transition={{ delay: 0.4, duration: 0.8 }}
                             className="max-w-xl text-slate-400 text-lg md:text-xl mb-12 leading-relaxed"
                         >
                             We build proprietary scraping networks and commerce engines that turn complex business logic into scalable digital assets.
@@ -111,7 +114,7 @@ export default function Hero() {
                         <motion.div
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.4 }}
+                            transition={{ delay: 0.5 }}
                             className="flex flex-col sm:flex-row gap-6 w-full sm:w-auto"
                         >
                             <Link href="/start-project" className="group relative px-10 py-5 bg-brand-teal hover:bg-brand-teal/90 text-white rounded-2xl font-black text-sm uppercase tracking-widest flex items-center justify-center gap-3 transition-all duration-300 shadow-glow-teal hover:-translate-y-1">
@@ -124,33 +127,13 @@ export default function Hero() {
                                 View Systems
                             </button>
                         </motion.div>
-
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            transition={{ delay: 0.8 }}
-                            className="mt-16 pt-8 border-t border-white/5 w-full flex items-center gap-8 text-slate-500"
-                        >
-                            <div className="flex flex-col">
-                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-600 mb-1">Availability</span>
-                                <span className="text-xs font-bold text-slate-400 flex items-center gap-2">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-brand-red animate-pulse" />
-                                    Q3 2026 Ready
-                                </span>
-                            </div>
-                            <div className="w-px h-8 bg-white/5" />
-                            <div className="flex flex-col">
-                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-600 mb-1">Architecture</span>
-                                <span className="text-xs font-bold text-slate-400">Micro-engine V2</span>
-                            </div>
-                        </motion.div>
                     </div>
 
                     {/* Right Visual Content */}
                     <motion.div
-                        initial={{ opacity: 0, scale: 0.8, rotate: 5 }}
-                        animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                        transition={{ duration: 1.2, ease: "easeOut" }}
+                        initial={{ opacity: 0, scale: 0.8 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.6, duration: 1.2, ease: "easeOut" }}
                         className="relative hidden lg:block"
                     >
                         <div className="relative w-full aspect-square max-w-[600px] mx-auto">
@@ -196,7 +179,7 @@ export default function Hero() {
                                         <motion.div
                                             initial={{ width: 0 }}
                                             animate={{ width: "85%" }}
-                                            transition={{ delay: 1, duration: 2 }}
+                                            transition={{ delay: 1.5, duration: 2 }}
                                             className="h-full bg-brand-red shadow-glow-red"
                                         />
                                     </div>

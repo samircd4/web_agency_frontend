@@ -2,71 +2,110 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Terminal, Cpu, Database, Code2 } from 'lucide-react';
+import { Terminal, Cpu, Database, Code2, Zap, BarChart3 } from 'lucide-react';
 import ScrollReveal from './ScrollReveal';
 
 const skills = [
-    { name: "System Architecture", level: 95, icon: <Cpu size={20} />, color: "brand-red" },
-    { name: "Web Scraping (Scale)", level: 98, icon: <Database size={20} />, color: "brand-teal" },
-    { name: "E-commerce Engines", level: 92, icon: <Terminal size={20} />, color: "brand-red" },
-    { name: "API Infrastructure", level: 96, icon: <Code2 size={20} />, color: "brand-teal" }
+    { 
+        name: "Web Development", 
+        level: 98, 
+        icon: <Code2 size={22} />, 
+        color: "brand-red",
+        desc: "Modern Next.js & React Apps"
+    },
+    { 
+        name: "System Architecture", 
+        level: 95, 
+        icon: <Cpu size={22} />, 
+        color: "brand-teal",
+        desc: "Scalable Cloud Infrastructure"
+    },
+    { 
+        name: "E-commerce Solutions", 
+        level: 92, 
+        icon: <Terminal size={22} />, 
+        color: "brand-teal",
+        desc: "Proprietary Sales Engines"
+    },
+    { 
+        name: "Data Pipelines", 
+        level: 96, 
+        icon: <Database size={22} />, 
+        color: "brand-red",
+        desc: "Enterprise-Scale Integration"
+    }
 ];
 
 export default function Expertise() {
     return (
-        <section id="expertise" className="py-24 bg-background relative overflow-hidden">
-            <div className="container mx-auto px-6">
-                <div className="grid lg:grid-cols-2 gap-20 items-center">
-
+        <section id="expertise" className="py-12 bg-background relative overflow-hidden">
+            <div className="w-full md:container mx-auto px-0 md:px-6">
+                <div className="grid lg:grid-cols-2 gap-12 items-center px-6 md:px-0">
+                    
+                    {/* Content Section */}
                     <div>
                         <ScrollReveal>
-                            <span className="text-xs font-black uppercase tracking-[0.4em] text-brand-red mb-6 block">Technical Core</span>
-                            <h2 className="text-5xl md:text-7xl font-black text-white mb-8 tracking-tighter leading-[0.9]">
-                                Algorithmic <br />
-                                <span className="text-gradient-red">Dominance.</span>
+                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-red/10 border border-brand-red/20 text-brand-red text-[10px] font-black tracking-[0.2em] uppercase mb-6">
+                                <Zap size={12} fill="currentColor" />
+                                <span>Our Core</span>
+                            </div>
+                            <h2 className="text-5xl md:text-6xl font-black text-white mb-6 tracking-tighter leading-[1.1]">
+                                Built for <br />
+                                <span className="text-gradient-red">Performance.</span>
                             </h2>
                         </ScrollReveal>
                         <ScrollReveal delay={0.2}>
-                            <p className="text-slate-400 text-lg mb-10 leading-relaxed max-w-md">
-                                Our engineering team specializes in high-concurrency systems and proprietary business logic that scales with your growth.
+                            <p className="text-slate-400 text-lg mb-8 leading-relaxed max-w-md">
+                                We turn complex business ideas into lightning-fast digital solutions that are easy to use and scale with your growth.
                             </p>
                         </ScrollReveal>
                         <ScrollReveal delay={0.3}>
                             <div className="flex gap-4">
-                                <button className="px-8 py-4 bg-brand-red text-white rounded-xl font-bold text-xs uppercase tracking-widest shadow-lg shadow-brand-red/20 transition-all hover:-translate-y-1">
+                                <button className="px-8 py-4 bg-brand-red text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-all hover:shadow-glow-red hover:-translate-y-1">
                                     View Stack
                                 </button>
                                 <button className="px-8 py-4 glass text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-all hover:bg-white/10">
-                                    Whitepaper
+                                    Process
                                 </button>
                             </div>
                         </ScrollReveal>
                     </div>
 
-                    <div className="space-y-8">
+                    {/* Bento Skills Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {skills.map((skill, index) => (
-                            <ScrollReveal key={index} delay={index * 0.15}>
-                                <div className="space-y-3">
-                                    <div className="flex justify-between items-center">
-                                        <div className="flex items-center gap-3">
-                                            <div className={`p-2 rounded-lg bg-${skill.color}/10 text-${skill.color}`}>
-                                                {skill.icon}
-                                            </div>
-                                            <span className="text-white font-bold uppercase tracking-widest text-xs">{skill.name}</span>
-                                        </div>
-                                        <span className={`text-[10px] font-black text-${skill.color}`}>{skill.level}%</span>
+                            <motion.div
+                                key={index}
+                                initial={{ opacity: 0, scale: 0.95 }}
+                                whileInView={{ opacity: 1, scale: 1 }}
+                                viewport={{ once: false }}
+                                transition={{ delay: index * 0.1 }}
+                                className="group p-6 rounded-3xl glass border-white/5 hover:border-brand-red/30 transition-all duration-500"
+                            >
+                                <div className="flex items-start justify-between mb-4">
+                                    <div className={`p-3 rounded-2xl bg-white/5 text-${skill.color} group-hover:scale-110 transition-transform duration-500`}>
+                                        {skill.icon}
                                     </div>
-                                    <div className="h-2 bg-white/5 rounded-full overflow-hidden border border-white/5">
-                                        <motion.div
-                                            initial={{ width: 0 }}
-                                            whileInView={{ width: `${skill.level}%` }}
-                                            viewport={{ once: false }}
-                                            transition={{ duration: 1.5, delay: 0.5, ease: "circOut" }}
-                                            className={`h-full bg-${skill.color} shadow-[0_0_15px_rgba(214,0,0,0.3)]`}
-                                        />
+                                    <div className={`text-[10px] font-black text-${skill.color} opacity-50 group-hover:opacity-100 transition-opacity`}>
+                                        {skill.level}%
                                     </div>
                                 </div>
-                            </ScrollReveal>
+                                <h3 className="text-white font-bold text-sm uppercase tracking-widest mb-1 group-hover:text-brand-red transition-colors">
+                                    {skill.name}
+                                </h3>
+                                <p className="text-slate-500 text-[10px] font-medium leading-tight mb-4">
+                                    {skill.desc}
+                                </p>
+                                <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                                    <motion.div
+                                        initial={{ width: 0 }}
+                                        whileInView={{ width: `${skill.level}%` }}
+                                        viewport={{ once: false }}
+                                        transition={{ duration: 1.5, delay: 0.5, ease: "circOut" }}
+                                        className={`h-full bg-${skill.color}`}
+                                    />
+                                </div>
+                            </motion.div>
                         ))}
                     </div>
 

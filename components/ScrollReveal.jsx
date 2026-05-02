@@ -9,7 +9,7 @@ export default function ScrollReveal({ children, width = "fit-content", delay = 
             <motion.div
                 initial={{ opacity: 0, y: 50, scale: 0.95 }}
                 whileInView={{ opacity: 1, y: 0, scale: 1 }}
-                viewport={{ once: false, margin: "-50px" }}
+                viewport={{ once: true, margin: "-50px" }}
                 transition={{ duration: 0.8, delay: delay, ease: [0.16, 1, 0.3, 1] }}
             >
                 {children}

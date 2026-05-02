@@ -6,15 +6,15 @@ import { Send, Mail, MessageSquare, Globe } from 'lucide-react';
 
 export default function Contact() {
     return (
-        <section id="contact" className="py-24 bg-background relative overflow-hidden">
+        <section id="contact" className="pt-0 pb-4 bg-background relative overflow-hidden">
             <div className="absolute top-1/2 right-0 w-[40rem] h-[40rem] bg-brand-teal/5 rounded-full blur-[150px] pointer-events-none" />
-            
-            <div className="container mx-auto px-6 relative z-10">
-                <div className="max-w-6xl mx-auto glass border-white/5 rounded-[3rem] overflow-hidden shadow-premium">
+
+            <div className="w-full md:container mx-auto px-0 md:px-6 relative z-10">
+                <div className="max-w-6xl mx-auto glass border-white/5 rounded-none md:rounded-[3rem] overflow-hidden shadow-premium">
                     <div className="grid lg:grid-cols-2">
                         
                         {/* Info Side */}
-                        <div className="p-12 lg:p-20 bg-white/[0.02] border-r border-white/5">
+                        <div className="p-8 md:p-12 lg:p-20 bg-white/[0.02] border-b lg:border-b-0 lg:border-r border-white/5">
                             <motion.div 
                                 initial={{ opacity: 0, x: -20 }}
                                 whileInView={{ opacity: 1, x: 0 }}
@@ -50,7 +50,7 @@ export default function Contact() {
                         </div>
 
                         {/* Form Side */}
-                        <div className="p-12 lg:p-20">
+                        <div className="p-8 md:p-12 lg:p-20">
                             <form className="space-y-8">
                                 <div className="grid md:grid-cols-2 gap-8">
                                     <div className="space-y-2">

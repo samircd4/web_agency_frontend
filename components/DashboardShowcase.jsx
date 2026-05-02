@@ -9,7 +9,7 @@ import mobileScreenshot from '@/public/images/mockups/front_end.png';
 
 export default function DashboardShowcase() {
     return (
-        <section className="py-16 md:py-32 relative bg-[#0f172a] overflow-hidden" id="dashboard">
+        <section className="py-12 md:py-16 relative bg-[#0f172a] overflow-hidden" id="dashboard">
             {/* Background elements */}
             <div className="absolute top-1/2 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-white/5 to-transparent" />
             <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-blue/5 rounded-full blur-[150px] pointer-events-none" />
