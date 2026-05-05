@@ -7,7 +7,6 @@ import Stats from '@/components/Stats';
 import Contact from '@/components/Contact';
 import Portfolio from '@/components/Portfolio';
 import Process from '@/components/Process';
-import Chatbot from '@/components/Chatbot';
 import ScrollReveal from '@/components/ScrollReveal';
 
 export default function HomeView() {
@@ -43,7 +42,6 @@ export default function HomeView() {
                 <Contact />
             </ScrollReveal>
             
-            <Chatbot />
         </div>
     );
 }

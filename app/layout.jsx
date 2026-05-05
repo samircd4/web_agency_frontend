@@ -50,6 +50,7 @@ export const metadata = {
 };
 
 import Cursor from '@/components/Cursor';
+import Chatbot from '@/components/Chatbot';
 
 export default function RootLayout({ children }) {
     const jsonLd = {
@@ -83,6 +84,7 @@ export default function RootLayout({ children }) {
                 <Navbar />
                 <main>{children}</main>
                 <Footer />
+                <Chatbot />
             </body>
         </html>
     );

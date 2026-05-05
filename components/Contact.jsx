@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Send, Mail, MessageSquare, Globe } from 'lucide-react';
+import { Send, Mail, Phone, MapPin } from 'lucide-react';
 
 export default function Contact() {
     return (
@@ -31,9 +31,24 @@ export default function Contact() {
                                 
                                 <div className="space-y-6">
                                     {[
-                                        { icon: <Mail className="text-brand-teal" />, text: "hello@drpython.solutions", label: "Email" },
-                                        { icon: <MessageSquare className="text-brand-red" />, text: "+1 (555) DR-PYTHON", label: "Phone" },
-                                        { icon: <Globe className="text-brand-indigo" />, text: "Silicon Valley, CA", label: "Location" }
+                                        {
+                                            icon: <Mail className="text-brand-teal" />,
+                                            label: 'Email',
+                                            text: 'contact@drpythonsolutions.com',
+                                            href: 'mailto:contact@drpythonsolutions.com',
+                                        },
+                                        {
+                                            icon: <Phone className="text-brand-red" />,
+                                            label: 'Phone',
+                                            text: '+880 1781 355377',
+                                            href: 'tel:+8801781355377',
+                                        },
+                                        {
+                                            icon: <MapPin className="text-brand-indigo" />,
+                                            label: 'Location',
+                                            text: 'Kishoreganj, Dhaka, Bangladesh',
+                                            href: null,
+                                        },
                                     ].map((item, i) => (
                                         <div key={i} className="flex items-center gap-6 group">
                                             <div className="w-14 h-14 rounded-2xl glass border-white/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-500 shadow-2xl">
@@ -41,7 +56,13 @@ export default function Contact() {
                                             </div>
                                             <div>
                                                 <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">{item.label}</p>
-                                                <p className="text-white font-bold text-lg">{item.text}</p>
+                                                {item.href ? (
+                                                    <a href={item.href} className="text-white font-bold text-lg hover:text-brand-teal transition-colors">
+                                                        {item.text}
+                                                    </a>
+                                                ) : (
+                                                    <p className="text-white font-bold text-lg">{item.text}</p>
+                                                )}
                                             </div>
                                         </div>
                                     ))}
