@@ -188,7 +188,7 @@ export default function Pricing() {
         <div className="bg-background text-foreground overflow-hidden">
 
             {/* ── HERO ──────────────────────────────────────────────────── */}
-            <section className="relative min-h-[60vh] flex items-center pt-32 pb-16 overflow-hidden">
+            <section className="relative min-h-[60vh] flex items-center pt-24 pb-12 overflow-hidden">
                 <div className="absolute top-[-10%] right-[-10%] w-[55%] h-[55%] bg-brand-teal/5 rounded-full blur-[130px] animate-pulse-slow" />
                 <div className="absolute bottom-0 left-[-10%] w-[45%] h-[45%] bg-brand-red/5 rounded-full blur-[130px] animate-pulse-slow" style={{ animationDelay: '3s' }} />
                 <div className="absolute inset-0 opacity-[0.07] pointer-events-none [background-image:radial-gradient(var(--color-surface-700)_1px,transparent_1px)] [background-size:40px_40px]" />
@@ -208,7 +208,7 @@ export default function Pricing() {
                         initial={{ opacity: 0, y: 24 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.2, duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-                        className="text-5xl md:text-7xl font-black text-white tracking-tight leading-[1.05] mb-6"
+                        className="text-4xl md:text-7xl font-black text-white tracking-tight leading-[1.05] mb-6"
                     >
                         No Surprises. <br />
                         <span className="text-gradient-teal">Just Results.</span>
@@ -218,7 +218,7 @@ export default function Pricing() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.35, duration: 0.8 }}
-                        className="max-w-2xl mx-auto text-slate-400 text-lg md:text-xl mb-4 leading-relaxed"
+                        className="max-w-2xl mx-auto text-slate-400 text-base md:text-xl mb-4 leading-relaxed"
                     >
                         Fixed-scope plans for projects of every size. Every quote is scoped before
                         a single line of code is written.
@@ -238,7 +238,7 @@ export default function Pricing() {
             </section>
 
             {/* ── PLAN CARDS ────────────────────────────────────────────── */}
-            <section className="pb-24 relative">
+            <section className="pb-16 relative">
                 <div className="container mx-auto px-6">
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
                         {plans.map((plan, i) => (
@@ -268,7 +268,7 @@ export default function Pricing() {
                                             {plan.name}
                                         </p>
                                         <div className="flex items-end gap-2 mb-1">
-                                            <span className="text-4xl md:text-5xl font-black text-white tracking-tighter">
+                                            <span className="text-3xl md:text-5xl font-black text-white tracking-tighter">
                                                 {plan.price}
                                             </span>
                                         </div>
@@ -343,7 +343,7 @@ export default function Pricing() {
             </section>
 
             {/* ── WHAT'S INCLUDED ───────────────────────────────────────── */}
-            <section className="py-20 bg-slate-950 relative overflow-hidden">
+            <section className="py-12 md:py-20 bg-slate-950 relative overflow-hidden">
                 <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
                     style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '30px 30px' }} />
 
@@ -354,7 +354,7 @@ export default function Pricing() {
                                 <Code2 size={12} />
                                 <span>Every Project Includes</span>
                             </div>
-                            <h2 className="text-4xl md:text-5xl font-black text-white tracking-tighter">
+                            <h2 className="text-3xl md:text-5xl font-black text-white tracking-tighter">
                                 Built-in <span className="text-gradient-red">standards.</span>
                             </h2>
                         </div>
@@ -393,7 +393,7 @@ export default function Pricing() {
             </section>
 
             {/* ── FAQ ───────────────────────────────────────────────────── */}
-            <section className="py-24 relative overflow-hidden">
+            <section className="py-16 md:py-24 relative overflow-hidden">
                 <div className="absolute right-0 top-0 w-1/2 h-full bg-brand-teal/3 blur-[160px] rounded-full pointer-events-none" />
 
                 <div className="container mx-auto px-6 relative z-10">
@@ -418,7 +418,7 @@ export default function Pricing() {
             </section>
 
             {/* ── CTA ───────────────────────────────────────────────────── */}
-            <section className="py-24 bg-slate-950 relative overflow-hidden">
+            <section className="py-16 md:py-24 bg-slate-950 relative overflow-hidden">
                 <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
                     style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '30px 30px' }} />
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60%] h-[60%] bg-brand-teal/5 rounded-full blur-[120px] pointer-events-none animate-pulse-slow" />
@@ -429,7 +429,7 @@ export default function Pricing() {
                             <Zap size={12} fill="currentColor" />
                             <span>Not Sure Which Plan?</span>
                         </div>
-                        <h2 className="text-5xl md:text-6xl font-black text-white tracking-tight leading-[1.05] mb-6">
+                        <h2 className="text-4xl md:text-6xl font-black text-white tracking-tight leading-[1.05] mb-6">
                             Let's scope it <br />
                             <span className="text-gradient-teal">together.</span>
                         </h2>

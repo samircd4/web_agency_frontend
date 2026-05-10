@@ -37,7 +37,7 @@ export default function Hero() {
         <section
             ref={containerRef}
             onMouseMove={handleMouseMove}
-            className="group relative min-h-[90vh] flex items-center pt-20 pb-12 md:pt-32 md:pb-24 overflow-hidden bg-background"
+            className="group relative min-h-[90vh] flex items-center pt-16 pb-10 md:pt-32 md:pb-24 overflow-hidden bg-background"
         >
             {/* Interactive Glow */}
             <motion.div
@@ -79,7 +79,7 @@ export default function Hero() {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.3, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-                            className="text-5xl md:text-7xl font-black text-white tracking-tight leading-[1.05] mb-8"
+                            className="text-4xl md:text-7xl font-black text-white tracking-tight leading-[1.05] mb-8"
                         >
                             Engineering <br />
                             <span className="text-gradient-teal">High-Velocity</span> <br />
@@ -94,7 +94,7 @@ export default function Hero() {
                                     animate={{ y: 0, opacity: 1 }}
                                     exit={{ y: -20, opacity: 0 }}
                                     transition={{ duration: 0.5 }}
-                                    className="absolute inset-0 flex items-center gap-3 text-xl md:text-2xl font-bold text-slate-300"
+                                    className="absolute inset-0 flex items-center gap-3 text-lg md:text-2xl font-bold text-slate-300"
                                 >
                                     <Terminal size={20} className="text-brand-red" />
                                     {slidingTexts[index]}
@@ -106,7 +106,7 @@ export default function Hero() {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.4, duration: 0.8 }}
-                            className="max-w-xl text-slate-400 text-lg md:text-xl mb-12 leading-relaxed"
+                            className="max-w-xl text-slate-400 text-base md:text-xl mb-12 leading-relaxed"
                         >
                             We build proprietary scraping networks and commerce engines that turn complex business logic into scalable digital assets.
                         </motion.p>

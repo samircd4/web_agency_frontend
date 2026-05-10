@@ -8,9 +8,9 @@ import { motion } from 'framer-motion';
 
 export default function Footer() {
     return (
-        <footer className="bg-surface-900 border-t border-white/5 pt-24 pb-12">
+        <footer className="bg-surface-900 border-t border-white/5 pt-16 pb-10 md:pt-24 md:pb-12">
             <div className="container mx-auto px-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 lg:gap-16 mb-20">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 lg:gap-16 mb-12 md:mb-20">
                     <div className="lg:col-span-2">
                         <Link href="/" className="flex items-center gap-3 mb-8 group">
                             <div className="relative w-12 h-12 group-hover:scale-110 transition-transform duration-500">
@@ -109,7 +109,7 @@ export default function Footer() {
                     </div>
                 </div>
 
-                <div className="pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6 text-slate-500 text-sm font-bold">
+                <div className="pt-8 md:pt-12 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-6 text-slate-500 text-sm font-bold">
                     <p>© 2026 Dr. Python Solutions. All rights reserved.</p>
                     <div className="flex gap-8">
                         <Link href="/privacy" className="hover:text-white transition-colors">Privacy Protocol</Link>

@@ -134,7 +134,10 @@ export default function Navbar() {
                                 </motion.div>
                             ))}
                             
-                            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="mt-8">
+                            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="mt-4 flex flex-col gap-4">
+                                <Link href="/dashboard" onClick={() => setIsMenuOpen(false)} className="w-full flex items-center justify-center gap-3 py-6 glass border-white/10 text-white rounded-2xl font-black uppercase tracking-widest text-sm active:bg-white/10">
+                                    <LayoutDashboard size={18} className="text-brand-teal" /> Client Dashboard
+                                </Link>
                                 <Link href="/start-project" onClick={() => setIsMenuOpen(false)} className="w-full flex items-center justify-center gap-3 py-6 bg-brand-teal text-white rounded-2xl font-black uppercase tracking-widest text-sm shadow-2xl">
                                     Start Your Project <Zap size={18} />
                                 </Link>

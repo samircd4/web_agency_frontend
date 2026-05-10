@@ -70,7 +70,7 @@ export default function AboutUs() {
         <div className="bg-background text-foreground overflow-hidden">
 
             {/* ── HERO ────────────────────────────────────────────────────── */}
-            <section className="relative min-h-[72vh] flex items-center pt-32 pb-20 overflow-hidden">
+            <section className="relative min-h-[72vh] flex items-center pt-24 pb-16 overflow-hidden">
                 {/* Background blobs */}
                 <div className="absolute top-[-10%] right-[-10%] w-[55%] h-[55%] bg-brand-teal/5 rounded-full blur-[130px] animate-pulse-slow" />
                 <div className="absolute bottom-0 left-[-10%] w-[45%] h-[45%] bg-brand-red/5 rounded-full blur-[130px] animate-pulse-slow" style={{ animationDelay: '3s' }} />
@@ -92,7 +92,7 @@ export default function AboutUs() {
                             initial={{ opacity: 0, y: 24 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.2, duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-                            className="text-5xl md:text-7xl font-black text-white tracking-tight leading-[1.05] mb-8"
+                            className="text-4xl md:text-7xl font-black text-white tracking-tight leading-[1.05] mb-8"
                         >
                             Engineering <br />
                             <span className="text-gradient-teal">Digital Assets</span> <br />
@@ -103,7 +103,7 @@ export default function AboutUs() {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.35, duration: 0.8 }}
-                            className="max-w-2xl text-slate-400 text-lg md:text-xl mb-12 leading-relaxed"
+                            className="max-w-2xl text-slate-400 text-base md:text-xl mb-12 leading-relaxed"
                         >
                             Dr. Python Solutions is a boutique software engineering firm that builds
                             proprietary scraping networks, high-velocity commerce engines, and scalable
@@ -138,7 +138,7 @@ export default function AboutUs() {
             </section>
 
             {/* ── STATS BAR ───────────────────────────────────────────────── */}
-            <section className="py-10 bg-slate-950 relative">
+            <section className="py-8 bg-slate-950 relative">
                 <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
                     style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '30px 30px' }} />
 
@@ -152,7 +152,7 @@ export default function AboutUs() {
                                 viewport={{ once: true }}
                                 transition={{ delay: i * 0.1 }}
                             >
-                                <h3 className={`text-5xl md:text-6xl font-black mb-3 ${stat.color} tracking-tighter drop-shadow-2xl`}>
+                                <h3 className={`text-4xl md:text-6xl font-black mb-3 ${stat.color} tracking-tighter drop-shadow-2xl`}>
                                     {stat.value}
                                 </h3>
                                 <div className="w-10 h-0.5 bg-slate-800 mx-auto mb-3" />
@@ -166,7 +166,7 @@ export default function AboutUs() {
             </section>
 
             {/* ── MISSION ─────────────────────────────────────────────────── */}
-            <section className="py-24 relative overflow-hidden">
+            <section className="py-16 md:py-24 relative overflow-hidden">
                 <div className="absolute right-0 top-0 w-1/2 h-full bg-brand-teal/3 blur-[160px] rounded-full pointer-events-none" />
 
                 <div className="container mx-auto px-6 relative z-10">
@@ -179,7 +179,7 @@ export default function AboutUs() {
                                     <Zap size={12} fill="currentColor" />
                                     <span>Our Mission</span>
                                 </div>
-                                <h2 className="text-5xl md:text-6xl font-black text-white mb-6 tracking-tighter leading-[1.1]">
+                                <h2 className="text-4xl md:text-6xl font-black text-white mb-6 tracking-tighter leading-[1.1]">
                                     Code that <br />
                                     <span className="text-gradient-teal">creates value.</span>
                                 </h2>
@@ -228,7 +228,7 @@ export default function AboutUs() {
             </section>
 
             {/* ── TECH STACK ──────────────────────────────────────────────── */}
-            <section className="py-24 bg-slate-950 relative overflow-hidden">
+            <section className="py-16 md:py-24 bg-slate-950 relative overflow-hidden">
                 <div className="absolute inset-0 opacity-[0.04] pointer-events-none [background-image:radial-gradient(var(--color-surface-700)_1px,transparent_1px)] [background-size:36px_36px]" />
 
                 <div className="container mx-auto px-6 relative z-10">
@@ -238,7 +238,7 @@ export default function AboutUs() {
                                 <Code2 size={12} />
                                 <span>Our Stack</span>
                             </div>
-                            <h2 className="text-5xl md:text-6xl font-black text-white tracking-tighter leading-[1.1]">
+                            <h2 className="text-4xl md:text-6xl font-black text-white tracking-tighter leading-[1.1]">
                                 Built on <span className="text-gradient-red">Proven Tech.</span>
                             </h2>
                             <p className="mt-4 text-slate-500 max-w-xl mx-auto text-base leading-relaxed">
@@ -286,7 +286,7 @@ export default function AboutUs() {
             </section>
 
             {/* ── TIMELINE ────────────────────────────────────────────────── */}
-            <section className="py-24 relative overflow-hidden">
+            <section className="py-16 md:py-24 relative overflow-hidden">
                 <div className="absolute left-0 top-0 w-1/2 h-full bg-brand-red/3 blur-[160px] rounded-full pointer-events-none" />
 
                 <div className="container mx-auto px-6 relative z-10">
@@ -296,7 +296,7 @@ export default function AboutUs() {
                                 <Clock size={12} />
                                 <span>Our Story</span>
                             </div>
-                            <h2 className="text-5xl md:text-6xl font-black text-white tracking-tighter leading-[1.1]">
+                            <h2 className="text-4xl md:text-6xl font-black text-white tracking-tighter leading-[1.1]">
                                 How we <span className="text-gradient-teal">got here.</span>
                             </h2>
                         </div>
@@ -348,7 +348,7 @@ export default function AboutUs() {
             </section>
 
             {/* ── CTA ─────────────────────────────────────────────────────── */}
-            <section className="py-24 bg-slate-950 relative overflow-hidden">
+            <section className="py-16 md:py-24 bg-slate-950 relative overflow-hidden">
                 <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
                     style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '30px 30px' }} />
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60%] h-[60%] bg-brand-teal/5 rounded-full blur-[120px] pointer-events-none animate-pulse-slow" />
@@ -359,7 +359,7 @@ export default function AboutUs() {
                             <Award size={12} />
                             <span>Let's Build Together</span>
                         </div>
-                        <h2 className="text-5xl md:text-7xl font-black text-white tracking-tight leading-[1.05] mb-6">
+                        <h2 className="text-4xl md:text-7xl font-black text-white tracking-tight leading-[1.05] mb-6">
                             Ready to ship <br />
                             <span className="text-gradient-teal">something great?</span>
                         </h2>
