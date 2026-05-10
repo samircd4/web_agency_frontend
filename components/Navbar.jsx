@@ -4,13 +4,13 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, ArrowRight, ChevronRight, Zap, Code2 } from 'lucide-react';
+import { Menu, X, ArrowRight, ChevronRight, Zap, Code2, LayoutDashboard } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 
 const navLinks = [
     { name: 'Services', href: '/services' },
     { name: 'Portfolio', href: '/portfolio' },
-    { name: 'Pricing', href: '/pricing' },
+    { name: 'Journal', href: '/blog' },
     { name: 'About', href: '/about' },
     { name: 'Contact', href: '/contact' }
 ];
@@ -76,9 +76,14 @@ export default function Navbar() {
                                 </Link>
                             ))}
                         </div>
-                        <Link href="/start-project" className="px-6 py-3 bg-brand-teal text-white rounded-xl font-black text-xs uppercase tracking-widest transition-all shadow-lg shadow-brand-teal/20">
-                            Start Project
-                        </Link>
+                        <div className="flex items-center gap-4">
+                            <Link href="/dashboard" className="p-3 bg-white/5 text-slate-400 hover:text-white rounded-xl border border-white/5 transition-all group">
+                                <LayoutDashboard size={18} className="group-hover:text-brand-teal transition-colors" />
+                            </Link>
+                            <Link href="/start-project" className="px-6 py-3 bg-brand-teal text-white rounded-xl font-black text-xs uppercase tracking-widest transition-all shadow-lg shadow-brand-teal/20">
+                                Start Project
+                            </Link>
+                        </div>
                     </div>
 
                     {/* Mobile Menu Toggle */}

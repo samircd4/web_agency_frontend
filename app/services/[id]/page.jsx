@@ -3,7 +3,8 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
 import { useParams } from 'next/navigation';
-import { Star, Heart, Share2, Clock, RotateCcw, Check, ShieldCheck, ChevronDown, MessageCircle, ArrowRight, User, Calendar, DollarSign, Timer } from 'lucide-react';
+import Link from 'next/link';
+import { Star, Heart, Share2, Clock, RotateCcw, Check, ShieldCheck, ChevronDown, MessageCircle, ArrowRight, User, Calendar, DollarSign, Timer, ArrowLeft } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import { mockServices } from '@/data/services';
@@ -34,6 +35,12 @@ export default function ServiceDetailPage() {
           
           {/* Left Content Column */}
           <div className="flex-grow lg:max-w-4xl">
+            {/* Back Button */}
+            <Link href="/services" className="inline-flex items-center gap-2 text-slate-500 hover:text-brand-teal transition-colors mb-8 group">
+              <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+              <span className="text-xs font-black uppercase tracking-widest">Back to Marketplace</span>
+            </Link>
+
             {/* Title & Seller Header */}
             <div className="mb-8">
               <h1 className="text-3xl md:text-4xl font-black text-white mb-6 leading-tight tracking-tight">

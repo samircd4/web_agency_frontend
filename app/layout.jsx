@@ -1,7 +1,7 @@
 import { Geist, Geist_Mono, Space_Grotesk } from "next/font/google";
-import Navbar from '@/components/Navbar';
-import Footer from '@/components/Footer';
 import "./globals.css";
+import LayoutWrapper from '@/components/LayoutWrapper';
+import Cursor from '@/components/Cursor';
 
 const geistSans = Geist({
     variable: "--font-geist-sans",
@@ -49,9 +49,6 @@ export const metadata = {
     },
 };
 
-import Cursor from '@/components/Cursor';
-import Chatbot from '@/components/Chatbot';
-
 export default function RootLayout({ children }) {
     const jsonLd = {
         "@context": "https://schema.org",
@@ -90,10 +87,9 @@ export default function RootLayout({ children }) {
             </head>
             <body className="antialiased bg-background text-foreground" suppressHydrationWarning={true}>
                 <Cursor />
-                <Navbar />
-                <main>{children}</main>
-                <Footer />
-                <Chatbot />
+                <LayoutWrapper>
+                    {children}
+                </LayoutWrapper>
             </body>
         </html>
     );
