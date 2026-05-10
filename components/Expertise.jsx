@@ -3,6 +3,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Terminal, Cpu, Database, Code2, Zap, BarChart3 } from 'lucide-react';
+import Link from 'next/link';
 import ScrollReveal from './ScrollReveal';
 
 const skills = [
@@ -61,18 +62,18 @@ export default function Expertise() {
                         </ScrollReveal>
                         <ScrollReveal delay={0.3}>
                             <div className="flex gap-4">
-                                <button className="px-8 py-4 bg-brand-red text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-all hover:shadow-glow-red hover:-translate-y-1">
+                                <Link href="/tech-stack" className="px-8 py-4 bg-brand-red text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-all hover:shadow-glow-red hover:-translate-y-1">
                                     View Stack
-                                </button>
-                                <button className="px-8 py-4 glass text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-all hover:bg-white/10">
+                                </Link>
+                                <Link href="/our-process" className="px-8 py-4 glass text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-all hover:bg-white/10">
                                     Process
-                                </button>
+                                </Link>
                             </div>
                         </ScrollReveal>
                     </div>
 
                     {/* Bento Skills Grid */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div id="tech-stack" className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         {skills.map((skill, index) => (
                             <motion.div
                                 key={index}

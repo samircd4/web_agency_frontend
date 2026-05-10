@@ -59,6 +59,8 @@ const milestones = [
     { year: '2020', title: 'First SaaS',       desc: 'Launched the first proprietary scraping SaaS, processing millions of records per day for e-commerce brands.' },
     { year: '2022', title: 'Commerce Engine',  desc: 'Delivered a full-stack Django + Next.js e-commerce platform serving 50k+ active users at peak.' },
     { year: '2024', title: 'Industrial Scale', desc: 'Crossed 150 shipped projects and expanded into multi-region cloud deployments and real-time analytics pipelines.' },
+    { year: '2025', title: 'AI Integration',   desc: 'Pioneered the integration of Large Language Models into high-concurrency data pipelines, enabling autonomous decision-making.' },
+    { year: '2026', title: 'Agentic Systems',  desc: 'Setting the new standard with autonomous agent frameworks and self-healing infrastructure for global enterprise operations.' },
 ];
 
 // ─── Component ────────────────────────────────────────────────────────────────

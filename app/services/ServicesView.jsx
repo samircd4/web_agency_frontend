@@ -1,5 +1,5 @@
 import React from 'react';
-import ServicesGrid from '@/components/ServicesGrid';
+import ServiceMarketplace from '@/components/ServiceMarketplace/ServiceMarketplace';
 import Expertise from '@/components/Expertise';
 
 export default function ServicesView() {
@@ -13,7 +13,9 @@ export default function ServicesView() {
                     We architect distributed systems, proprietary engines, and high-concurrency data pipelines.
                 </p>
             </div>
-            <ServicesGrid />
+            
+            <ServiceMarketplace />
+
             <div className="mt-24">
                 <Expertise />
             </div>

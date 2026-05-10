@@ -38,7 +38,7 @@ export const metadata = {
     twitter: {
         card: 'summary_large_image',
         title: 'Dr. Python Solutions',
-        description: 'Engineering Scalable Digital Assets with Maximum Velocity',
+        description: 'Engineering Scalable Digital Assets with Velocity',
     },
     robots: {
         index: true,
@@ -69,14 +69,23 @@ export default function RootLayout({ children }) {
     return (
         <html
             lang="en"
-            suppressHydrationWarning
+            suppressHydrationWarning={true}
             data-scroll-behavior="smooth"
             className={`${geistSans.variable} ${geistMono.variable} ${spaceGrotesk.variable} h-full antialiased dark`}
         >
             <head>
+                {/* JSON-LD with unique key and suppression to avoid extension interference */}
                 <script
+                    key="json-ld"
                     type="application/ld+json"
                     dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+                    suppressHydrationWarning={true}
+                />
+                {/* External Tracking Script */}
+                <script 
+                    async 
+                    src="https://analytics.zapform.ai/api/tracking-script/cmou2x91o0006i6041glff0u0"
+                    suppressHydrationWarning={true}
                 />
             </head>
             <body className="antialiased bg-background text-foreground" suppressHydrationWarning={true}>
