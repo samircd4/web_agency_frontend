@@ -75,30 +75,37 @@ export default function ServiceCard({ service }) {
 
             {/* Navigation Arrows */}
             {hasMultipleImages && (
-              <div className="absolute inset-0 flex items-center justify-between p-2 opacity-0 group-hover/image:opacity-100 transition-opacity z-10">
+              <div className="absolute inset-0 flex items-center justify-between p-2 z-10">
                 <button 
                   onClick={handlePrevImage}
-                  className="w-7 h-7 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center text-white hover:bg-brand-teal hover:border-brand-teal transition-all"
+                  className="w-7 h-7 rounded-full bg-black/60 backdrop-blur-md border border-white/10 flex items-center justify-center text-white hover:bg-brand-teal hover:border-brand-teal transition-all shadow-lg"
                 >
                   <ChevronLeft size={16} />
                 </button>
                 <button 
                   onClick={handleNextImage}
-                  className="w-7 h-7 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center text-white hover:bg-brand-teal hover:border-brand-teal transition-all"
+                  className="w-7 h-7 rounded-full bg-black/60 backdrop-blur-md border border-white/10 flex items-center justify-center text-white hover:bg-brand-teal hover:border-brand-teal transition-all shadow-lg"
                 >
                   <ChevronRight size={16} />
                 </button>
               </div>
             )}
 
-            {/* Pagination Dots */}
+            {/* Tiny Thumbnail Strip */}
             {hasMultipleImages && (
-              <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5 z-10">
-                {displayImages.map((_, idx) => (
-                  <div 
+              <div className="absolute bottom-2 left-2 right-2 flex justify-center gap-1.5 z-10 py-1.5 px-2 bg-black/30 backdrop-blur-md rounded-xl border border-white/5 opacity-0 group-hover/image:opacity-100 transition-opacity duration-300">
+                {displayImages.map((img, idx) => (
+                  <button 
                     key={idx}
-                    className={`h-1 rounded-full transition-all duration-300 ${activeImageIndex === idx ? 'w-4 bg-brand-teal' : 'w-1 bg-white/40'}`}
-                  />
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setActiveImageIndex(idx);
+                    }}
+                    className={`relative w-8 h-6 rounded-md overflow-hidden border transition-all ${activeImageIndex === idx ? 'border-brand-teal scale-110' : 'border-transparent opacity-60 hover:opacity-100'}`}
+                  >
+                    <Image src={img} alt={`Thumb ${idx}`} fill className="object-cover" />
+                  </button>
                 ))}
               </div>
             )}
