@@ -37,7 +37,7 @@ export default function Hero() {
         <section
             ref={containerRef}
             onMouseMove={handleMouseMove}
-            className="group relative min-h-[85vh] flex items-center pt-16 pb-8 md:pt-24 md:pb-16 overflow-hidden bg-background"
+            className="group relative min-h-[85vh] flex items-center pt-16 pb-4 md:pt-24 md:pb-8 overflow-hidden bg-background"
         >
             {/* Interactive Glow */}
             <motion.div
@@ -208,7 +208,7 @@ export default function Hero() {
             </motion.div>
 
             {/* Bottom Gradient Fade */}
-            <div className="absolute bottom-0 left-0 w-full h-48 bg-gradient-to-t from-background to-transparent pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-background to-transparent pointer-events-none" />
         </section>
     );
 }

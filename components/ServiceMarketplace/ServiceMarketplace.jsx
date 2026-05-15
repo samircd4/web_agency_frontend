@@ -64,19 +64,8 @@ export default function ServiceMarketplace() {
   }, [searchQuery, filters]);
 
   return (
-    <div className="container mx-auto px-6 py-12">
-      {/* Mobile Filter Trigger */}
-      <div className="lg:hidden flex gap-4 mb-8">
-        <button 
-          onClick={() => setShowMobileFilters(true)}
-          className="flex-grow flex items-center justify-center gap-3 py-4 bg-surface-900 border border-white/10 rounded-2xl text-white font-bold"
-        >
-          <Filter size={18} className="text-brand-teal" />
-          <span>Filters & Sort</span>
-        </button>
-      </div>
-
-      <div className="flex flex-col lg:flex-row gap-12 relative">
+    <div className="container mx-auto px-6 pt-2 pb-12">
+      <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 relative">
         
         {/* Desktop Sidebar */}
         <div className="hidden lg:block">
@@ -130,11 +119,19 @@ export default function ServiceMarketplace() {
 
         {/* Grid Area */}
         <div className="flex-grow">
-          {/* Results Count */}
-          <div className="flex items-center justify-between mb-8">
-            <p className="text-slate-400 text-sm">
+          {/* Results Count & Mobile Filter */}
+          <div className="flex items-center justify-between mb-6 md:mb-8">
+            <p className="text-slate-400 text-xs md:text-sm">
               Found <span className="text-white font-bold">{filteredServices.length}</span> mission-critical services
             </p>
+
+            <button 
+              onClick={() => setShowMobileFilters(true)}
+              className="lg:hidden flex items-center gap-2 px-4 py-2.5 bg-surface-900 border border-white/10 rounded-xl text-white font-bold text-xs"
+            >
+              <Filter size={14} className="text-brand-teal" />
+              <span>Filters</span>
+            </button>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">

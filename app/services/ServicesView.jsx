@@ -5,7 +5,7 @@ import Expertise from '@/components/Expertise';
 export default function ServicesView() {
     return (
         <main className="pt-32 pb-24 bg-background">
-            <div className="container mx-auto px-6 mb-20 text-center">
+            <div className="container mx-auto px-6 mb-8 text-center">
                 <h1 className="text-6xl md:text-8xl font-black text-white mb-8 tracking-tighter leading-[0.9]">
                     Our <span className="text-gradient-red">Capabilities.</span>
                 </h1>
@@ -16,9 +16,7 @@ export default function ServicesView() {
             
             <ServiceMarketplace />
 
-            <div className="mt-24">
-                <Expertise />
-            </div>
+            <Expertise />
         </main>
     );
 }
