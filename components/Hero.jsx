@@ -156,6 +156,7 @@ export default function Hero() {
                                     alt="Technical System Visual"
                                     fill
                                     sizes="(max-width: 1024px) 100vw, 600px"
+                                    priority
                                     className="object-cover opacity-80"
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-tr from-background via-transparent to-transparent opacity-60" />

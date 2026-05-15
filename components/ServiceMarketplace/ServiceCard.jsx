@@ -95,17 +95,31 @@ export default function ServiceCard({ service }) {
             {hasMultipleImages && (
               <div className="absolute bottom-2 left-2 right-2 flex justify-center gap-1.5 z-10 py-1.5 px-2 bg-black/30 backdrop-blur-md rounded-xl border border-white/5 opacity-0 group-hover/image:opacity-100 transition-opacity duration-300">
                 {displayImages.map((img, idx) => (
-                  <button 
+                  <div 
                     key={idx}
+                    role="button"
+                    tabIndex={0}
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
                       setActiveImageIndex(idx);
                     }}
-                    className={`relative w-8 h-6 rounded-md overflow-hidden border transition-all ${activeImageIndex === idx ? 'border-brand-teal scale-110' : 'border-transparent opacity-60 hover:opacity-100'}`}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        setActiveImageIndex(idx);
+                      }
+                    }}
+                    className={`relative w-8 h-6 rounded-md overflow-hidden border transition-all cursor-pointer ${activeImageIndex === idx ? 'border-brand-teal scale-110' : 'border-transparent opacity-60 hover:opacity-100'}`}
                   >
-                    <Image src={img} alt={`Thumb ${idx}`} fill className="object-cover" />
-                  </button>
+                    <Image 
+                      src={img} 
+                      alt={`Thumb ${idx}`} 
+                      fill 
+                      sizes="32px"
+                      className="object-cover" 
+                    />
+                  </div>
                 ))}
               </div>
             )}

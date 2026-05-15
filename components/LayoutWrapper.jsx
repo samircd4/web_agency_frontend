@@ -11,10 +11,7 @@ export default function LayoutWrapper({ children }) {
 
     if (isDashboard) {
         return (
-            <>
-                <main>{children}</main>
-                <Chatbot />
-            </>
+            <main>{children}</main>
         );
     }
 
