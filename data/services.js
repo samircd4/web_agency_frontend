@@ -11,8 +11,14 @@ export const mockServices = [
     },
     rating: 5.0,
     reviews: 31,
-    price: 180,
     image: "/images/service-code.png",
+    gallery: [
+      "/images/service-code.png",
+      "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=1200&q=80&fit=crop",
+      "https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=1200&q=80&fit=crop",
+      "https://images.unsplash.com/photo-1504639725590-34d0984388bd?w=1200&q=80&fit=crop",
+      "/images/service-data.png"
+    ],
     badges: ["Premium", "Pro", "Level 1"],
     isNew: false,
     delivery: "Up to 3 days",
@@ -125,6 +131,15 @@ When you hire me, you aren't getting a freelancer; you're getting a software arc
     reviews: 120,
     price: 450,
     image: "/images/service-code.png",
+    gallery: [
+      "/images/service-code.png",
+      "https://images.unsplash.com/photo-1516116216624-53e697fedbea?w=1200&q=80&fit=crop",
+      "https://images.unsplash.com/photo-1551033406-611cf9a28f67?w=1200&q=80&fit=crop",
+      "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=1200&q=80&fit=crop",
+      "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=1200&q=80&fit=crop",
+      "https://images.unsplash.com/photo-1531297484001-80022131f5a1?w=1200&q=80&fit=crop",
+      "/images/service-data.png"
+    ],
     badges: ["AI Powered", "New"],
     isNew: true,
     delivery: "Up to 5 days",
@@ -208,6 +223,15 @@ Data privacy is our top priority. We ensure that all customer interactions are e
     reviews: 85,
     price: 600,
     image: "/images/service-data.png",
+    gallery: [
+      "/images/service-data.png",
+      "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=1200&q=80&fit=crop",
+      "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1200&q=80&fit=crop",
+      "https://images.unsplash.com/photo-1563986768609-322da13575f3?w=1200&q=80&fit=crop",
+      "https://images.unsplash.com/photo-1558494949-ef010cbdcc51?w=1200&q=80&fit=crop",
+      "https://images.unsplash.com/photo-1510511459019-5dee997ddfdf?w=1200&q=80&fit=crop",
+      "/images/service-code.png"
+    ],
     badges: ["Certified", "Pro"],
     isNew: false,
     delivery: "Up to 10 days",

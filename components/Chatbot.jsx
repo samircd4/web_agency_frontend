@@ -42,12 +42,42 @@ export default function Chatbot() {
         }, 2000);
     };
 
+    const chatRef = useRef(null);
+    const toggleRef = useRef(null);
+
+    // Close on click outside
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            // Check if chat is open and click is outside the chat window
+            // and NOT on the toggle button (to prevent immediate close after open)
+            if (isOpen && 
+                chatRef.current && 
+                !chatRef.current.contains(event.target) &&
+                !event.target.closest('.chat-toggle-btn')
+            ) {
+                setIsOpen(false);
+            }
+        };
+
+        if (isOpen) {
+            // Use a small delay to ensure the opening click doesn't trigger the listener
+            const timer = setTimeout(() => {
+                document.addEventListener('click', handleClickOutside);
+            }, 0);
+            return () => {
+                clearTimeout(timer);
+                document.removeEventListener('click', handleClickOutside);
+            }
+        }
+    }, [isOpen]);
+
     return (
         <>
             {/* Chat Window Container */}
             <AnimatePresence>
                 {isOpen && (
                     <motion.div
+                        ref={chatRef}
                         initial={{ opacity: 0, y: 50 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: 50 }}
@@ -137,16 +167,18 @@ export default function Chatbot() {
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.8 }}
-                        className="fixed bottom-8 right-8 z-[100]"
+                        className="fixed bottom-20 right-4 sm:bottom-8 sm:right-8 z-[100]"
                     >
                         <motion.button
+                            ref={toggleRef}
                             whileHover={{ scale: 1.1 }}
                             whileTap={{ scale: 0.9 }}
                             onClick={() => setIsOpen(true)}
-                            className="w-16 h-16 bg-brand-teal text-white rounded-2xl flex items-center justify-center shadow-2xl shadow-brand-teal/40 border border-white/10 relative group"
+                            className="chat-toggle-btn w-12 h-12 sm:w-16 sm:h-16 bg-brand-teal text-white rounded-xl sm:rounded-2xl flex items-center justify-center shadow-2xl shadow-brand-teal/40 border border-white/10 relative group"
                         >
-                            <div className="absolute inset-0 bg-brand-teal rounded-2xl blur-xl opacity-20 group-hover:opacity-40 transition-opacity" />
-                            <MessageSquare size={28} />
+                            <div className="absolute inset-0 bg-brand-teal rounded-xl sm:rounded-2xl blur-xl opacity-20 group-hover:opacity-40 transition-opacity" />
+                            <MessageSquare size={20} className="sm:hidden" />
+                            <MessageSquare size={28} className="hidden sm:block" />
                         </motion.button>
                     </motion.div>
                 )}
