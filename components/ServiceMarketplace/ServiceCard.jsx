@@ -1,11 +1,13 @@
 import React, { useState } from 'react';
 import Image from 'next/image';
-import { Star, Heart, Clock, Eye } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Star, Heart, Clock, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 
 export default function ServiceCard({ service }) {
   const [isFavorite, setIsFavorite] = useState(false);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+  
   const {
     id,
     title,
@@ -14,10 +16,14 @@ export default function ServiceCard({ service }) {
     reviews,
     price,
     image,
+    gallery = [],
     delivery,
     views,
-    priceRange
   } = service;
+
+  // Use gallery if available, otherwise fallback to primary image
+  const displayImages = gallery.length > 0 ? gallery : [image];
+  const hasMultipleImages = displayImages.length > 1;
 
   const toggleFavorite = (e) => {
     e.preventDefault();
@@ -25,9 +31,21 @@ export default function ServiceCard({ service }) {
     setIsFavorite(!isFavorite);
   };
 
+  const handleNextImage = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setActiveImageIndex((prev) => (prev === displayImages.length - 1 ? 0 : prev + 1));
+  };
+
+  const handlePrevImage = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setActiveImageIndex((prev) => (prev === 0 ? displayImages.length - 1 : prev - 1));
+  };
+
   return (
-    <div className="relative h-full group">
-      {/* Link covers the entire card EXCEPT the favorite button */}
+    <div className="relative h-full group/card">
+      {/* Link covers the entire card EXCEPT the buttons */}
       <Link href={`/services/${id}`} className="block h-full">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -36,13 +54,54 @@ export default function ServiceCard({ service }) {
           className="bg-surface-900/50 rounded-3xl overflow-hidden border border-white/5 hover:border-brand-teal/30 transition-all flex flex-col h-full"
         >
           {/* Image Container */}
-          <div className="relative aspect-[4/3] overflow-hidden">
-            <Image
-              src={image}
-              alt={title}
-              fill
-              className="object-cover group-hover:scale-110 transition-transform duration-500"
-            />
+          <div className="relative aspect-[4/3] overflow-hidden group/image">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeImageIndex}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.3 }}
+                className="absolute inset-0"
+              >
+                <Image
+                  src={displayImages[activeImageIndex]}
+                  alt={title}
+                  fill
+                  className="object-cover group-hover/card:scale-110 transition-transform duration-700"
+                />
+              </motion.div>
+            </AnimatePresence>
+
+            {/* Navigation Arrows */}
+            {hasMultipleImages && (
+              <div className="absolute inset-0 flex items-center justify-between p-2 opacity-0 group-hover/image:opacity-100 transition-opacity z-10">
+                <button 
+                  onClick={handlePrevImage}
+                  className="w-7 h-7 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center text-white hover:bg-brand-teal hover:border-brand-teal transition-all"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <button 
+                  onClick={handleNextImage}
+                  className="w-7 h-7 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center text-white hover:bg-brand-teal hover:border-brand-teal transition-all"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+            )}
+
+            {/* Pagination Dots */}
+            {hasMultipleImages && (
+              <div className="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5 z-10">
+                {displayImages.map((_, idx) => (
+                  <div 
+                    key={idx}
+                    className={`h-1 rounded-full transition-all duration-300 ${activeImageIndex === idx ? 'w-4 bg-brand-teal' : 'w-1 bg-white/40'}`}
+                  />
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Content */}
@@ -55,7 +114,7 @@ export default function ServiceCard({ service }) {
                     {seller.name.charAt(0)}
                   </div>
                 </div>
-                <span className="text-xs font-medium text-slate-400 group-hover:text-white transition-colors">
+                <span className="text-xs font-medium text-slate-400 group-hover/card:text-white transition-colors">
                   {seller.name}
                 </span>
               </div>
@@ -67,7 +126,7 @@ export default function ServiceCard({ service }) {
             </div>
 
             {/* Title */}
-            <h3 className="text-sm md:text-base font-semibold text-white mb-4 line-clamp-2 leading-snug group-hover:text-brand-teal transition-colors h-12">
+            <h3 className="text-sm md:text-base font-semibold text-white mb-4 line-clamp-2 leading-snug group-hover/card:text-brand-teal transition-colors h-12">
               {title}
             </h3>
 
