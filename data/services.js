@@ -172,6 +172,28 @@ Data privacy is our top priority. We ensure that all customer interactions are e
       { step: 2, title: "Training", desc: "Fine-tuning the model for your specific needs." },
       { step: 3, title: "Deployment", desc: "Integrating with your website or messaging apps." }
     ],
+    clientReviews: [
+      { 
+        name: "Alex R.", 
+        text: "The RAG implementation is flawless. Our bot knows our business better than some of our staff!", 
+        rating: 5,
+        date: "3 days ago",
+        budget: "$950 - $1,200",
+        duration: "7 days"
+      },
+      { 
+        name: "Maria G.", 
+        text: "Incredible AI knowledge. Helped us automate 70% of our support tickets in just one week.", 
+        rating: 5,
+        date: "2 weeks ago",
+        budget: "$1,800 - $2,500",
+        duration: "14 days"
+      }
+    ],
+    faqs: [
+      { q: "Is our data used to train the global GPT model?", a: "No. Your data is stored in a private vector database and is only accessible by your specific AI instance." },
+      { q: "How long does it take to train the bot?", a: "Standard training takes 2-3 days once we have your documentation." }
+    ],
     tiers: {
       basic: { price: 450, title: "Basic Bot", desc: "Simple FAQ bot with standard GPT-4.", delivery: "3 Days", revisions: "2", features: ["GPT-4o API", "50 FAQ training", "Web Widget", "Basic UI", "Analytics", "Lead Form", "History", "History", "History", "History"] },
       standard: { price: 950, title: "Knowledge Bot", desc: "Bot trained on your custom documents.", delivery: "7 Days", revisions: "5", features: ["Full RAG Setup", "Unlimited Docs", "WhatsApp API", "Voice Input", "Custom Persona", "Sales Logic", "Calendar Sync", "CRM Hook", "Memory", "Standard QA"] },
@@ -233,6 +255,28 @@ We aren't just "scanners." We are security researchers who understand the underl
       { step: 1, title: "Scope", desc: "Defining targets and testing boundaries." },
       { step: 2, title: "Exploitation", desc: "Attempting to bypass security controls." },
       { step: 3, title: "Reporting", desc: "Detailed breakdown of findings and fixes." }
+    ],
+    clientReviews: [
+      { 
+        name: "TechCorp CEO", 
+        text: "Very professional. Identified several critical zero-day vulnerabilities we missed during our internal audit.", 
+        rating: 5,
+        date: "1 month ago",
+        budget: "$2,500+",
+        duration: "10 days"
+      },
+      { 
+        name: "StartupFounder", 
+        text: "The remediation guide was so easy to follow. Our dev team fixed everything in 48 hours.", 
+        rating: 5,
+        date: "3 weeks ago",
+        budget: "$1,200 - $1,500",
+        duration: "7 days"
+      }
+    ],
+    faqs: [
+      { q: "Will the testing disrupt our live site?", a: "No, we perform testing in a non-destructive manner and can schedule high-intensity scans during off-peak hours." },
+      { q: "Do you provide a re-test after we fix the issues?", a: "Yes, all our tiers include a follow-up verification scan to ensure your patches are effective." }
     ],
     tiers: {
       basic: { price: 600, title: "Standard Scan", desc: "Automated vulnerability assessment.", delivery: "3 Days", revisions: "1", features: ["OWASP Scan", "Port Audit", "SSL Check", "XSS Check", "SQLi Scan", "Info Leak", "Dep Audit", "Summary", "Fix List", "Standard Tool"] },
