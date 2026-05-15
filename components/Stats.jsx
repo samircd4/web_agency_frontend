@@ -12,7 +12,7 @@ const stats = [
 
 export default function Stats() {
     return (
-        <section className="py-8 md:py-12 relative overflow-hidden bg-slate-950">
+        <section className="py-6 md:py-8 relative overflow-hidden bg-slate-950">
             {/* Engineering Grid Background */}
             <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
                 style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '30px 30px' }} />
@@ -27,11 +27,11 @@ export default function Stats() {
                             viewport={{ once: true }}
                             transition={{ delay: index * 0.1 }}
                         >
-                            <h3 className={`text-5xl md:text-6xl font-black mb-4 ${stat.color} tracking-tighter drop-shadow-2xl`}>
+                            <h3 className={`text-4xl md:text-5xl font-black mb-2 ${stat.color} tracking-tighter drop-shadow-2xl`}>
                                 {stat.value}
                             </h3>
-                            <div className="w-10 h-0.5 bg-slate-800 mx-auto mb-4" />
-                            <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.3em]">
+                            <div className="w-8 h-0.5 bg-slate-800 mx-auto mb-2" />
+                            <p className="text-slate-500 text-[9px] font-black uppercase tracking-[0.3em]">
                                 {stat.label}
                             </p>
                         </motion.div>

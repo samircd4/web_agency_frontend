@@ -42,15 +42,15 @@ export default function Navbar() {
     if (!mounted) return (
         <nav className="fixed top-0 left-0 w-full z-[100] py-4">
             <div className="w-full md:container mx-auto px-0 md:px-6">
-                <div className="glass border-white/10 rounded-none md:rounded-[2rem] px-6 md:px-8 py-4 flex items-center justify-between bg-white/5 h-16" />
+                <div className="glass border-white/10 rounded-none md:rounded-xl px-6 md:px-8 py-4 flex items-center justify-between bg-white/5 h-16" />
             </div>
         </nav>
     );
 
     return (
-        <nav className={`fixed top-0 left-0 w-full z-[100] transition-all duration-500 ${scrolled ? 'py-0 md:py-4' : 'py-4 md:py-8'}`}>
+        <nav className={`fixed top-0 left-0 w-full z-[100] transition-all duration-500 ${scrolled ? 'py-0 md:py-2' : 'py-2 md:py-4'}`}>
             <div className="w-full md:container mx-auto px-0 md:px-6">
-                <div className={`glass border-white/10 rounded-none md:rounded-[2rem] px-6 md:px-8 py-4 flex items-center justify-between transition-all duration-500 ${scrolled ? 'shadow-2xl bg-slate-950/90 backdrop-blur-md' : 'bg-white/5'}`}>
+                <div className={`glass border-white/10 rounded-none md:rounded-xl px-4 md:px-6 py-3 flex items-center justify-between transition-all duration-500 ${scrolled ? 'shadow-2xl bg-slate-950/90 backdrop-blur-md' : 'bg-white/5'}`}>
                     
                     {/* Logo */}
                     <Link href="/" className="flex items-center gap-3 group relative z-10">
@@ -127,18 +127,18 @@ export default function Navbar() {
                         <div className="flex-1 overflow-y-auto px-6 py-12 flex flex-col gap-4">
                             {navLinks.map((link, i) => (
                                 <motion.div key={link.name} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.1 }}>
-                                    <Link href={link.href} onClick={() => setIsMenuOpen(false)} className="flex items-center justify-between p-6 glass rounded-2xl border-white/5 text-white active:bg-white/10">
-                                        <span className="text-xl font-black uppercase tracking-widest">{link.name}</span>
-                                        <ChevronRight size={20} className="text-slate-500" />
+                                    <Link href={link.href} onClick={() => setIsMenuOpen(false)} className="flex items-center justify-between p-5 glass rounded-xl border-white/5 text-white active:bg-white/10">
+                                        <span className="text-lg font-black uppercase tracking-widest">{link.name}</span>
+                                        <ChevronRight size={18} className="text-slate-500" />
                                     </Link>
                                 </motion.div>
                             ))}
                             
                             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }} className="mt-4 flex flex-col gap-4">
-                                <Link href="/dashboard" onClick={() => setIsMenuOpen(false)} className="w-full flex items-center justify-center gap-3 py-6 glass border-white/10 text-white rounded-2xl font-black uppercase tracking-widest text-sm active:bg-white/10">
+                                <Link href="/dashboard" onClick={() => setIsMenuOpen(false)} className="w-full flex items-center justify-center gap-3 py-5 glass border-white/10 text-white rounded-xl font-black uppercase tracking-widest text-xs active:bg-white/10">
                                     <LayoutDashboard size={18} className="text-brand-teal" /> Client Dashboard
                                 </Link>
-                                <Link href="/start-project" onClick={() => setIsMenuOpen(false)} className="w-full flex items-center justify-center gap-3 py-6 bg-brand-teal text-white rounded-2xl font-black uppercase tracking-widest text-sm shadow-2xl">
+                                <Link href="/start-project" onClick={() => setIsMenuOpen(false)} className="w-full flex items-center justify-center gap-3 py-5 bg-brand-teal text-white rounded-xl font-black uppercase tracking-widest text-xs shadow-2xl">
                                     Start Your Project <Zap size={18} />
                                 </Link>
                             </motion.div>

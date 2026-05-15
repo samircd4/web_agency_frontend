@@ -37,7 +37,7 @@ export default function Hero() {
         <section
             ref={containerRef}
             onMouseMove={handleMouseMove}
-            className="group relative min-h-[90vh] flex items-center pt-16 pb-10 md:pt-32 md:pb-24 overflow-hidden bg-background"
+            className="group relative min-h-[85vh] flex items-center pt-16 pb-8 md:pt-24 md:pb-16 overflow-hidden bg-background"
         >
             {/* Interactive Glow */}
             <motion.div
@@ -69,9 +69,9 @@ export default function Hero() {
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.2 }}
-                            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-brand-teal text-[10px] font-black tracking-[0.3em] uppercase mb-8 backdrop-blur-md"
+                            className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-brand-teal text-[9px] font-black tracking-[0.3em] uppercase mb-6 backdrop-blur-md"
                         >
-                            <Sparkles size={14} className="text-brand-red animate-pulse" />
+                            <Sparkles size={12} className="text-brand-red animate-pulse" />
                             <span>v4.2.0 Industrial Engine</span>
                         </motion.div>
 
@@ -79,7 +79,7 @@ export default function Hero() {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.3, duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
-                            className="text-4xl md:text-7xl font-black text-white tracking-tight leading-[1.05] mb-8"
+                            className="text-3xl md:text-6xl font-black text-white tracking-tight leading-[1.05] mb-6"
                         >
                             Engineering <br />
                             <span className="text-gradient-teal">High-Velocity</span> <br />
@@ -106,7 +106,7 @@ export default function Hero() {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.4, duration: 0.8 }}
-                            className="max-w-xl text-slate-400 text-base md:text-xl mb-12 leading-relaxed"
+                            className="max-w-xl text-slate-400 text-sm md:text-lg mb-8 leading-relaxed"
                         >
                             We build proprietary scraping networks and commerce engines that turn complex business logic into scalable digital assets.
                         </motion.p>
@@ -115,15 +115,15 @@ export default function Hero() {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.5 }}
-                            className="flex flex-col sm:flex-row gap-6 w-full sm:w-auto"
+                            className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto"
                         >
-                            <Link href="/start-project" className="group relative px-10 py-5 bg-brand-teal hover:bg-brand-teal/90 text-white rounded-2xl font-black text-sm uppercase tracking-widest flex items-center justify-center gap-3 transition-all duration-300 shadow-glow-teal hover:-translate-y-1">
+                            <Link href="/start-project" className="group relative px-8 py-4 bg-brand-teal hover:bg-brand-teal/90 text-white rounded-xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3 transition-all duration-300 shadow-glow-teal hover:-translate-y-1">
                                 Start Project
-                                <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                                <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
                             </Link>
 
-                            <button className="px-10 py-5 glass border-white/10 text-white rounded-2xl font-black text-sm uppercase tracking-widest flex items-center justify-center gap-3 transition-all hover:bg-white/10 active:scale-95 group">
-                                <Code2 size={18} className="text-slate-400 group-hover:text-brand-teal transition-colors" />
+                            <button className="px-8 py-4 glass border-white/10 text-white rounded-xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3 transition-all hover:bg-white/10 active:scale-95 group">
+                                <Code2 size={16} className="text-slate-400 group-hover:text-brand-teal transition-colors" />
                                 View Systems
                             </button>
                         </motion.div>
@@ -149,8 +149,8 @@ export default function Hero() {
                                 className="absolute inset-10 border border-brand-red/10 rounded-full"
                             />
 
-                            {/* Main Visual Image */}
-                            <div className="absolute inset-4 rounded-[3rem] overflow-hidden glass border-white/10 shadow-premium">
+                             {/* Main Visual Image */}
+                            <div className="absolute inset-4 rounded-xl overflow-hidden glass border-white/10 shadow-premium">
                                 <Image
                                     src="/images/hero/tech-visual.png"
                                     alt="Technical System Visual"
@@ -164,15 +164,15 @@ export default function Hero() {
                                 <motion.div
                                     animate={{ y: [0, -10, 0] }}
                                     transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                                    className="absolute bottom-8 left-8 p-6 glass border-white/10 rounded-2xl shadow-2xl backdrop-blur-2xl"
+                                    className="absolute bottom-6 left-6 p-4 glass border-white/10 rounded-xl shadow-2xl backdrop-blur-2xl"
                                 >
-                                    <div className="flex items-center gap-4 mb-3">
-                                        <div className="w-10 h-10 bg-brand-red/20 rounded-xl flex items-center justify-center text-brand-red">
-                                            <Zap size={20} />
+                                    <div className="flex items-center gap-3 mb-2.5">
+                                        <div className="w-8 h-8 bg-brand-red/20 rounded-lg flex items-center justify-center text-brand-red">
+                                            <Zap size={16} />
                                         </div>
                                         <div>
-                                            <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-0.5">Performance</p>
-                                            <p className="text-white font-bold">99.9% Efficiency</p>
+                                            <p className="text-[8px] font-black uppercase tracking-widest text-slate-500 mb-0.5">Performance</p>
+                                            <p className="text-white text-xs font-bold">99.9% Efficiency</p>
                                         </div>
                                     </div>
                                     <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
@@ -190,17 +190,17 @@ export default function Hero() {
                             <motion.div
                                 animate={{ y: [0, 20, 0], x: [0, 10, 0] }}
                                 transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                                className="absolute -top-10 -right-10 w-24 h-24 glass border-white/10 rounded-3xl flex items-center justify-center text-brand-teal shadow-2xl backdrop-blur-xl"
+                                className="absolute -top-10 -right-10 w-20 h-20 glass border-white/10 rounded-2xl flex items-center justify-center text-brand-teal shadow-2xl backdrop-blur-xl"
                             >
-                                <Database size={32} />
+                                <Database size={28} />
                             </motion.div>
 
                             <motion.div
                                 animate={{ y: [0, -20, 0], x: [0, -10, 0] }}
                                 transition={{ duration: 6, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-                                className="absolute -bottom-6 -right-6 w-20 h-20 glass border-white/10 rounded-3xl flex items-center justify-center text-brand-red shadow-2xl backdrop-blur-xl"
+                                className="absolute -bottom-6 -right-6 w-16 h-16 glass border-white/10 rounded-2xl flex items-center justify-center text-brand-red shadow-2xl backdrop-blur-xl"
                             >
-                                <ShoppingCart size={28} />
+                                <ShoppingCart size={24} />
                             </motion.div>
                         </div>
                     </motion.div>

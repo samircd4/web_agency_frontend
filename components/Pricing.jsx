@@ -188,19 +188,19 @@ export default function Pricing() {
         <div className="bg-background text-foreground overflow-hidden">
 
             {/* ── HERO ──────────────────────────────────────────────────── */}
-            <section className="relative min-h-[60vh] flex items-center pt-24 pb-12 overflow-hidden">
+            <section className="relative min-h-[50vh] flex items-center pt-20 pb-10 overflow-hidden">
                 <div className="absolute top-[-10%] right-[-10%] w-[55%] h-[55%] bg-brand-teal/5 rounded-full blur-[130px] animate-pulse-slow" />
                 <div className="absolute bottom-0 left-[-10%] w-[45%] h-[45%] bg-brand-red/5 rounded-full blur-[130px] animate-pulse-slow" style={{ animationDelay: '3s' }} />
                 <div className="absolute inset-0 opacity-[0.07] pointer-events-none [background-image:radial-gradient(var(--color-surface-700)_1px,transparent_1px)] [background-size:40px_40px]" />
 
-                <div className="container mx-auto px-6 relative z-10 text-center">
+                <div className="container mx-auto px-4 relative z-10 text-center">
                     <motion.div
                         initial={{ opacity: 0, y: -10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.1 }}
-                        className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-brand-teal text-[10px] font-black tracking-[0.3em] uppercase mb-8 backdrop-blur-md"
+                        className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-white/5 border border-white/10 text-brand-teal text-[9px] font-black tracking-[0.3em] uppercase mb-6 backdrop-blur-md"
                     >
-                        <Zap size={14} className="text-brand-red animate-pulse" />
+                        <Zap size={12} className="text-brand-red animate-pulse" />
                         <span>Transparent Pricing</span>
                     </motion.div>
 
@@ -208,7 +208,7 @@ export default function Pricing() {
                         initial={{ opacity: 0, y: 24 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.2, duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-                        className="text-4xl md:text-7xl font-black text-white tracking-tight leading-[1.05] mb-6"
+                        className="text-3xl md:text-6xl font-black text-white tracking-tight leading-[1.05] mb-5"
                     >
                         No Surprises. <br />
                         <span className="text-gradient-teal">Just Results.</span>
@@ -218,7 +218,7 @@ export default function Pricing() {
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.35, duration: 0.8 }}
-                        className="max-w-2xl mx-auto text-slate-400 text-base md:text-xl mb-4 leading-relaxed"
+                        className="max-w-xl mx-auto text-slate-400 text-sm md:text-lg mb-3 leading-relaxed"
                     >
                         Fixed-scope plans for projects of every size. Every quote is scoped before
                         a single line of code is written.
@@ -228,13 +228,13 @@ export default function Pricing() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.5 }}
-                        className="text-slate-600 text-sm font-bold uppercase tracking-widest"
+                        className="text-slate-600 text-[10px] font-bold uppercase tracking-widest"
                     >
                         All prices are one-time project fees — no hidden subscriptions
                     </motion.p>
                 </div>
 
-                <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-background to-transparent pointer-events-none" />
+                <div className="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-background to-transparent pointer-events-none" />
             </section>
 
             {/* ── PLAN CARDS ────────────────────────────────────────────── */}
@@ -248,7 +248,7 @@ export default function Pricing() {
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: false }}
                                 transition={{ delay: i * 0.1, duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-                                className={`relative flex flex-col rounded-[2rem] glass border transition-all duration-500 group
+                                className={`relative flex flex-col rounded-xl glass border transition-all duration-500 group
                                     ${plan.badge
                                         ? 'border-brand-red/40 shadow-glow-red'
                                         : 'border-white/5 hover:border-white/15'
@@ -261,42 +261,42 @@ export default function Pricing() {
                                     </div>
                                 )}
 
-                                <div className="p-8 flex flex-col flex-1">
+                                <div className="p-6 flex flex-col flex-1">
                                     {/* Header */}
-                                    <div className="mb-8">
-                                        <p className={`text-[10px] font-black uppercase tracking-[0.3em] text-${plan.color} mb-3`}>
+                                    <div className="mb-6">
+                                        <p className={`text-[9px] font-black uppercase tracking-[0.3em] text-${plan.color} mb-2`}>
                                             {plan.name}
                                         </p>
                                         <div className="flex items-end gap-2 mb-1">
-                                            <span className="text-3xl md:text-5xl font-black text-white tracking-tighter">
+                                            <span className="text-2xl md:text-4xl font-black text-white tracking-tighter">
                                                 {plan.price}
                                             </span>
                                         </div>
-                                        <p className="text-slate-600 text-[10px] font-bold uppercase tracking-widest mb-4">
+                                        <p className="text-slate-600 text-[9px] font-bold uppercase tracking-widest mb-3">
                                             {plan.suffix}
                                         </p>
-                                        <p className="text-slate-400 text-sm leading-relaxed">
+                                        <p className="text-slate-400 text-xs leading-relaxed">
                                             {plan.description}
                                         </p>
                                     </div>
 
                                     {/* Divider */}
-                                    <div className="h-px bg-white/5 mb-8" />
+                                    <div className="h-px bg-white/5 mb-6" />
 
                                     {/* Features */}
-                                    <ul className="space-y-3 flex-1 mb-10">
+                                    <ul className="space-y-2.5 flex-1 mb-8">
                                         {plan.features.map((f, fi) => (
                                             <li key={fi} className="flex items-start gap-3">
                                                 {f.included ? (
-                                                    <div className={`mt-0.5 shrink-0 w-5 h-5 rounded-full bg-${plan.color}/10 flex items-center justify-center`}>
-                                                        <Check size={11} className={`text-${plan.color}`} />
+                                                    <div className={`mt-0.5 shrink-0 w-4 h-4 rounded-full bg-${plan.color}/10 flex items-center justify-center`}>
+                                                        <Check size={10} className={`text-${plan.color}`} />
                                                     </div>
                                                 ) : (
-                                                    <div className="mt-0.5 shrink-0 w-5 h-5 rounded-full bg-white/5 flex items-center justify-center">
-                                                        <X size={11} className="text-slate-700" />
+                                                    <div className="mt-0.5 shrink-0 w-4 h-4 rounded-full bg-white/5 flex items-center justify-center">
+                                                        <X size={10} className="text-slate-700" />
                                                     </div>
                                                 )}
-                                                <span className={`text-sm ${f.included ? 'text-slate-300' : 'text-slate-600'}`}>
+                                                <span className={`text-xs ${f.included ? 'text-slate-300' : 'text-slate-600'}`}>
                                                     {f.text}
                                                 </span>
                                             </li>
@@ -306,7 +306,7 @@ export default function Pricing() {
                                     {/* CTA */}
                                     <Link
                                         href={plan.ctaHref}
-                                        className={`w-full py-4 rounded-xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-all duration-300 group/btn
+                                        className={`w-full py-3.5 rounded-lg font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 transition-all duration-300 group/btn
                                             ${plan.badge
                                                 ? 'bg-brand-red text-white hover:bg-brand-red/90 shadow-glow-red hover:-translate-y-1'
                                                 : `glass border-${plan.color}/20 text-white hover:border-${plan.color}/50 hover:bg-${plan.color}/5`
@@ -409,7 +409,7 @@ export default function Pricing() {
                         </div>
                     </ScrollReveal>
 
-                    <div className="max-w-3xl mx-auto glass border-white/5 rounded-[2.5rem] p-8 md:p-12">
+                    <div className="max-w-3xl mx-auto glass border-white/5 rounded-xl p-6 md:p-10">
                         {faqs.map((item, i) => (
                             <FAQItem key={i} item={item} index={i} />
                         ))}

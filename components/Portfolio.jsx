@@ -16,15 +16,15 @@ export default function Portfolio() {
         : projects.filter(p => p.category === activeFilter);
 
     return (
-        <section id="portfolio" className="py-12 bg-background relative overflow-hidden">
+        <section id="portfolio" className="py-8 bg-background relative overflow-hidden">
             {/* Ambient glows */}
             <div className="absolute top-1/4 left-0 w-96 h-96 bg-brand-teal/5 rounded-full blur-[120px] pointer-events-none" />
             <div className="absolute bottom-1/4 right-0 w-96 h-96 bg-brand-red/5 rounded-full blur-[120px] pointer-events-none" />
 
-            <div className="container mx-auto px-6 relative z-10">
+            <div className="container mx-auto px-4 relative z-10">
 
                 {/* ── Header ── */}
-                <div className="flex flex-col items-center mb-16 text-center">
+                <div className="flex flex-col items-center mb-8 text-center">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
@@ -40,7 +40,7 @@ export default function Portfolio() {
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ delay: 0.1 }}
-                        className="text-4xl md:text-6xl font-black text-white mb-6 tracking-tight"
+                        className="text-3xl md:text-5xl font-black text-white mb-4 tracking-tight"
                     >
                         Engineered <span className="text-gradient-teal">Excellence.</span>
                     </motion.h2>
@@ -83,14 +83,14 @@ export default function Portfolio() {
                                 className="group relative cursor-pointer"
                             >
                                 <Link href={`/portfolio/${project.id}`}>
-                                    <div className={`rounded-[2rem] border transition-all duration-500 bg-white/[0.03] backdrop-blur-sm ${
+                                    <div className={`rounded-xl border transition-all duration-500 bg-white/[0.03] backdrop-blur-sm ${
                                         project.isTeal
                                             ? 'border-white/10 hover:border-brand-teal/40 hover:shadow-[0_0_40px_0_rgba(0,200,150,0.10)]'
                                             : 'border-white/10 hover:border-brand-red/40  hover:shadow-[0_0_40px_0_rgba(232,69,69,0.10)]'
                                     }`}>
 
                                         {/* Image Container */}
-                                        <div className="relative w-full aspect-[16/9] overflow-hidden rounded-t-[2rem]">
+                                        <div className="relative w-full aspect-[16/9] overflow-hidden rounded-t-xl">
                                             <img
                                                 src={project.image}
                                                 alt={project.title}
@@ -125,22 +125,22 @@ export default function Portfolio() {
                                         </div>
 
                                         {/* Text block */}
-                                        <div className="p-6 flex flex-col gap-4 rounded-b-[2rem]">
-                                            <h3 className="text-2xl font-black text-white leading-tight tracking-tight group-hover:text-white transition-colors">
+                                        <div className="p-5 flex flex-col gap-3 rounded-b-xl">
+                                            <h3 className="text-xl font-black text-white leading-tight tracking-tight group-hover:text-white transition-colors">
                                                 {project.title}
                                             </h3>
 
-                                            <p className="text-slate-400 text-sm leading-relaxed line-clamp-2">
+                                            <p className="text-slate-400 text-xs leading-relaxed line-clamp-2">
                                                 {project.description}
                                             </p>
 
                                             {/* Tags + CTA row */}
                                             <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
-                                                <div className="flex flex-wrap gap-2">
+                                                <div className="flex flex-wrap gap-1.5">
                                                     {project.tags.slice(0, 3).map((tag) => (
                                                         <span
                                                             key={tag}
-                                                            className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-[9px] font-black text-slate-400 uppercase tracking-wider"
+                                                            className="px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-[8px] font-black text-slate-400 uppercase tracking-wider"
                                                         >
                                                             {tag}
                                                         </span>
@@ -148,13 +148,13 @@ export default function Portfolio() {
                                                 </div>
 
                                                 <div
-                                                    className={`flex-shrink-0 inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider whitespace-nowrap transition-all duration-300 group-hover:scale-105 ${
+                                                    className={`flex-shrink-0 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider whitespace-nowrap transition-all duration-300 group-hover:scale-105 ${
                                                         project.isTeal
                                                             ? 'bg-brand-teal text-white shadow-lg shadow-brand-teal/20'
                                                             : 'bg-brand-red  text-white shadow-lg shadow-brand-red/20'
                                                     }`}
                                                 >
-                                                    View Case Study
+                                                    Case Study
                                                 </div>
                                             </div>
                                         </div>

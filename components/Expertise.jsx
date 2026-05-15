@@ -39,18 +39,18 @@ const skills = [
 
 export default function Expertise() {
     return (
-        <section id="expertise" className="py-12 bg-background relative overflow-hidden">
+        <section id="expertise" className="py-8 bg-background relative overflow-hidden">
             <div className="w-full md:container mx-auto px-0 md:px-6">
                 <div className="grid lg:grid-cols-2 gap-12 items-center px-6 md:px-0">
                     
                     {/* Content Section */}
                     <div>
                         <ScrollReveal>
-                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-red/10 border border-brand-red/20 text-brand-red text-[10px] font-black tracking-[0.2em] uppercase mb-6">
-                                <Zap size={12} fill="currentColor" />
+                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-brand-red/10 border border-brand-red/20 text-brand-red text-[9px] font-black tracking-[0.2em] uppercase mb-4">
+                                <Zap size={11} fill="currentColor" />
                                 <span>Our Core</span>
                             </div>
-                            <h2 className="text-5xl md:text-6xl font-black text-white mb-6 tracking-tighter leading-[1.1]">
+                            <h2 className="text-3xl md:text-5xl font-black text-white mb-4 tracking-tighter leading-[1.1]">
                                 Built for <br />
                                 <span className="text-gradient-red">Performance.</span>
                             </h2>
@@ -73,7 +73,7 @@ export default function Expertise() {
                     </div>
 
                     {/* Bento Skills Grid */}
-                    <div id="tech-stack" className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div id="tech-stack" className="grid grid-cols-1 md:grid-cols-2 gap-3">
                         {skills.map((skill, index) => (
                             <motion.div
                                 key={index}
@@ -81,20 +81,20 @@ export default function Expertise() {
                                 whileInView={{ opacity: 1, scale: 1 }}
                                 viewport={{ once: false }}
                                 transition={{ delay: index * 0.1 }}
-                                className="group p-6 rounded-3xl glass border-white/5 hover:border-brand-red/30 transition-all duration-500"
+                                className="group p-5 rounded-xl glass border-white/5 hover:border-brand-red/30 transition-all duration-500"
                             >
-                                <div className="flex items-start justify-between mb-4">
-                                    <div className={`p-3 rounded-2xl bg-white/5 text-${skill.color} group-hover:scale-110 transition-transform duration-500`}>
+                                <div className="flex items-start justify-between mb-3">
+                                    <div className={`p-2.5 rounded-lg bg-white/5 text-${skill.color} group-hover:scale-110 transition-transform duration-500`}>
                                         {skill.icon}
                                     </div>
-                                    <div className={`text-[10px] font-black text-${skill.color} opacity-50 group-hover:opacity-100 transition-opacity`}>
+                                    <div className={`text-[9px] font-black text-${skill.color} opacity-50 group-hover:opacity-100 transition-opacity`}>
                                         {skill.level}%
                                     </div>
                                 </div>
-                                <h3 className="text-white font-bold text-sm uppercase tracking-widest mb-1 group-hover:text-brand-red transition-colors">
+                                <h3 className="text-white font-bold text-xs uppercase tracking-widest mb-1 group-hover:text-brand-red transition-colors">
                                     {skill.name}
                                 </h3>
-                                <p className="text-slate-500 text-[10px] font-medium leading-tight mb-4">
+                                <p className="text-slate-500 text-[9px] font-medium leading-tight mb-3">
                                     {skill.desc}
                                 </p>
                                 <div className="h-1 bg-white/5 rounded-full overflow-hidden">

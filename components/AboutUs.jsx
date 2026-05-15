@@ -70,21 +70,21 @@ export default function AboutUs() {
         <div className="bg-background text-foreground overflow-hidden">
 
             {/* ── HERO ────────────────────────────────────────────────────── */}
-            <section className="relative min-h-[72vh] flex items-center pt-24 pb-16 overflow-hidden">
+            <section className="relative min-h-[60vh] flex items-center pt-20 pb-12 overflow-hidden">
                 {/* Background blobs */}
                 <div className="absolute top-[-10%] right-[-10%] w-[55%] h-[55%] bg-brand-teal/5 rounded-full blur-[130px] animate-pulse-slow" />
                 <div className="absolute bottom-0 left-[-10%] w-[45%] h-[45%] bg-brand-red/5 rounded-full blur-[130px] animate-pulse-slow" style={{ animationDelay: '3s' }} />
                 <div className="absolute inset-0 opacity-[0.07] pointer-events-none [background-image:radial-gradient(var(--color-surface-700)_1px,transparent_1px)] [background-size:40px_40px]" />
 
-                <div className="container mx-auto px-6 relative z-10">
+                <div className="container mx-auto px-4 relative z-10">
                     <div className="max-w-4xl">
                         <motion.div
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
                             transition={{ delay: 0.1 }}
-                            className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 text-brand-teal text-[10px] font-black tracking-[0.3em] uppercase mb-8 backdrop-blur-md"
+                            className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-white/5 border border-white/10 text-brand-teal text-[9px] font-black tracking-[0.3em] uppercase mb-6 backdrop-blur-md"
                         >
-                            <Users size={14} className="text-brand-red animate-pulse" />
+                            <Users size={12} className="text-brand-red animate-pulse" />
                             <span>Who We Are</span>
                         </motion.div>
 
@@ -92,7 +92,7 @@ export default function AboutUs() {
                             initial={{ opacity: 0, y: 24 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.2, duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-                            className="text-4xl md:text-7xl font-black text-white tracking-tight leading-[1.05] mb-8"
+                            className="text-3xl md:text-6xl font-black text-white tracking-tight leading-[1.05] mb-6"
                         >
                             Engineering <br />
                             <span className="text-gradient-teal">Digital Assets</span> <br />
@@ -103,7 +103,7 @@ export default function AboutUs() {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.35, duration: 0.8 }}
-                            className="max-w-2xl text-slate-400 text-base md:text-xl mb-12 leading-relaxed"
+                            className="max-w-2xl text-slate-400 text-sm md:text-lg mb-8 leading-relaxed"
                         >
                             Dr. Python Solutions is a boutique software engineering firm that builds
                             proprietary scraping networks, high-velocity commerce engines, and scalable
@@ -114,18 +114,18 @@ export default function AboutUs() {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: 0.45 }}
-                            className="flex flex-col sm:flex-row gap-4"
+                            className="flex flex-col sm:flex-row gap-3"
                         >
                             <Link
                                 href="/start-project"
-                                className="group px-10 py-5 bg-brand-teal hover:bg-brand-teal/90 text-white rounded-2xl font-black text-sm uppercase tracking-widest flex items-center justify-center gap-3 transition-all duration-300 shadow-glow-teal hover:-translate-y-1"
+                                className="group px-8 py-4 bg-brand-teal hover:bg-brand-teal/90 text-white rounded-xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3 transition-all duration-300 shadow-glow-teal hover:-translate-y-1"
                             >
                                 Start a Project
-                                <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+                                <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
                             </Link>
                             <Link
                                 href="/portfolio"
-                                className="px-10 py-5 glass border-white/10 text-white rounded-2xl font-black text-sm uppercase tracking-widest flex items-center justify-center gap-3 transition-all hover:bg-white/10 active:scale-95"
+                                className="px-8 py-4 glass border-white/10 text-white rounded-xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3 transition-all hover:bg-white/10 active:scale-95"
                             >
                                 View Our Work
                             </Link>
@@ -201,7 +201,7 @@ export default function AboutUs() {
                         </div>
 
                         {/* Right – values bento grid */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                             {values.map((v, i) => (
                                 <motion.div
                                     key={v.title}
@@ -209,15 +209,15 @@ export default function AboutUs() {
                                     whileInView={{ opacity: 1, scale: 1 }}
                                     viewport={{ once: false }}
                                     transition={{ delay: i * 0.1 }}
-                                    className={`group p-6 rounded-3xl glass border-white/5 hover:border-${v.color}/30 transition-all duration-500`}
+                                    className={`group p-5 rounded-xl glass border-white/5 hover:border-${v.color}/30 transition-all duration-500`}
                                 >
-                                    <div className={`w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center text-${v.color} mb-4 group-hover:scale-110 transition-transform duration-500`}>
+                                    <div className={`w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center text-${v.color} mb-3 group-hover:scale-110 transition-transform duration-500`}>
                                         {v.icon}
                                     </div>
-                                    <h3 className={`text-white font-black text-sm uppercase tracking-widest mb-2 group-hover:text-${v.color} transition-colors`}>
+                                    <h3 className={`text-white font-black text-xs uppercase tracking-widest mb-1.5 group-hover:text-${v.color} transition-colors`}>
                                         {v.title}
                                     </h3>
-                                    <p className="text-slate-500 text-xs leading-relaxed">
+                                    <p className="text-slate-500 text-[11px] leading-relaxed">
                                         {v.desc}
                                     </p>
                                 </motion.div>
@@ -247,7 +247,7 @@ export default function AboutUs() {
                         </div>
                     </ScrollReveal>
 
-                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
                         {stack.map((item, i) => (
                             <motion.div
                                 key={item.name}
@@ -255,18 +255,18 @@ export default function AboutUs() {
                                 whileInView={{ opacity: 1, y: 0 }}
                                 viewport={{ once: false }}
                                 transition={{ delay: i * 0.08 }}
-                                className="group p-6 rounded-3xl glass border-white/5 hover:border-brand-teal/30 transition-all duration-500"
+                                className="group p-5 rounded-xl glass border-white/5 hover:border-brand-teal/30 transition-all duration-500"
                             >
-                                <div className="flex items-center justify-between mb-4">
+                                <div className="flex items-center justify-between mb-3">
                                     <div className="flex items-center gap-3">
-                                        <div className="p-3 rounded-2xl bg-white/5 text-brand-teal group-hover:scale-110 transition-transform duration-500">
+                                        <div className="p-2.5 rounded-xl bg-white/5 text-brand-teal group-hover:scale-110 transition-transform duration-500">
                                             {item.icon}
                                         </div>
-                                        <span className="text-white font-black text-sm uppercase tracking-widest">
+                                        <span className="text-white font-black text-xs uppercase tracking-widest">
                                             {item.name}
                                         </span>
                                     </div>
-                                    <span className="text-[10px] font-black text-brand-teal opacity-50 group-hover:opacity-100 transition-opacity">
+                                    <span className="text-[9px] font-black text-brand-teal opacity-50 group-hover:opacity-100 transition-opacity">
                                         {item.level}%
                                     </span>
                                 </div>
@@ -327,15 +327,15 @@ export default function AboutUs() {
                                     </div>
 
                                     {/* Content */}
-                                    <div className={`w-full md:w-1/2 pl-20 md:pl-0 ${i % 2 === 0 ? 'md:pl-12' : 'md:pr-12'}`}>
-                                        <div className="p-6 rounded-3xl glass border-white/5 hover:border-brand-teal/20 transition-all duration-500">
-                                            <div className="md:hidden inline-flex items-center px-3 py-1 rounded-full bg-brand-teal/10 border border-brand-teal/20 text-brand-teal text-[10px] font-black tracking-[0.2em] uppercase mb-3">
+                                    <div className={`w-full md:w-1/2 pl-16 md:pl-0 ${i % 2 === 0 ? 'md:pl-8' : 'md:pr-8'}`}>
+                                        <div className="p-5 rounded-xl glass border-white/5 hover:border-brand-teal/20 transition-all duration-500">
+                                            <div className="md:hidden inline-flex items-center px-3 py-1 rounded-lg bg-brand-teal/10 border border-brand-teal/20 text-brand-teal text-[9px] font-black tracking-[0.2em] uppercase mb-2">
                                                 {m.year}
                                             </div>
-                                            <h3 className="text-white font-black text-lg uppercase tracking-widest mb-2">
+                                            <h3 className="text-white font-black text-base uppercase tracking-widest mb-1.5">
                                                 {m.title}
                                             </h3>
-                                            <p className="text-slate-500 text-sm leading-relaxed">
+                                            <p className="text-slate-500 text-xs leading-relaxed">
                                                 {m.desc}
                                             </p>
                                         </div>

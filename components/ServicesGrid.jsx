@@ -46,30 +46,30 @@ const services = [
 
 export default function ServicesGrid() {
     return (
-        <section id="services" className="py-12 bg-background relative overflow-hidden">
+        <section id="services" className="py-8 bg-background relative overflow-hidden">
             <div className="w-full md:container mx-auto px-0 md:px-6">
-                <div className="text-center mb-20 px-6 md:px-0">
+                <div className="text-center mb-10 px-6 md:px-0">
                     <ScrollReveal>
-                        <h2 className="text-4xl md:text-6xl font-black text-white mb-6 tracking-tight">
+                        <h2 className="text-3xl md:text-5xl font-black text-white mb-4 tracking-tight">
                             Mission Critical <span className="text-gradient-red">Services.</span>
                         </h2>
                     </ScrollReveal>
                     <ScrollReveal delay={0.2}>
-                        <p className="text-slate-400 text-lg max-w-2xl mx-auto">
+                        <p className="text-slate-400 text-base max-w-2xl mx-auto">
                             We don&apos;t just provide services; we engineer the competitive advantages that drive your business forward.
                         </p>
                     </ScrollReveal>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 px-6 md:px-0">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 px-6 md:px-0">
                     {services.map((service, index) => (
                         <ScrollReveal key={index} delay={index * 0.1}>
-                            <div className="p-8 rounded-[2.5rem] glass border border-white/5 h-full hover:border-brand-teal/30 transition-all group">
-                                <div className={`w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-500`}>
+                            <div className="p-6 rounded-xl glass border border-white/5 h-full hover:border-brand-teal/30 transition-all group">
+                                <div className={`w-12 h-12 rounded-lg bg-white/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-500`}>
                                     {service.icon}
                                 </div>
-                                <h3 className="text-2xl font-black text-white mb-4 uppercase tracking-tight">{service.title}</h3>
-                                <p className="text-slate-400 leading-relaxed">{service.description}</p>
+                                <h3 className="text-xl font-black text-white mb-3 uppercase tracking-tight">{service.title}</h3>
+                                <p className="text-slate-400 text-sm leading-relaxed">{service.description}</p>
                             </div>
                         </ScrollReveal>
                     ))}

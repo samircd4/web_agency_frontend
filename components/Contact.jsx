@@ -11,22 +11,22 @@ export default function Contact() {
             <div className="absolute top-1/2 right-0 w-[40rem] h-[40rem] bg-brand-teal/5 rounded-full blur-[150px] pointer-events-none" />
 
             <div className="w-full md:container mx-auto px-0 md:px-6 relative z-10">
-                <div className="max-w-6xl mx-auto glass border-white/5 rounded-2xl md:rounded-[3rem] overflow-hidden shadow-premium">
+                <div className="max-w-6xl mx-auto glass border-white/5 rounded-xl overflow-hidden shadow-premium">
                     <div className="grid lg:grid-cols-2">
 
                         {/* Info Side */}
-                        <div className="p-4 md:p-12 lg:p-20 bg-white/[0.02] border-b lg:border-b-0 lg:border-r border-white/5">
+                        <div className="p-6 md:p-10 lg:p-12 bg-white/[0.02] border-b lg:border-b-0 lg:border-r border-white/5">
                             <motion.div
                                 initial={{ opacity: 0, x: -20 }}
                                 whileInView={{ opacity: 1, x: 0 }}
                                 viewport={{ once: true }}
                             >
-                                <span className="text-xs font-black uppercase tracking-[0.4em] text-brand-teal mb-6 block">Contact Us</span>
-                                <h2 className="text-3xl md:text-5xl lg:text-6xl font-black text-white mb-8 tracking-tighter leading-[0.9]">
+                                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-brand-teal mb-4 block">Contact Us</span>
+                                <h2 className="text-3xl md:text-5xl lg:text-5xl font-black text-white mb-6 tracking-tighter leading-[0.9]">
                                     Start your <br />
                                     <span className="text-gradient-teal">next project.</span>
                                 </h2>
-                                <p className="text-slate-400 text-base md:text-lg mb-12 leading-relaxed max-w-md">
+                                <p className="text-slate-400 text-sm md:text-lg mb-8 leading-relaxed max-w-md">
                                     Ready to scale your operations? Our team is here to help you build the right solution.
                                 </p>
 
@@ -52,17 +52,17 @@ export default function Contact() {
                                         },
                                     ].map((item, i) => (
                                         <div key={i} className="flex items-center gap-6 group">
-                                            <div className="w-14 h-14 rounded-2xl glass border-white/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-500 shadow-2xl">
+                                            <div className="w-12 h-12 rounded-xl glass border-white/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-500 shadow-2xl">
                                                 {item.icon}
                                             </div>
                                             <div>
-                                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">{item.label}</p>
+                                                <p className="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-0.5">{item.label}</p>
                                                 {item.href ? (
-                                                    <a href={item.href} className="text-white font-bold text-lg hover:text-brand-teal transition-colors">
+                                                    <a href={item.href} className="text-white font-bold text-base hover:text-brand-teal transition-colors">
                                                         {item.text}
                                                     </a>
                                                 ) : (
-                                                    <p className="text-white font-bold text-lg">{item.text}</p>
+                                                    <p className="text-white font-bold text-base">{item.text}</p>
                                                 )}
                                             </div>
                                         </div>
@@ -71,12 +71,12 @@ export default function Contact() {
                                     {/* Dashboard Link for Mobile */}
                                     <div className="md:hidden pt-6 border-t border-white/5">
                                         <Link href="/dashboard" className="flex items-center gap-6 group">
-                                            <div className="w-14 h-14 rounded-2xl glass border-white/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-500 shadow-2xl">
+                                            <div className="w-12 h-12 rounded-xl glass border-white/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-500 shadow-2xl">
                                                 <LayoutDashboard className="text-brand-teal" />
                                             </div>
                                             <div>
-                                                <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">Dashboard</p>
-                                                <p className="text-white font-bold text-lg hover:text-brand-teal transition-colors">
+                                                <p className="text-[9px] font-black uppercase tracking-widest text-slate-500 mb-0.5">Dashboard</p>
+                                                <p className="text-white font-bold text-base hover:text-brand-teal transition-colors">
                                                     Client Portal
                                                 </p>
                                             </div>
@@ -87,7 +87,7 @@ export default function Contact() {
                         </div>
 
                         {/* Form Side */}
-                        <div className="p-4 md:p-12 lg:p-20">
+                        <div className="p-6 md:p-10 lg:p-12">
                             {/* Form */}
                             <form className="space-y-5">
 
