@@ -3,9 +3,10 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
     Zap, Code2, Database, Terminal, Globe, Shield, ArrowRight,
-    Cpu, BarChart3, Layers, Users, Award, Clock, Target
+    Cpu, BarChart3, Layers, Users, Award, Clock, Target, Activity
 } from 'lucide-react';
 import ScrollReveal from './ScrollReveal';
 
@@ -76,59 +77,132 @@ export default function AboutUs() {
                 <div className="absolute bottom-0 left-[-10%] w-[45%] h-[45%] bg-brand-red/5 rounded-full blur-[130px] animate-pulse-slow" style={{ animationDelay: '3s' }} />
                 <div className="absolute inset-0 opacity-[0.07] pointer-events-none [background-image:radial-gradient(var(--color-surface-700)_1px,transparent_1px)] [background-size:40px_40px]" />
 
-                <div className="container mx-auto px-4 relative z-10">
-                    <div className="max-w-4xl">
-                        <motion.div
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.1 }}
-                            className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-white/5 border border-white/10 text-brand-teal text-[9px] font-black tracking-[0.3em] uppercase mb-6 backdrop-blur-md"
-                        >
-                            <Users size={12} className="text-brand-red animate-pulse" />
-                            <span>Who We Are</span>
-                        </motion.div>
-
-                        <motion.h1
-                            initial={{ opacity: 0, y: 24 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.2, duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-                            className="text-3xl md:text-6xl font-black text-white tracking-tight leading-[1.05] mb-6"
-                        >
-                            Engineering <br />
-                            <span className="text-gradient-teal">Digital Assets</span> <br />
-                            at Industrial Scale
-                        </motion.h1>
-
-                        <motion.p
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.35, duration: 0.8 }}
-                            className="max-w-2xl text-slate-400 text-sm md:text-lg mb-8 leading-relaxed"
-                        >
-                            Dr. Python Solutions is a boutique software engineering firm that builds
-                            proprietary scraping networks, high-velocity commerce engines, and scalable
-                            API infrastructures for ambitious businesses worldwide.
-                        </motion.p>
-
-                        <motion.div
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.45 }}
-                            className="flex flex-col sm:flex-row gap-3"
-                        >
-                            <Link
-                                href="/start-project"
-                                className="group px-8 py-4 bg-brand-teal hover:bg-brand-teal/90 text-white rounded-xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3 transition-all duration-300 shadow-glow-teal hover:-translate-y-1"
+                <div className="container mx-auto px-6 relative z-10">
+                    <div className="grid lg:grid-cols-2 gap-16 items-center">
+                        
+                        {/* Left Content */}
+                        <div className="flex flex-col items-start">
+                            <motion.div
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: 0.1 }}
+                                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-brand-teal text-[9px] font-black tracking-[0.3em] uppercase mb-6 backdrop-blur-md"
                             >
-                                Start a Project
-                                <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-                            </Link>
-                            <Link
-                                href="/portfolio"
-                                className="px-8 py-4 glass border-white/10 text-white rounded-xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3 transition-all hover:bg-white/10 active:scale-95"
+                                <Users size={12} className="text-brand-red animate-pulse" />
+                                <span>Who We Are</span>
+                            </motion.div>
+
+                            <motion.h1
+                                initial={{ opacity: 0, y: 24 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.2, duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+                                className="text-3xl md:text-6xl font-black text-white tracking-tight leading-[1.05] mb-6"
                             >
-                                View Our Work
-                            </Link>
+                                Engineering <br />
+                                <span className="text-gradient-teal">Digital Assets</span> <br />
+                                at Industrial Scale
+                            </motion.h1>
+
+                            <motion.p
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.35, duration: 0.8 }}
+                                className="max-w-xl text-slate-400 text-sm md:text-lg mb-8 leading-relaxed"
+                            >
+                                Dr. Python Solutions is a boutique software engineering firm that builds
+                                proprietary scraping networks, high-velocity commerce engines, and scalable
+                                API infrastructures for ambitious businesses worldwide.
+                            </motion.p>
+
+                            <motion.div
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.45 }}
+                                className="flex flex-col sm:flex-row gap-4"
+                            >
+                                <Link
+                                    href="/start-project"
+                                    className="group px-8 py-4 bg-brand-teal hover:bg-brand-teal/90 text-white rounded-xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3 transition-all duration-300 shadow-glow-teal hover:-translate-y-1"
+                                >
+                                    Start a Project
+                                    <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                                </Link>
+                                <Link
+                                    href="/portfolio"
+                                    className="px-8 py-4 glass border-white/10 text-white rounded-xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3 transition-all hover:bg-white/10 active:scale-95"
+                                >
+                                    View Our Work
+                                </Link>
+                            </motion.div>
+                        </div>
+
+                        {/* Right Visual Content */}
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 0.5, duration: 1.2, ease: "easeOut" }}
+                            className="relative hidden lg:block"
+                        >
+                            <div className="relative w-full aspect-square max-w-[500px] mx-auto">
+                                {/* Animated Rings */}
+                                <motion.div
+                                    animate={{ rotate: 360 }}
+                                    transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+                                    className="absolute inset-0 border border-brand-teal/10 rounded-full"
+                                />
+                                <motion.div
+                                    animate={{ rotate: -360 }}
+                                    transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                                    className="absolute inset-10 border border-brand-red/10 rounded-full"
+                                />
+
+                                {/* Main Visual Image */}
+                                <div className="absolute inset-4 rounded-2xl overflow-hidden glass border-white/10 shadow-2xl">
+                                    <Image
+                                        src="/images/about/engine-visual.png"
+                                        alt="Industrial Software Engineering"
+                                        fill
+                                        sizes="500px"
+                                        priority
+                                        className="object-cover opacity-90"
+                                    />
+                                    <div className="absolute inset-0 bg-gradient-to-tr from-background via-transparent to-transparent opacity-60" />
+
+                                    {/* Floating Stats Badge */}
+                                    <motion.div
+                                        animate={{ y: [0, -10, 0] }}
+                                        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
+                                        className="absolute top-6 right-6 p-4 glass border-white/10 rounded-xl shadow-2xl backdrop-blur-2xl"
+                                    >
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 bg-brand-teal/20 rounded-lg flex items-center justify-center text-brand-teal">
+                                                <Activity size={16} />
+                                            </div>
+                                            <div>
+                                                <p className="text-[7px] font-black uppercase tracking-widest text-slate-500 mb-0.5">Scale Factor</p>
+                                                <p className="text-white text-xs font-bold">100M+ Requests/mo</p>
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                </div>
+
+                                {/* Floating Decorative Icons */}
+                                <motion.div
+                                    animate={{ y: [0, 15, 0], x: [0, 5, 0] }}
+                                    transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
+                                    className="absolute -top-6 -left-6 w-16 h-16 glass border-white/10 rounded-2xl flex items-center justify-center text-brand-red shadow-2xl backdrop-blur-xl"
+                                >
+                                    <Globe size={24} />
+                                </motion.div>
+
+                                <motion.div
+                                    animate={{ y: [0, -15, 0], x: [0, -5, 0] }}
+                                    transition={{ duration: 8, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+                                    className="absolute -bottom-6 -right-6 w-20 h-20 glass border-white/10 rounded-2xl flex items-center justify-center text-brand-teal shadow-2xl backdrop-blur-xl"
+                                >
+                                    <Cpu size={28} />
+                                </motion.div>
+                            </div>
                         </motion.div>
                     </div>
                 </div>

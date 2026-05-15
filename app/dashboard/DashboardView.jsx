@@ -108,8 +108,8 @@ export default function DashboardView() {
         )}
       </AnimatePresence>
 
-      <aside className={`fixed left-0 top-0 bottom-0 w-64 bg-slate-950 border-r border-white/5 z-[101] flex flex-col p-6 transition-transform duration-300 lg:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
-        <div className="flex items-center justify-between mb-10">
+      <aside className={`fixed left-4 top-4 bottom-4 w-60 bg-slate-950/80 backdrop-blur-xl border border-white/5 z-[101] flex flex-col p-5 rounded-xl transition-transform duration-300 lg:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-[110%] lg:translate-x-0'} shadow-2xl shadow-black/50`}>
+        <div className="flex items-center justify-between mb-8">
           <Link href="/" className="flex items-center gap-3 group">
             <div className="relative w-8 h-8 group-hover:scale-110 transition-transform duration-500">
               <div className="absolute inset-0 bg-brand-teal/20 rounded-lg blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -148,9 +148,9 @@ export default function DashboardView() {
                 setActiveTab(item.id);
                 setIsSidebarOpen(false);
               }}
-              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${
+              className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-[11px] font-black uppercase tracking-widest transition-all ${
                 activeTab === item.id 
-                  ? 'bg-brand-teal/10 text-brand-teal border border-brand-teal/20' 
+                  ? 'bg-brand-teal/10 text-brand-teal border border-brand-teal/20 shadow-glow-teal/5' 
                   : 'text-slate-500 hover:text-white hover:bg-white/5'
               }`}
             >
@@ -163,16 +163,16 @@ export default function DashboardView() {
         {/* System Health */}
         <div className="mt-auto p-4 rounded-xl bg-white/[0.02] border border-white/5">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-[8px] font-black uppercase tracking-widest text-slate-500">Node Status</span>
+            <span className="text-[8px] font-black uppercase tracking-widest text-slate-500">System</span>
             <span className="flex h-1.5 w-1.5 rounded-full bg-brand-teal animate-pulse" />
           </div>
           <div className="space-y-2">
             <div className="flex items-center justify-between text-[9px] font-bold">
               <span>Uptime</span>
-              <span className="text-white">99.99%</span>
+              <span className="text-white">99.9%</span>
             </div>
             <div className="flex items-center justify-between text-[9px] font-bold">
-              <span>Latency</span>
+              <span>Ping</span>
               <span className="text-white">12ms</span>
             </div>
           </div>
@@ -180,16 +180,16 @@ export default function DashboardView() {
       </aside>
 
       {/* Main Content Area */}
-      <main className="lg:pl-64 min-h-screen relative">
+      <main className="lg:pl-[272px] min-h-screen relative p-6 pr-8">
         
-        {/* Top Header Bar */}
-        <header className="h-16 border-b border-white/5 flex items-center justify-between px-6 bg-slate-950/50 backdrop-blur-md sticky top-0 z-40">
+        {/* Floating Top Header */}
+        <header className="h-14 bg-slate-950/50 backdrop-blur-md border border-white/10 rounded-xl flex items-center justify-between px-5 mb-8 sticky top-6 z-40 shadow-xl shadow-black/20">
           <div className="flex items-center gap-3">
-            <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-2 -ml-2 text-slate-400 hover:text-white">
-              <Menu size={20} />
+            <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-2 -ml-1 text-slate-400 hover:text-white">
+              <Menu size={18} />
             </button>
-            <div className="hidden sm:flex items-center gap-3 bg-white/5 border border-white/5 rounded-lg px-4 py-1.5 w-80">
-              <Search size={14} className="text-slate-500" />
+            <div className="hidden sm:flex items-center gap-3 bg-white/5 border border-white/5 rounded-lg px-4 py-1.5 w-64 lg:w-96">
+              <Search size={13} className="text-slate-500" />
               <input 
                 type="text" 
                 placeholder="Search mission protocols..." 
@@ -198,33 +198,33 @@ export default function DashboardView() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <button 
               onClick={() => setActiveTab('comms')}
-              className="relative p-2 rounded-lg bg-white/5 text-slate-400 hover:text-white transition-all"
+              className="relative p-2 rounded-lg bg-white/5 text-slate-400 hover:text-white transition-all border border-white/5"
             >
-              <MessageSquare size={16} />
+              <MessageSquare size={14} />
               <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-brand-teal rounded-full border border-slate-950" />
             </button>
-            <button className="relative p-2 rounded-lg bg-white/5 text-slate-400 hover:text-white transition-all">
-              <Bell size={16} />
+            <button className="relative p-2 rounded-lg bg-white/5 text-slate-400 hover:text-white transition-all border border-white/5">
+              <Bell size={14} />
               <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-brand-red rounded-full border border-slate-950" />
             </button>
-            <div className="h-6 w-px bg-white/10 mx-1" />
-            <div className="flex items-center gap-3">
+            <div className="h-4 w-px bg-white/10 mx-1" />
+            <div className="flex items-center gap-3 ml-1">
               <div className="text-right hidden sm:block">
-                <div className="text-[9px] font-black text-white uppercase tracking-widest">Samir Labs</div>
-                <div className="text-[7px] font-bold text-brand-teal uppercase tracking-widest">Enterprise</div>
+                <div className="text-[10px] font-black text-white uppercase tracking-tight">Samir Labs</div>
+                <div className="text-[7px] font-bold text-brand-teal uppercase tracking-widest">Enterprise Node</div>
               </div>
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-teal to-brand-blue flex items-center justify-center font-black text-white text-xs">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-teal to-brand-blue flex items-center justify-center font-black text-white text-[10px] border border-white/10">
                 SL
               </div>
             </div>
           </div>
         </header>
 
-        {/* Dashboard Content */}
-        <div className="p-6 max-w-7xl mx-auto">
+        {/* Dashboard Content Container */}
+        <div className="w-full">
           
           <AnimatePresence mode="wait">
             {activeTab === 'missions' && (
