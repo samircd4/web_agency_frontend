@@ -48,7 +48,7 @@ export default function PortfolioDetailPage() {
               </p>
               
               {/* Project Info Bar */}
-              <div className="flex flex-wrap gap-8 mb-12 p-8 rounded-[2.5rem] bg-white/[0.02] border border-white/5">
+              <div className="flex flex-wrap gap-8 mb-12 p-8 rounded-3xl bg-white/[0.02] border border-white/5">
                 {infoItems.map((item, i) => (
                   <div key={i} className="flex items-center gap-4">
                     <div className={`w-10 h-10 rounded-xl ${project.isTeal ? 'bg-brand-teal/10 text-brand-teal' : 'bg-brand-red/10 text-brand-red'} flex items-center justify-center`}>
@@ -85,7 +85,7 @@ export default function PortfolioDetailPage() {
             </ScrollReveal>
           </div>
 
-          <div className="relative aspect-[4/3] rounded-[3rem] overflow-hidden border border-white/10 shadow-2xl">
+          <div className="relative aspect-[4/3] rounded-3xl overflow-hidden border border-white/10 shadow-2xl">
             <img 
               src={project.image} 
               alt={project.title} 
@@ -94,7 +94,7 @@ export default function PortfolioDetailPage() {
             <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-transparent to-transparent" />
             
             {/* Metric Overlay */}
-            <div className="absolute bottom-8 left-8 right-8 p-8 glass rounded-[2rem] border border-white/10 flex items-center justify-between">
+            <div className="absolute bottom-8 left-8 right-8 p-8 glass rounded-2xl border border-white/10 flex items-center justify-between">
               <div>
                 <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">{project.metrics.label}</p>
                 <p className={`text-3xl font-black ${project.isTeal ? 'text-brand-teal' : 'text-brand-red'}`}>{project.metrics.value}</p>
@@ -109,7 +109,7 @@ export default function PortfolioDetailPage() {
         {/* Deep Dive Sections */}
         <div className="grid md:grid-cols-3 gap-8 mb-24">
           <ScrollReveal delay={0.1}>
-            <div className="p-10 rounded-[3rem] glass border border-white/5 h-full">
+            <div className="p-10 rounded-3xl glass border border-white/5 h-full">
               <div className="w-12 h-12 rounded-2xl bg-brand-red/10 flex items-center justify-center text-brand-red mb-6">
                 <Zap size={24} fill="currentColor" />
               </div>
@@ -121,7 +121,7 @@ export default function PortfolioDetailPage() {
           </ScrollReveal>
 
           <ScrollReveal delay={0.2}>
-            <div className="p-10 rounded-[3rem] glass border border-white/5 h-full">
+            <div className="p-10 rounded-3xl glass border border-white/5 h-full">
               <div className="w-12 h-12 rounded-2xl bg-brand-teal/10 flex items-center justify-center text-brand-teal mb-6">
                 <Layers size={24} />
               </div>
@@ -133,7 +133,7 @@ export default function PortfolioDetailPage() {
           </ScrollReveal>
 
           <ScrollReveal delay={0.3}>
-            <div className="p-10 rounded-[3rem] glass border border-white/5 h-full">
+            <div className="p-10 rounded-3xl glass border border-white/5 h-full">
               <div className="w-12 h-12 rounded-2xl bg-brand-indigo/10 flex items-center justify-center text-brand-indigo mb-6">
                 <ShieldCheck size={24} />
               </div>
@@ -154,7 +154,7 @@ export default function PortfolioDetailPage() {
         <ScrollReveal>
           <div className="mb-24">
             <h2 className="text-3xl font-black text-white mb-8 uppercase tracking-tighter">Project Overview</h2>
-            <div className="p-12 rounded-[4rem] glass border border-white/5 bg-gradient-to-br from-white/[0.02] to-transparent">
+            <div className="p-12 rounded-3xl glass border border-white/5 bg-gradient-to-br from-white/[0.02] to-transparent">
               <p className="text-slate-300 text-lg leading-relaxed font-medium">
                 {project.detailedDescription || project.fullDescription}
               </p>

@@ -44,7 +44,7 @@ export default function Expertise() {
                 <div className="grid lg:grid-cols-2 gap-12 items-center px-6 md:px-0">
                     
                     {/* Content Section */}
-                    <div>
+                    <div className="flex flex-col items-center text-center">
                         <ScrollReveal>
                             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-brand-red/10 border border-brand-red/20 text-brand-red text-[9px] font-black tracking-[0.2em] uppercase mb-4">
                                 <Zap size={11} fill="currentColor" />
@@ -61,11 +61,11 @@ export default function Expertise() {
                             </p>
                         </ScrollReveal>
                         <ScrollReveal delay={0.3}>
-                            <div className="flex gap-4">
-                                <Link href="/tech-stack" className="px-8 py-4 bg-brand-red text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-all hover:shadow-glow-red hover:-translate-y-1">
+                            <div className="flex flex-row justify-center flex-wrap gap-4 w-full">
+                                <Link href="/tech-stack" className="px-8 py-4 bg-brand-red text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-all hover:shadow-glow-red hover:-translate-y-1 text-center">
                                     View Stack
                                 </Link>
-                                <Link href="/our-process" className="px-8 py-4 glass text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-all hover:bg-white/10">
+                                <Link href="/our-process" className="px-8 py-4 glass text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-all hover:bg-white/10 text-center">
                                     Process
                                 </Link>
                             </div>

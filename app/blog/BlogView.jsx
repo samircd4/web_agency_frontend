@@ -31,7 +31,7 @@ export default function BlogView() {
           {posts.map((post, i) => (
             <ScrollReveal key={post.id} delay={i * 0.1}>
               <Link href={`/blog/${post.id}`} className="group block h-full">
-                <div className="relative h-full glass border-white/5 rounded-[3rem] overflow-hidden hover:border-brand-teal/30 transition-all flex flex-col">
+                <div className="relative h-full glass border-white/5 rounded-3xl overflow-hidden hover:border-brand-teal/30 transition-all flex flex-col">
                   {/* Image */}
                   <div className="relative aspect-video overflow-hidden">
                     <img 

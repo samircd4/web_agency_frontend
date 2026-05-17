@@ -80,7 +80,7 @@ export default function BlogPostDetail() {
 
         {/* Cover Image */}
         <div className="max-w-5xl mx-auto mb-16 px-0 md:px-12">
-          <div className="relative aspect-[21/9] rounded-[3rem] overflow-hidden border border-white/10 shadow-2xl">
+          <div className="relative aspect-[21/9] rounded-3xl overflow-hidden border border-white/10 shadow-2xl">
             <img src={post.image} alt={post.title} className="w-full h-full object-cover" />
             <div className="absolute inset-0 bg-gradient-to-t from-background/40 to-transparent" />
           </div>
@@ -119,7 +119,7 @@ export default function BlogPostDetail() {
           </div>
 
           {/* Footer CTA */}
-          <div className="mt-24 p-12 rounded-[3rem] glass border border-white/5 text-center">
+          <div className="mt-24 p-12 rounded-3xl glass border border-white/5 text-center">
             <h3 className="text-2xl font-black text-white mb-4 tracking-tight uppercase">Have a technical challenge?</h3>
             <p className="text-slate-400 mb-8 max-w-md mx-auto">
               Our engineering team specializes in solving high-stakes automation and data problems.
