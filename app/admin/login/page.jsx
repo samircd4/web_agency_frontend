@@ -1,12 +1,13 @@
 'use client';
 
+import { Suspense } from 'react';
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { Shield, Lock, User, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-export default function AdminLoginPage() {
+function LoginForm() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const from = searchParams.get('from') || '/admin';
@@ -158,5 +159,17 @@ export default function AdminLoginPage() {
                 </p>
             </motion.div>
         </div>
+    );
+}
+
+export default function AdminLoginPage() {
+    return (
+        <Suspense fallback={
+            <div className="min-h-screen bg-[#020617] flex items-center justify-center">
+                <div className="w-6 h-6 border-2 border-brand-teal/30 border-t-brand-teal rounded-full animate-spin" />
+            </div>
+        }>
+            <LoginForm />
+        </Suspense>
     );
 }
