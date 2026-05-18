@@ -54,22 +54,19 @@ export default function Navbar() {
 
                     {/* Logo */}
                     <Link href="/" className="flex items-center gap-2 group relative z-10">
-                        <div className="relative w-7 h-7 group-hover:scale-110 transition-transform duration-500">
-                            <div className="absolute inset-0 bg-brand-teal/20 rounded-full blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                            <div className="relative w-full h-full glass rounded-full flex items-center justify-center overflow-hidden border-white/10 group-hover:border-brand-teal/30">
-                                <Image
-                                    src="/images/logo/logo.png"
-                                    alt="Logo"
-                                    fill
-                                    sizes="28px"
-                                    priority
-                                    className="object-contain p-0.5"
-                                />
-                            </div>
+                        <div className="relative w-10 h-10 group-hover:scale-105 transition-transform duration-500">
+                            <Image
+                                src="/images/logo/logo.png"
+                                alt="Logo"
+                                fill
+                                sizes="40px"
+                                priority
+                                className="object-contain drop-shadow-lg"
+                            />
                         </div>
                         <div className="flex flex-col justify-center">
-                            <span className="text-[13px] font-black text-white tracking-tight leading-none">Dr.Python</span>
-                            <span className="text-[7px] font-bold text-brand-teal uppercase tracking-[0.2em] leading-none mt-0.5">Solutions</span>
+                            <span className="text-[16px] font-black text-white tracking-tight leading-none">Dr. Python</span>
+                            <span className="text-[10px] font-bold text-brand-teal uppercase tracking-[0.2em] leading-none mt-2">Solutions</span>
                         </div>
                     </Link>
 
@@ -117,8 +114,14 @@ export default function Navbar() {
                         {/* Overlay Header */}
                         <div className="flex items-center justify-between px-6 py-4 border-b border-white/5 bg-slate-950/50">
                             <div className="flex items-center gap-2">
-                                <div className="w-8 h-8 glass rounded-lg flex items-center justify-center overflow-hidden border-white/10">
-                                    <Image src="/images/logo/logo.png" alt="Logo" width={20} height={20} className="object-contain" />
+                                <div className="relative w-10 h-10">
+                                    <Image 
+                                        src="/images/logo/logo.png" 
+                                        alt="Dr. Python Solutions" 
+                                        fill 
+                                        sizes="48px"
+                                        className="object-contain"
+                                    />
                                 </div>
                                 <span className="text-white font-black text-xs uppercase tracking-widest">Menu</span>
                             </div>

@@ -118,18 +118,18 @@ export default function AboutUs() {
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: 0.45 }}
-                                className="flex flex-col sm:flex-row gap-4"
+                                className="flex flex-row gap-2 sm:gap-4 w-full sm:w-auto"
                             >
                                 <Link
                                     href="/start-project"
-                                    className="group px-8 py-4 bg-brand-teal hover:bg-brand-teal/90 text-white rounded-xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3 transition-all duration-300 shadow-glow-teal hover:-translate-y-1"
+                                    className="group flex-1 sm:flex-none px-2 sm:px-8 py-3 sm:py-4 bg-brand-teal hover:bg-brand-teal/90 text-white rounded-xl font-black text-[10px] sm:text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-all duration-300 shadow-glow-teal hover:-translate-y-1 text-center"
                                 >
-                                    Start a Project
-                                    <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                                    Start Project
+                                    <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform hidden sm:block" />
                                 </Link>
                                 <Link
                                     href="/portfolio"
-                                    className="px-8 py-4 glass border-white/10 text-white rounded-xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3 transition-all hover:bg-white/10 active:scale-95"
+                                    className="flex-1 sm:flex-none px-2 sm:px-8 py-3 sm:py-4 glass border-white/10 text-white rounded-xl font-black text-[10px] sm:text-xs uppercase tracking-widest flex items-center justify-center gap-2 transition-all hover:bg-white/10 active:scale-95 text-center leading-tight"
                                 >
                                     View Our Work
                                 </Link>
