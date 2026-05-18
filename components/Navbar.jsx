@@ -40,17 +40,17 @@ export default function Navbar() {
     }, [isMenuOpen]);
 
     if (!mounted) return (
-        <nav className="fixed top-0 left-0 w-full z-[100] py-0 md:py-2">
-            <div className="w-full md:container mx-auto px-0 md:px-6">
-                <div className="glass border-white/10 rounded-none md:rounded-2xl px-4 md:px-6 py-3 md:py-1.5 flex items-center justify-between bg-white/5 h-14 md:h-14" />
+        <nav className="fixed top-0 left-0 w-full z-[100] py-0 lg:py-2">
+            <div className="w-full lg:container mx-auto px-0 lg:px-6">
+                <div className="glass border-white/10 rounded-none lg:rounded-2xl px-4 md:px-6 py-3 flex items-center justify-between bg-white/5 h-14" />
             </div>
         </nav>
     );
 
     return (
-        <nav className={`fixed top-0 left-0 w-full z-[100] transition-all duration-500 ${scrolled ? 'py-0 md:py-1' : 'py-0 md:py-2'}`}>
-            <div className="w-full md:container mx-auto px-0 md:px-6">
-                <div className={`glass border-white/10 rounded-none md:rounded-2xl px-4 md:px-5 py-3 md:py-1.5 flex items-center justify-between transition-all duration-500 ${scrolled ? 'shadow-2xl bg-slate-950/90 backdrop-blur-md border-white/20' : 'bg-white/5'}`}>
+        <nav className={`fixed top-0 left-0 w-full z-[100] transition-all duration-500 ${scrolled ? 'py-0 lg:py-1' : 'py-0 lg:py-2'}`}>
+            <div className="w-full lg:container mx-auto px-0 lg:px-6">
+                <div className={`glass border-white/10 rounded-none lg:rounded-2xl px-4 md:px-5 py-3 flex items-center justify-between transition-all duration-500 ${scrolled ? 'shadow-2xl bg-slate-950/90 backdrop-blur-md border-white/20' : 'bg-white/5'}`}>
 
                     {/* Logo */}
                     <Link href="/" className="flex items-center gap-2 group relative z-10">
