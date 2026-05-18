@@ -229,86 +229,114 @@ export default function DashboardView() {
           <AnimatePresence mode="wait">
             {activeTab === 'missions' && (
               <motion.div key="missions" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }}>
-                {/* Welcome Section */}
-                <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4">
+                {/* Header */}
+                <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
                   <div>
-                    <h1 className="text-2xl font-black text-white mb-1 tracking-tight uppercase">Operational Command</h1>
-                    <p className="text-slate-500 text-xs">Managing your active engineering mission and technical assets.</p>
+                    <h1 className="text-2xl font-black text-white mb-1 tracking-tight uppercase">My Projects</h1>
+                    <p className="text-slate-500 text-xs">Track your active engineering missions and deliverables.</p>
                   </div>
                   <div className="flex gap-2">
-                    <button className="px-4 py-2 bg-white/5 hover:bg-white/10 text-white rounded-lg text-[9px] font-black uppercase tracking-widest border border-white/10 flex items-center gap-2 transition-all">
-                      <Download size={12} /> Export
-                    </button>
                     <Link href="/services" className="px-5 py-2 bg-brand-teal text-white rounded-lg text-[9px] font-black uppercase tracking-widest flex items-center gap-2 shadow-glow-teal hover:-translate-y-0.5 transition-all">
                       New Mission <Zap size={12} />
                     </Link>
                   </div>
                 </div>
 
-                {/* Stats Overview */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                {/* Stats */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                   {[
-                    { label: 'Total Invested', value: '$7,550', icon: <CreditCard className="text-brand-teal" />, growth: '+12.5%' },
-                    { label: 'Active Missions', value: '3', icon: <Zap className="text-brand-red" />, growth: 'Stable' },
-                    { label: 'Deliverables', value: '24', icon: <Box className="text-brand-indigo" />, growth: 'Ready' }
+                    { label: 'Total Invested', value: '$7,550', icon: <CreditCard className="text-brand-teal" />, sub: '+12.5% this year' },
+                    { label: 'Active Missions', value: '3', icon: <Zap className="text-brand-red" />, sub: 'In Progress' },
+                    { label: 'Deliverables', value: '4', icon: <Box className="text-brand-indigo" />, sub: 'Ready to Download' },
                   ].map((stat, i) => (
                     <div key={i} className="p-5 rounded-xl glass border border-white/5 relative overflow-hidden group">
                       <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
                         {React.cloneElement(stat.icon, { size: 24 })}
                       </div>
-                      <div className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-3">{stat.label}</div>
-                      <div className="flex items-end gap-2">
-                        <div className="text-2xl font-black text-white">{stat.value}</div>
-                        <div className="text-[9px] font-bold text-brand-teal mb-0.5">{stat.growth}</div>
-                      </div>
+                      <div className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2">{stat.label}</div>
+                      <div className="text-2xl font-black text-white mb-0.5">{stat.value}</div>
+                      <div className="text-[9px] font-bold text-brand-teal">{stat.sub}</div>
                     </div>
                   ))}
                 </div>
 
-                {/* Active Missions List */}
-                <div className="mb-8">
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-sm font-black text-white uppercase tracking-tight flex items-center gap-2">
-                      <Terminal size={16} className="text-brand-teal" /> Active Mission Protocols
-                    </h2>
-                  </div>
-                  <div className="grid gap-3">
-                    {missions.map((mission) => (
-                      <div key={mission.id} className="p-5 rounded-xl bg-white/[0.02] border border-white/5 hover:border-brand-teal/20 transition-all group">
-                        <div className="flex flex-col lg:flex-row lg:items-center gap-6">
-                          <div className="lg:w-1/3">
-                            <div className="text-[9px] font-black text-brand-teal uppercase tracking-widest mb-0.5">{mission.id}</div>
-                            <h3 className="text-sm font-black text-white group-hover:text-brand-teal transition-colors mb-1 uppercase">{mission.title}</h3>
-                            <div className="flex gap-2">
-                              <span className="px-1.5 py-0.5 rounded-md bg-white/5 text-[7px] font-black text-slate-500 uppercase tracking-widest">{mission.type}</span>
+                {/* Projects */}
+                <div className="space-y-4">
+                  {missions.map((mission) => {
+                    const stageSteps = ['Requirements', 'Architecture', 'Development', 'QA', 'Deployment', 'Complete'];
+                    const statusStageMap = { 'In Progress': 2, 'Testing': 3, 'Deploying': 4 };
+                    const stageIdx = statusStageMap[mission.status] ?? 5;
+                    const milestones = [
+                      { label: 'Kickoff & Requirements', done: true },
+                      { label: 'Architecture Design', done: stageIdx >= 2 },
+                      { label: 'Core Development', done: stageIdx >= 3 },
+                      { label: 'QA & Testing', done: stageIdx >= 4 },
+                      { label: 'Deployment & Delivery', done: stageIdx >= 5 },
+                    ];
+                    return (
+                      <div key={mission.id} className="rounded-2xl bg-white/[0.02] border border-white/5 hover:border-brand-teal/20 transition-all group overflow-hidden">
+                        {/* Card header */}
+                        <div className="p-5">
+                          <div className="flex flex-col lg:flex-row lg:items-start gap-5">
+                            <div className="lg:w-[38%]">
+                              <div className="text-[9px] font-black text-brand-teal uppercase tracking-widest mb-1">{mission.id}</div>
+                              <h3 className="text-sm font-black text-white group-hover:text-brand-teal transition-colors mb-2 uppercase leading-tight">{mission.title}</h3>
+                              <div className="flex flex-wrap gap-1.5">
+                                <span className="px-2 py-0.5 rounded-md bg-white/5 text-[7px] font-black text-slate-500 uppercase tracking-widest">{mission.type}</span>
+                                <span className="px-2 py-0.5 rounded-md bg-white/5 text-[7px] font-black text-slate-500 uppercase tracking-widest">{mission.tier}</span>
+                              </div>
                             </div>
-                          </div>
-                          <div className="flex-grow">
-                            <div className="flex justify-between items-end mb-2">
-                              <div className="text-[8px] font-black text-slate-600 uppercase tracking-widest">Phase</div>
-                              <div className="text-[10px] font-black text-white">{mission.progress}%</div>
+
+                            {/* Stage pipeline */}
+                            <div className="flex-grow">
+                              <div className="hidden md:flex items-center mb-2">
+                                {stageSteps.map((s, si) => (
+                                  <div key={s} className="flex items-center flex-1 min-w-0">
+                                    <div className={`shrink-0 w-2 h-2 rounded-full border-2 ${si < stageIdx ? 'bg-brand-teal border-brand-teal' : si === stageIdx ? 'bg-brand-teal/30 border-brand-teal animate-pulse' : 'bg-white/5 border-white/10'}`} />
+                                    {si < stageSteps.length - 1 && <div className={`flex-1 h-px ${si < stageIdx ? 'bg-brand-teal' : 'bg-white/10'}`} />}
+                                  </div>
+                                ))}
+                              </div>
+                              <div className="flex justify-between mb-1.5">
+                                <span className="text-[8px] font-black text-brand-teal uppercase tracking-widest">{mission.status}</span>
+                                <span className="text-[8px] font-black text-white">{mission.progress}%</span>
+                              </div>
+                              <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                <motion.div initial={{ width: 0 }} animate={{ width: `${mission.progress}%` }} className={`h-full rounded-full ${mission.progress === 100 ? 'bg-emerald-400' : 'bg-brand-teal'}`} />
+                              </div>
                             </div>
-                            <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
-                              <motion.div initial={{ width: 0 }} animate={{ width: `${mission.progress}%` }} className="h-full bg-brand-teal" />
+
+                            {/* Right */}
+                            <div className="lg:w-36 flex flex-row lg:flex-col items-center lg:items-end justify-between lg:justify-center gap-2">
+                              <div className="text-right">
+                                <div className="text-xs font-black text-brand-teal">{mission.price}</div>
+                                <div className="text-[8px] text-slate-600 font-bold uppercase">{mission.deadline}</div>
+                              </div>
+                              <button onClick={() => setSelectedMission(mission)}
+                                className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-teal/10 hover:bg-brand-teal text-brand-teal hover:text-white rounded-lg text-[8px] font-black uppercase tracking-widest transition-all">
+                                Details <ChevronRight size={10} />
+                              </button>
                             </div>
-                          </div>
-                          <div className="lg:w-40 text-right flex flex-row lg:flex-col items-center lg:items-end justify-between lg:justify-center gap-2">
-                            <div className="px-3 py-1 rounded-md bg-white/5 border border-white/5 text-[8px] font-black text-white uppercase tracking-widest">{mission.status}</div>
-                            <button 
-                              onClick={() => setSelectedMission(mission)}
-                              className="px-4 py-2 bg-brand-teal/10 hover:bg-brand-teal text-brand-teal hover:text-white rounded-lg text-[9px] font-black uppercase tracking-widest transition-all flex items-center gap-1.5 group/btn"
-                            >
-                              View
-                              <ChevronRight size={12} className="group-hover/btn:translate-x-1 transition-transform" />
-                            </button>
                           </div>
                         </div>
+
+                        {/* Milestone strip */}
+                        <div className="border-t border-white/5 px-5 py-3 flex gap-2 overflow-x-auto">
+                          {milestones.map((m, mi) => (
+                            <div key={mi} className={`flex items-center gap-1.5 shrink-0 text-[7px] font-black uppercase tracking-widest ${m.done ? 'text-emerald-400' : 'text-slate-700'}`}>
+                              {m.done ? <CheckCircle2 size={10} /> : <Clock size={10} />}
+                              {m.label}
+                              {mi < milestones.length - 1 && <span className="ml-1 text-slate-800">›</span>}
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                    ))}
-                  </div>
+                    );
+                  })}
                 </div>
               </motion.div>
             )}
+
 
             {activeTab === 'vault' && (
               <motion.div key="vault" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }}>
@@ -463,131 +491,197 @@ export default function DashboardView() {
 
       {/* Mission Detail Modal */}
       <AnimatePresence>
-        {selectedMission && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-            <motion.div 
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setSelectedMission(null)}
-              className="absolute inset-0 bg-slate-950/90 backdrop-blur-md"
-            />
-            <motion.div 
-              initial={{ opacity: 0, scale: 0.98, y: 10 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.98, y: 10 }}
-              className="relative w-full max-w-3xl max-h-[90vh] overflow-hidden glass border border-white/10 rounded-xl bg-slate-900 shadow-2xl flex flex-col"
-            >
-              {/* Modal Header */}
-              <div className="p-5 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
-                <div>
-                  <div className="text-[8px] font-black text-brand-teal uppercase tracking-[0.3em] mb-0.5">{selectedMission.id} PROTOCOL</div>
-                  <h2 className="text-lg font-black text-white uppercase tracking-tight">{selectedMission.title}</h2>
-                </div>
-                <button 
-                  onClick={() => setSelectedMission(null)}
-                  className="w-10 h-10 rounded-lg bg-white/5 border border-white/5 flex items-center justify-center text-slate-600 hover:text-white hover:bg-brand-red/20 transition-all"
-                >
-                  <X size={18} />
-                </button>
-              </div>
-
-              {/* Modal Body */}
-              <div className="flex-grow overflow-y-auto p-6 md:p-8">
-                <div className="grid md:grid-cols-[1fr_240px] gap-8">
-                  
-                  {/* Briefing Content */}
-                  <div className="space-y-8">
-                    <section>
-                      <h4 className="text-[8px] font-black text-slate-600 uppercase tracking-widest mb-2 flex items-center gap-2">
-                        <Terminal size={12} className="text-brand-teal" /> Mission Briefing
-                      </h4>
-                      <p className="text-slate-300 text-sm leading-relaxed italic">
-                        &quot;{selectedMission.details}&quot;
-                      </p>
-                    </section>
-
-                    <section>
-                      <h4 className="text-[8px] font-black text-slate-600 uppercase tracking-widest mb-2 flex items-center gap-2">
-                        <Cpu size={12} className="text-brand-red" /> Stack
-                      </h4>
-                      <div className="flex flex-wrap gap-1.5">
-                        {selectedMission.tech.map(t => (
-                          <span key={t} className="px-2 py-1 rounded-md bg-white/5 border border-white/5 text-[8px] font-bold text-white uppercase tracking-widest">
-                            {t}
-                          </span>
-                        ))}
-                      </div>
-                    </section>
-
-                    <section>
-                      <h4 className="text-[8px] font-black text-slate-600 uppercase tracking-widest mb-2 flex items-center gap-2">
-                        <Activity size={12} className="text-brand-indigo" /> Logs
-                      </h4>
-                      <div className="space-y-3 border-l border-white/5 ml-1.5 pl-4">
-                        {selectedMission.logs.map((log, i) => (
-                          <div key={i} className="relative">
-                            <div className="absolute -left-[21px] top-1 w-1.5 h-1.5 rounded-full bg-brand-teal shadow-glow-teal" />
-                            <div className="text-[8px] font-black text-slate-700 uppercase tracking-widest mb-0.5">{log.time}</div>
-                            <div className="text-[10px] text-slate-500">{log.event}</div>
-                          </div>
-                        ))}
-                      </div>
-                    </section>
+        {selectedMission && (() => {
+          const stageSteps = ['Requirements', 'Architecture', 'Development', 'QA', 'Deployment', 'Complete'];
+          const statusStageMap = { 'In Progress': 2, 'Testing': 3, 'Deploying': 4 };
+          const stageIdx = statusStageMap[selectedMission.status] ?? 5;
+          const milestones = [
+            { label: 'Kickoff & Requirements Sign-off', done: true },
+            { label: 'Architecture & Technical Design', done: stageIdx >= 2 },
+            { label: 'Core Development Phase', done: stageIdx >= 3 },
+            { label: 'QA & Testing', done: stageIdx >= 4 },
+            { label: 'Deployment & Final Delivery', done: stageIdx >= 5 },
+          ];
+          const completedCount = milestones.filter(m => m.done).length;
+          return (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+              <motion.div
+                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                onClick={() => setSelectedMission(null)}
+                className="absolute inset-0 bg-slate-950/90 backdrop-blur-md"
+              />
+              <motion.div
+                initial={{ opacity: 0, scale: 0.98, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.98, y: 10 }}
+                className="relative w-full max-w-3xl max-h-[90vh] overflow-hidden border border-white/10 rounded-2xl bg-[#080f1e] shadow-2xl flex flex-col"
+              >
+                {/* Modal Header */}
+                <div className="p-5 border-b border-white/5 flex items-start justify-between bg-white/[0.02]">
+                  <div>
+                    <div className="text-[8px] font-black text-brand-teal uppercase tracking-[0.3em] mb-0.5">{selectedMission.id} &bull; {selectedMission.type}</div>
+                    <h2 className="text-lg font-black text-white uppercase tracking-tight">{selectedMission.title}</h2>
                   </div>
+                  <button
+                    onClick={() => setSelectedMission(null)}
+                    className="w-9 h-9 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center text-slate-600 hover:text-white hover:bg-brand-red/20 transition-all shrink-0"
+                  >
+                    <X size={16} />
+                  </button>
+                </div>
 
-                  {/* Sidebar Metadata */}
-                  <div className="space-y-4">
-                    <div className="p-4 rounded-xl bg-white/5 border border-white/5">
-                      <div className="text-[8px] font-black text-slate-700 uppercase tracking-widest mb-3">Status</div>
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="w-10 h-10 rounded-lg bg-brand-teal/10 flex items-center justify-center text-brand-teal shrink-0">
-                          <Zap size={20} />
-                        </div>
-                        <div>
-                          <div className="text-lg font-black text-white">{selectedMission.progress}%</div>
-                          <div className="text-[8px] font-black text-brand-teal uppercase tracking-widest">{selectedMission.status}</div>
-                        </div>
+                {/* Stage Pipeline */}
+                <div className="px-6 py-4 border-b border-white/5 bg-white/[0.01]">
+                  <div className="flex items-center mb-2">
+                    {stageSteps.map((s, si) => (
+                      <div key={s} className="flex items-center flex-1 min-w-0">
+                        <div title={s} className={`shrink-0 w-2.5 h-2.5 rounded-full border-2 transition-all ${si < stageIdx ? 'bg-brand-teal border-brand-teal' : si === stageIdx ? 'bg-brand-teal/40 border-brand-teal animate-pulse' : 'bg-white/5 border-white/10'}`} />
+                        {si < stageSteps.length - 1 && <div className={`flex-1 h-px ${si < stageIdx ? 'bg-brand-teal' : 'bg-white/10'}`} />}
                       </div>
-                      <div className="space-y-3 border-t border-white/5 pt-4">
-                        <div className="flex justify-between items-center">
-                          <span className="text-[8px] font-black text-slate-700 uppercase tracking-widest">Deadline</span>
-                          <span className="text-[9px] font-bold text-white uppercase">{selectedMission.deadline}</span>
+                    ))}
+                  </div>
+                  <div className="flex justify-between">
+                    {stageSteps.map((s, si) => (
+                      <span key={s} className={`text-[6px] font-black uppercase tracking-widest flex-1 text-center ${si === stageIdx ? 'text-brand-teal' : si < stageIdx ? 'text-slate-600' : 'text-slate-800'}`}>{s}</span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Modal Body */}
+                <div className="flex-grow overflow-y-auto p-6">
+                  <div className="grid md:grid-cols-[1fr_220px] gap-6">
+
+                    {/* Left column */}
+                    <div className="space-y-6">
+                      {/* Brief */}
+                      <section>
+                        <h4 className="text-[8px] font-black text-slate-600 uppercase tracking-widest mb-2 flex items-center gap-2">
+                          <Terminal size={11} className="text-brand-teal" /> Mission Brief
+                        </h4>
+                        <p className="text-slate-300 text-sm leading-relaxed italic">"{selectedMission.details}"</p>
+                      </section>
+
+                      {/* Milestones */}
+                      <section>
+                        <div className="flex items-center justify-between mb-3">
+                          <h4 className="text-[8px] font-black text-slate-600 uppercase tracking-widest flex items-center gap-2">
+                            <CheckCircle2 size={11} className="text-brand-indigo" /> Milestones
+                          </h4>
+                          <span className="text-[8px] font-black text-brand-teal">{completedCount}/{milestones.length} Done</span>
                         </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-[8px] font-black text-slate-700 uppercase tracking-widest">Price</span>
-                          <span className="text-[9px] font-bold text-brand-teal uppercase">{selectedMission.price}</span>
+                        <div className="space-y-2">
+                          {milestones.map((m, mi) => (
+                            <div key={mi} className={`flex items-center gap-3 p-3 rounded-xl border ${m.done ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-white/[0.02] border-white/5'}`}>
+                              {m.done
+                                ? <CheckCircle2 size={13} className="text-emerald-400 shrink-0" />
+                                : <Clock size={13} className="text-slate-700 shrink-0" />}
+                              <span className={`text-xs font-bold ${m.done ? 'text-slate-600 line-through' : 'text-white'}`}>{m.label}</span>
+                            </div>
+                          ))}
                         </div>
-                      </div>
+                      </section>
+
+                      {/* Tech Stack */}
+                      <section>
+                        <h4 className="text-[8px] font-black text-slate-600 uppercase tracking-widest mb-2 flex items-center gap-2">
+                          <Cpu size={11} className="text-brand-red" /> Tech Stack
+                        </h4>
+                        <div className="flex flex-wrap gap-1.5">
+                          {selectedMission.tech.map(t => (
+                            <span key={t} className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/5 text-[8px] font-black text-white uppercase tracking-widest">{t}</span>
+                          ))}
+                        </div>
+                      </section>
+
+                      {/* Activity Log */}
+                      <section>
+                        <h4 className="text-[8px] font-black text-slate-600 uppercase tracking-widest mb-3 flex items-center gap-2">
+                          <Activity size={11} className="text-brand-indigo" /> Activity Log
+                        </h4>
+                        <div className="space-y-3 border-l border-white/5 ml-1.5 pl-4">
+                          {selectedMission.logs.map((log, i) => (
+                            <div key={i} className="relative">
+                              <div className="absolute -left-[21px] top-1.5 w-1.5 h-1.5 rounded-full bg-brand-teal" />
+                              <div className="text-[7px] font-black text-slate-700 uppercase tracking-widest mb-0.5">{log.time}</div>
+                              <div className="text-[10px] text-slate-400">{log.event}</div>
+                            </div>
+                          ))}
+                        </div>
+                      </section>
                     </div>
 
-                    <button 
-                      onClick={() => {
-                        setActiveTab('comms');
-                        setSelectedMission(null);
-                      }}
-                      className="w-full py-3 bg-brand-teal text-white rounded-lg font-black uppercase tracking-widest text-[9px] shadow-glow-teal hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"
-                    >
-                      Secure Channel <MessageSquare size={14} />
-                    </button>
-                    <button className="w-full py-3 glass text-white rounded-lg font-black uppercase tracking-widest text-[9px] hover:bg-white/10 transition-all flex items-center justify-center gap-2">
-                      Report <Download size={14} />
-                    </button>
+                    {/* Right sidebar */}
+                    <div className="space-y-3">
+                      {/* Status card */}
+                      <div className="p-4 rounded-xl bg-white/5 border border-white/5">
+                        <div className="text-[7px] font-black text-slate-700 uppercase tracking-widest mb-3">Mission Status</div>
+                        <div className="flex items-center gap-3 mb-4">
+                          <div className="w-10 h-10 rounded-xl bg-brand-teal/10 flex items-center justify-center text-brand-teal shrink-0">
+                            <Zap size={18} />
+                          </div>
+                          <div>
+                            <div className="text-xl font-black text-white">{selectedMission.progress}%</div>
+                            <div className="text-[8px] font-black text-brand-teal uppercase tracking-widest">{selectedMission.status}</div>
+                          </div>
+                        </div>
+                        <div className="h-1.5 bg-white/5 rounded-full overflow-hidden mb-3">
+                          <motion.div initial={{ width: 0 }} animate={{ width: `${selectedMission.progress}%` }}
+                            className={`h-full rounded-full ${selectedMission.progress === 100 ? 'bg-emerald-400' : 'bg-brand-teal'}`} />
+                        </div>
+                        <div className="space-y-2.5 border-t border-white/5 pt-3">
+                          {[['Deadline', selectedMission.deadline], ['Investment', selectedMission.price], ['Tier', selectedMission.tier]].map(([l, v]) => (
+                            <div key={l} className="flex justify-between items-center">
+                              <span className="text-[7px] font-black text-slate-700 uppercase tracking-widest">{l}</span>
+                              <span className="text-[9px] font-bold text-white uppercase">{v}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Deliverables */}
+                      <div className="p-4 rounded-xl bg-white/5 border border-white/5">
+                        <div className="text-[7px] font-black text-slate-700 uppercase tracking-widest mb-3">Deliverables</div>
+                        <div className="space-y-2">
+                          {[
+                            { name: 'Technical Specs v2.pdf', size: '2.4 MB' },
+                            { name: 'API Documentation.md', size: '12 KB' },
+                          ].map((f, fi) => (
+                            <div key={fi} className="flex items-center gap-2 p-2 rounded-lg bg-white/5">
+                              <FileText size={11} className="text-brand-teal shrink-0" />
+                              <div className="flex-grow min-w-0">
+                                <div className="text-[8px] font-bold text-white truncate">{f.name}</div>
+                                <div className="text-[7px] text-slate-700">{f.size}</div>
+                              </div>
+                              <button className="p-1 rounded-md bg-brand-teal/10 text-brand-teal hover:bg-brand-teal hover:text-white transition-all">
+                                <Download size={10} />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* CTA buttons */}
+                      <button
+                        onClick={() => { setActiveTab('comms'); setSelectedMission(null); }}
+                        className="w-full py-3 bg-brand-teal text-white rounded-xl font-black uppercase tracking-widest text-[9px] shadow-glow-teal hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"
+                      >
+                        Secure Channel <MessageSquare size={13} />
+                      </button>
+                    </div>
                   </div>
-
                 </div>
-              </div>
 
-              {/* Modal Footer */}
-              <div className="p-4 bg-white/[0.02] border-t border-white/5 text-center">
-                <div className="flex items-center justify-center gap-2 text-[7px] font-black text-slate-700 uppercase tracking-[0.3em]">
-                  <Shield size={10} className="text-brand-teal" /> Protected Protocol
+                {/* Modal Footer */}
+                <div className="p-4 bg-white/[0.02] border-t border-white/5 flex items-center justify-center gap-2">
+                  <Shield size={10} className="text-brand-teal" />
+                  <span className="text-[7px] font-black text-slate-700 uppercase tracking-[0.3em]">Protected Engineering Protocol</span>
                 </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
+              </motion.div>
+            </div>
+          );
+        })()}
       </AnimatePresence>
+
     </div>
   );
 }

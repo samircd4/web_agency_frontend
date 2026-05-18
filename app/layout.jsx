@@ -1,7 +1,6 @@
 import { Geist, Geist_Mono, Space_Grotesk } from "next/font/google";
 import "./globals.css";
 import LayoutWrapper from '@/components/LayoutWrapper';
-import Cursor from '@/components/Cursor';
 
 const geistSans = Geist({
     variable: "--font-geist-sans",
@@ -86,7 +85,6 @@ export default function RootLayout({ children }) {
                 />
             </head>
             <body className="antialiased bg-background text-foreground" suppressHydrationWarning={true}>
-                <Cursor />
                 <LayoutWrapper>
                     {children}
                 </LayoutWrapper>

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, ArrowRight, ChevronRight, Zap, Code2, LayoutDashboard } from 'lucide-react';
+import { Menu, X, ArrowRight, ChevronRight, Zap, Code2, LayoutDashboard, ShieldCheck } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 
 const navLinks = [
@@ -81,8 +81,11 @@ export default function Navbar() {
                             ))}
                         </div>
                         <div className="flex items-center gap-2 ml-1">
-                            <Link href="/dashboard" className="p-1.5 bg-white/5 text-slate-400 hover:text-white rounded-full border border-white/5 transition-all group">
+                            <Link href="/dashboard" title="Client Dashboard" className="p-1.5 bg-white/5 text-slate-400 hover:text-white rounded-full border border-white/5 transition-all group">
                                 <LayoutDashboard size={14} className="group-hover:text-brand-teal transition-colors" />
+                            </Link>
+                            <Link href="/admin" title="Admin" className="p-1.5 bg-white/5 text-slate-400 hover:text-white rounded-full border border-white/5 transition-all group">
+                                <ShieldCheck size={14} className="group-hover:text-brand-red transition-colors" />
                             </Link>
                             <Link href="/start-project" className="px-4 py-1.5 bg-brand-teal text-white rounded-full font-black text-[10px] uppercase tracking-widest transition-all shadow-glow-teal hover:bg-brand-teal/90 hover:scale-105 active:scale-95">
                                 Start Project
@@ -147,6 +150,9 @@ export default function Navbar() {
                             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="mt-4 flex flex-col gap-2">
                                 <Link href="/dashboard" onClick={() => setIsMenuOpen(false)} className="w-full flex items-center justify-center gap-2 py-4 glass border-white/10 text-white rounded-lg font-black uppercase tracking-widest text-[10px] active:bg-white/10">
                                     <LayoutDashboard size={14} className="text-brand-teal" /> Client Dashboard
+                                </Link>
+                                <Link href="/admin" onClick={() => setIsMenuOpen(false)} className="w-full flex items-center justify-center gap-2 py-4 glass border-white/10 text-white rounded-lg font-black uppercase tracking-widest text-[10px] active:bg-white/10">
+                                    <ShieldCheck size={14} className="text-brand-red" /> Admin
                                 </Link>
                                 <Link href="/start-project" onClick={() => setIsMenuOpen(false)} className="w-full flex items-center justify-center gap-2 py-4 bg-brand-teal text-white rounded-lg font-black uppercase tracking-widest text-[10px] shadow-glow-teal">
                                     Start Your Project <Zap size={14} />
