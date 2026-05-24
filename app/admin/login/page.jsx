@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { Shield, Lock, User, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { api } from '@/lib/api';
 
 function LoginForm() {
     const router = useRouter();
@@ -23,24 +24,22 @@ function LoginForm() {
         setLoading(true);
         setError('');
 
-        // --- MOCK AUTH ---
-        // TODO: Replace with real Django token auth:
-        // const res = await fetch('/api/admin/token/', { method: 'POST', body: JSON.stringify({ username, password }) });
-        // if (res.ok) { const { token } = await res.json(); document.cookie = `admin_session=${token}; path=/`; }
-        await new Promise((r) => setTimeout(r, 1000));
-
-        if (username === 'admin' && password === 'drpython') {
-            // Set a mock session cookie
-            document.cookie = 'admin_session=mock-token-12345; path=/; max-age=86400';
-            router.push(from);
-        } else {
-            setError('Invalid credentials. Access denied.');
+        try {
+            await api.login(username, password);
+            const user = await api.getMe();
+            if (user.is_staff) {
+                router.push(from.startsWith('/admin') ? from : '/admin');
+            } else {
+                router.push('/dashboard');
+            }
+        } catch (err) {
+            setError(err.message || 'Invalid credentials. Access denied.');
             setLoading(false);
         }
     };
 
     return (
-        <div className="min-h-screen bg-[#020617] flex items-center justify-center p-4 relative overflow-hidden">
+        <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden">
             {/* Background grid */}
             <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:60px_60px]" />
 
@@ -56,24 +55,24 @@ function LoginForm() {
             >
                 {/* Header */}
                 <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/5 border border-white/10 mb-5 relative">
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-white/5 border border-border-light mb-5 relative">
                         <div className="absolute inset-0 rounded-2xl bg-brand-teal/10 blur-xl" />
                         <Image src="/images/logo/logo.png" alt="Dr. Python" fill sizes="64px" className="object-contain p-2" />
                     </div>
                     <div className="flex items-center justify-center gap-2 mb-2">
                         <Shield size={14} className="text-brand-teal" />
-                        <span className="text-[9px] font-black text-brand-teal uppercase tracking-[0.3em]">Secure Access</span>
+                        <span className="text-xs font-black text-brand-teal uppercase tracking-[0.3em]">Secure Access</span>
                     </div>
-                    <h1 className="text-2xl font-black text-white uppercase tracking-tight">Command Center</h1>
-                    <p className="text-slate-600 text-xs mt-1">Administrator authentication required</p>
+                    <h1 className="text-2xl font-black text-text-primary uppercase tracking-tight">Command Center</h1>
+                    <p className="text-text-muted text-sm mt-1">Secure client & admin authentication</p>
                 </div>
 
                 {/* Login Card */}
-                <div className="glass border border-white/10 rounded-2xl p-8 shadow-2xl shadow-black/50">
+                <div className="glass border border-border-light rounded-2xl p-8 shadow-2xl shadow-black/50">
                     <form onSubmit={handleLogin} className="space-y-5">
                         {/* Username */}
                         <div className="space-y-1.5">
-                            <label className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-500 flex items-center gap-1.5 ml-1">
+                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-text-muted flex items-center gap-1.5 ml-1">
                                 <User size={10} /> Username
                             </label>
                             <div className="relative">
@@ -84,14 +83,14 @@ function LoginForm() {
                                     onChange={(e) => setUsername(e.target.value)}
                                     placeholder="Enter admin username"
                                     required
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-slate-700 focus:outline-none focus:border-brand-teal/50 focus:bg-brand-teal/5 transition-all"
+                                    className="w-full bg-white/5 border border-border-light rounded-xl px-4 py-3 text-sm text-text-primary placeholder:text-text-dim focus:outline-none focus:border-brand-teal/50 focus:bg-brand-teal/5 transition-all"
                                 />
                             </div>
                         </div>
 
                         {/* Password */}
                         <div className="space-y-1.5">
-                            <label className="text-[8px] font-black uppercase tracking-[0.2em] text-slate-500 flex items-center gap-1.5 ml-1">
+                            <label className="text-[10px] font-black uppercase tracking-[0.2em] text-text-muted flex items-center gap-1.5 ml-1">
                                 <Lock size={10} /> Password
                             </label>
                             <div className="relative">
@@ -102,12 +101,12 @@ function LoginForm() {
                                     onChange={(e) => setPassword(e.target.value)}
                                     placeholder="Enter admin password"
                                     required
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 pr-12 text-sm text-white placeholder:text-slate-700 focus:outline-none focus:border-brand-teal/50 focus:bg-brand-teal/5 transition-all"
+                                    className="w-full bg-white/5 border border-border-light rounded-xl px-4 py-3 pr-12 text-sm text-text-primary placeholder:text-text-dim focus:outline-none focus:border-brand-teal/50 focus:bg-brand-teal/5 transition-all"
                                 />
                                 <button
                                     type="button"
                                     onClick={() => setShowPassword(!showPassword)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-slate-600 hover:text-white transition-colors"
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-text-muted hover:text-text-primary transition-colors"
                                 >
                                     {showPassword ? <EyeOff size={14} /> : <Eye size={14} />}
                                 </button>
@@ -131,7 +130,7 @@ function LoginForm() {
                             id="admin-login-btn"
                             type="submit"
                             disabled={loading}
-                            className="w-full py-3.5 bg-brand-teal text-white rounded-xl font-black uppercase tracking-widest text-[10px] shadow-glow-teal hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
+                            className="w-full py-3.5 bg-brand-teal text-text-primary rounded-xl font-black uppercase tracking-widest text-xs shadow-glow-teal hover:-translate-y-0.5 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
                         >
                             {loading ? (
                                 <>
@@ -147,16 +146,11 @@ function LoginForm() {
                     </form>
 
                     <div className="mt-6 pt-6 border-t border-white/5 text-center">
-                        <p className="text-[8px] font-black text-slate-700 uppercase tracking-[0.2em]">
+                        <p className="text-[10px] font-black text-text-dim uppercase tracking-[0.2em]">
                             Dr. Python Solutions &mdash; Internal Access Only
                         </p>
                     </div>
                 </div>
-
-                {/* Demo hint */}
-                <p className="text-center text-[8px] font-bold text-slate-700 mt-4 uppercase tracking-widest">
-                    Mock credentials: admin / drpython
-                </p>
             </motion.div>
         </div>
     );
@@ -165,7 +159,7 @@ function LoginForm() {
 export default function AdminLoginPage() {
     return (
         <Suspense fallback={
-            <div className="min-h-screen bg-[#020617] flex items-center justify-center">
+            <div className="min-h-screen bg-background flex items-center justify-center">
                 <div className="w-6 h-6 border-2 border-brand-teal/30 border-t-brand-teal rounded-full animate-spin" />
             </div>
         }>

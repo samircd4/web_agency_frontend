@@ -1,120 +1,102 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    Search, X, Upload, CheckCircle2, Circle, ChevronRight,
-    LayoutGrid, List, Plus, Edit3, Calendar, DollarSign, User
+    Search, X, Edit3, Calendar, User, Loader2, AlertCircle,
+    CheckCircle2, Circle, ChevronRight, LayoutGrid, List, Plus, Tag, ChevronDown, SlidersHorizontal, Upload, Trash2, Download
 } from 'lucide-react';
+import { api } from '@/lib/api';
+import AdminModal from '@/components/AdminModal';
+import ConfirmDangerModal from '@/components/ConfirmDangerModal';
 
-const STAGES = ['Requirements', 'Architecture', 'Development', 'QA', 'Deployment', 'Complete'];
+const STAGES = ['Analysis', 'Architecture', 'Dev', 'QA', 'Staging', 'Complete'];
 
 const STAGE_META = {
-    'Requirements':  { color: 'text-yellow-400',  bg: 'bg-yellow-400/10',  border: 'border-yellow-400/20' },
+    'Analysis':      { color: 'text-yellow-400',  bg: 'bg-yellow-400/10',  border: 'border-yellow-400/20' },
     'Architecture':  { color: 'text-brand-indigo', bg: 'bg-brand-indigo/10', border: 'border-brand-indigo/20' },
-    'Development':   { color: 'text-brand-teal',   bg: 'bg-brand-teal/10',  border: 'border-brand-teal/20' },
+    'Dev':           { color: 'text-brand-teal',   bg: 'bg-brand-teal/10',  border: 'border-brand-teal/20' },
     'QA':            { color: 'text-orange-400',   bg: 'bg-orange-400/10',  border: 'border-orange-400/20' },
-    'Deployment':    { color: 'text-brand-blue',   bg: 'bg-brand-blue/10',  border: 'border-brand-blue/20' },
+    'Staging':       { color: 'text-brand-blue',   bg: 'bg-brand-blue/10',  border: 'border-brand-blue/20' },
     'Complete':      { color: 'text-emerald-400',  bg: 'bg-emerald-400/10', border: 'border-emerald-400/20' },
 };
 
-const PROJECTS = [
-    {
-        id: 'MSN-0091', title: 'Real-estate Data Extraction Engine',
-        client: 'Tariq Hassan', type: 'Web Scraping', stage: 'Development', stageIndex: 2,
-        progress: 55, deadline: 'Jun 10, 2026', value: '$3,200', priority: 'High',
-        tech: ['Python', 'Playwright', 'Redis', 'AWS Lambda'],
-        description: 'Distributed scraping network across 4 regions for Zillow & Redfin with anti-bot bypass.',
-        milestones: [
-            { label: 'Kickoff & Requirements Sign-off', done: true },
-            { label: 'Architecture & Proxy Setup', done: true },
-            { label: 'Scraper Core Build', done: false },
-            { label: 'Anti-bot Integration & Testing', done: false },
-            { label: 'Final QA & Production Deploy', done: false },
-        ],
-        files: [
-            { name: 'architecture_v1.pdf', size: '1.2 MB', date: 'Apr 20' },
-            { name: 'scraper_module_alpha.zip', size: '8.4 MB', date: 'May 3' },
-        ],
-        logs: [
-            { time: '14:15', date: 'Today', event: 'Data ingestion rate: 450 records/sec' },
-            { time: '11:30', date: 'Today', event: 'Anti-bot threshold reached — rotating proxy mesh' },
-            { time: '09:00', date: 'Today', event: 'Node clustering initialized' },
-        ],
-    },
-    {
-        id: 'MSN-0088', title: 'Full E-commerce Platform Build',
-        client: 'Rafael Ortega', type: 'E-commerce', stage: 'Architecture', stageIndex: 1,
-        progress: 20, deadline: 'Jul 5, 2026', value: '$5,800', priority: 'High',
-        tech: ['Django', 'React', 'Stripe', 'PostgreSQL'],
-        description: 'Complete e-commerce with custom checkout, multi-currency, and bilingual (EN/AR) support.',
-        milestones: [
-            { label: 'Kickoff & Requirements', done: true },
-            { label: 'DB Schema & Architecture', done: false },
-            { label: 'Frontend Build', done: false },
-            { label: 'Payment Integration', done: false },
-            { label: 'UAT & Launch', done: false },
-        ],
-        files: [{ name: 'requirements_doc_v2.pdf', size: '780 KB', date: 'May 10' }],
-        logs: [
-            { time: '10:00', date: 'Yesterday', event: 'DB schema drafted — awaiting client approval' },
-        ],
-    },
-    {
-        id: 'MSN-0085', title: 'LinkedIn Lead Scraper', client: 'Sophie Müller',
-        type: 'Automation', stage: 'Complete', stageIndex: 5,
-        progress: 100, deadline: 'Completed', value: '$1,500', priority: 'Low',
-        tech: ['Python', 'Selenium', 'Google Sheets API'],
-        description: 'LinkedIn Sales Navigator automated lead extraction into a Google Sheets CRM pipeline.',
-        milestones: [
-            { label: 'Kickoff', done: true }, { label: 'Scraper Build', done: true },
-            { label: 'CRM Integration', done: true }, { label: 'Delivery', done: true },
-            { label: 'Client Sign-off', done: true },
-        ],
-        files: [
-            { name: 'source_code_final.zip', size: '3.2 MB', date: 'Apr 18' },
-            { name: 'delivery_report.pdf', size: '450 KB', date: 'Apr 18' },
-        ],
-        logs: [{ time: '15:00', date: 'Apr 18', event: 'Delivery confirmed — client signed off' }],
-    },
-];
+const PRIORITY_DOT = { Critical: 'bg-brand-red', High: 'bg-orange-400', Medium: 'bg-yellow-400', Low: 'bg-slate-600' };
+const PRIORITIES = ['Critical', 'High', 'Medium', 'Low'];
 
-const PRIORITY_DOT = { High: 'bg-brand-red', Medium: 'bg-yellow-400', Low: 'bg-slate-600' };
+function FilterSelect({ label, value, onChange, options, icon: Icon }) {
+    return (
+        <div className="group relative">
+            <label className="sr-only">{label}</label>
+            <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
+                <Icon size={14} className="text-text-dim group-focus-within:text-brand-teal transition-colors" />
+            </div>
+            <select
+                value={value}
+                onChange={onChange}
+                className="cursor-pointer appearance-none bg-surface-900/60 border border-border-subtle hover:border-border-light focus:border-brand-teal/50 focus:outline-none rounded-xl pl-9 pr-9 py-1.5 sm:py-2 text-[10px] sm:text-[11px] text-text-primary font-black uppercase tracking-widest transition-all backdrop-blur-md"
+                aria-label={label}
+            >
+                {options.map(o => (
+                    <option key={o.value} value={o.value} className="bg-surface-900 text-text-primary">
+                        {o.label}
+                    </option>
+                ))}
+            </select>
+            <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+                <ChevronDown size={14} className="text-text-dim group-focus-within:text-brand-teal transition-colors" />
+            </div>
+        </div>
+    );
+}
+
+function formatBytes(bytes) {
+    const n = Number(bytes);
+    if (!Number.isFinite(n) || n <= 0) return '—';
+    const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.min(Math.floor(Math.log(n) / Math.log(1024)), units.length - 1);
+    const value = n / (1024 ** i);
+    const decimals = i >= 2 ? 2 : 0;
+    return `${value.toFixed(decimals)} ${units[i]}`;
+}
 
 // ─── Kanban Column ───────────────────────────────────────────────────────────
 function KanbanColumn({ stage, projects, onSelect }) {
-    const meta = STAGE_META[stage];
+    const meta = STAGE_META[stage] || { color: 'text-text-muted', bg: 'bg-white/5', border: 'border-white/5' };
     return (
-        <div className="min-w-[240px] flex-1">
-            <div className={`flex items-center gap-2 mb-3 px-3 py-2 rounded-xl ${meta.bg} border ${meta.border}`}>
-                <span className={`text-[8px] font-black uppercase tracking-widest ${meta.color}`}>{stage}</span>
-                <span className={`ml-auto text-[8px] font-black ${meta.color}`}>{projects.length}</span>
+        <div className="w-full min-w-0 sm:min-w-[240px] sm:flex-1">
+            <div className={`flex items-center gap-2 mb-3 px-3 py-1.5 rounded-xl ${meta.bg} border ${meta.border}`}>
+                <span className={`text-[10px] font-black uppercase tracking-widest ${meta.color}`}>{stage}</span>
+                <span className={`ml-auto text-[10px] font-black ${meta.color}`}>{projects.length}</span>
             </div>
             <div className="space-y-2">
                 {projects.map(p => (
                     <div key={p.id} onClick={() => onSelect(p)}
-                        className="p-3.5 rounded-xl bg-white/[0.02] border border-white/5 hover:border-white/15 cursor-pointer group transition-all">
-                        <div className="flex items-center gap-1.5 mb-2">
-                            <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${PRIORITY_DOT[p.priority]}`} />
-                            <span className="text-[7px] font-black text-slate-600 uppercase">{p.id}</span>
+                        className="p-3 rounded-xl bg-white/[0.02] border border-white/5 hover:border-white/15 cursor-pointer group transition-all">
+                        <div className="flex items-center justify-between gap-2 mb-2">
+                            <div className="flex items-center gap-1.5 min-w-0">
+                                <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${PRIORITY_DOT[p.priority] || 'bg-slate-600'}`} />
+                                <span className="text-[9px] font-black text-text-muted uppercase tracking-widest truncate">{p.priority || 'Medium'}</span>
+                            </div>
+                            <span className="text-[9px] font-black text-text-dim uppercase shrink-0">{p.id}</span>
                         </div>
-                        <p className="text-[10px] font-black text-white group-hover:text-brand-teal transition-colors leading-tight mb-2">{p.title}</p>
+                        <p className="text-xs font-black text-text-primary group-hover:text-brand-teal transition-colors leading-tight mb-2">{p.title}</p>
                         <div className="flex items-center gap-1.5 mb-2.5">
-                            <User size={9} className="text-slate-600" />
-                            <span className="text-[8px] text-slate-600 font-bold">{p.client}</span>
+                            <User size={10} className="text-text-muted" />
+                            <span className="text-[10px] text-text-muted font-bold">{p.client_name || '—'}</span>
                         </div>
                         <div className="h-1 bg-white/5 rounded-full overflow-hidden">
-                            <div style={{ width: `${p.progress}%` }}
-                                className={`h-full rounded-full ${p.progress === 100 ? 'bg-emerald-400' : 'bg-brand-teal'}`} />
+                            <div style={{ width: `${p.progress || 0}%` }}
+                                className={`h-full rounded-full transition-all duration-500 ease-out ${p.progress === 100 ? 'bg-emerald-400' : 'bg-brand-teal'}`} />
                         </div>
                         <div className="flex justify-between mt-1.5">
-                            <span className="text-[7px] font-black text-slate-700">{p.progress}%</span>
-                            <span className="text-[7px] font-black text-brand-teal">{p.value}</span>
+                            <span className="text-[9px] font-black text-text-dim">{p.progress || 0}%</span>
+                            <span className="text-[9px] font-black text-brand-teal">${Number(p.value || 0).toLocaleString()}</span>
                         </div>
                     </div>
                 ))}
                 {projects.length === 0 && (
-                    <div className="flex items-center justify-center h-16 rounded-xl border border-dashed border-white/5 text-[8px] text-slate-700 font-black uppercase tracking-widest">
+                    <div className="flex items-center justify-center h-16 rounded-xl border border-dashed border-white/5 text-[10px] text-text-dim font-black uppercase tracking-widest">
                         Empty
                     </div>
                 )}
@@ -124,21 +106,69 @@ function KanbanColumn({ stage, projects, onSelect }) {
 }
 
 // ─── List Row ────────────────────────────────────────────────────────────────
-function ListRow({ p, i, onSelect }) {
-    const meta = STAGE_META[p.stage];
+function MobileProjectCard({ p, i, onSelect }) {
+    const meta = STAGE_META[p.stage] || { color: 'text-text-muted', bg: 'bg-white/5', border: 'border-white/5' };
     return (
-        <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
-            className="p-5 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-all group">
+        <motion.div
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: i * 0.04 }}
+            onClick={() => onSelect(p)}
+            className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-all cursor-pointer"
+        >
+            <div className="flex items-start justify-between gap-3 mb-2">
+                <div className="min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                        <span className={`w-1.5 h-1.5 rounded-full ${PRIORITY_DOT[p.priority] || 'bg-slate-600'}`} />
+                        <span className="text-[10px] font-black text-text-muted uppercase tracking-widest">{p.priority || 'Medium'}</span>
+                    </div>
+                    <div className="text-sm font-black text-text-primary leading-tight truncate">{p.title}</div>
+                    <div className="text-[10px] text-text-muted font-bold truncate mt-0.5">{p.client_name || '—'}</div>
+                </div>
+                <div className="shrink-0 flex flex-col items-end gap-1">
+                    <div className="text-[10px] font-black text-brand-teal uppercase tracking-widest">{p.id}</div>
+                    <div className={`px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest border ${meta.bg} ${meta.color} ${meta.border}`}>
+                        {p.stage}
+                    </div>
+                    <div className="px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest border bg-white/5 text-text-muted border-white/5">
+                        {p.priority || 'Medium'}
+                    </div>
+                </div>
+            </div>
+
+            <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                <motion.div
+                    initial={{ width: 0 }}
+                    animate={{ width: `${p.progress || 0}%` }}
+                    transition={{ duration: 0.8, delay: i * 0.05 }}
+                    className={`h-full rounded-full ${(p.progress || 0) === 100 ? 'bg-emerald-400' : 'bg-brand-teal'}`}
+                />
+            </div>
+            <div className="flex justify-between mt-1.5">
+                <span className="text-[10px] font-black text-text-dim uppercase">{p.progress || 0}%</span>
+                <span className="text-[10px] font-black text-brand-teal">${Number(p.value || 0).toLocaleString()}</span>
+            </div>
+        </motion.div>
+    );
+}
+
+function ListRow({ p, i, onSelect }) {
+    const meta = STAGE_META[p.stage] || { color: 'text-text-muted', bg: 'bg-white/5', border: 'border-white/5' };
+    const stageIndex = STAGES.indexOf(p.stage);
+    return (
+        <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
+            className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-all group">
             <div className="flex flex-col lg:flex-row lg:items-center gap-4">
                 <div className="lg:w-[35%]">
                     <div className="flex items-center gap-2 mb-1">
-                        <span className={`w-1.5 h-1.5 rounded-full ${PRIORITY_DOT[p.priority]}`} />
-                        <span className="text-[8px] font-black text-brand-teal uppercase tracking-widest">{p.id}</span>
+                        <span className={`w-1.5 h-1.5 rounded-full ${PRIORITY_DOT[p.priority] || 'bg-slate-600'}`} />
+                        <span className="text-[10px] font-black text-brand-teal uppercase tracking-widest">{p.id}</span>
                     </div>
-                    <h3 className="text-sm font-black text-white group-hover:text-brand-teal transition-colors uppercase leading-tight mb-1.5">{p.title}</h3>
+                    <h3 className="text-base font-black text-text-primary group-hover:text-brand-teal transition-colors uppercase leading-tight mb-1.5">{p.title}</h3>
                     <div className="flex gap-1.5">
-                        <span className="px-2 py-0.5 rounded-md bg-white/5 text-[7px] font-black text-slate-500 uppercase">{p.type}</span>
-                        <span className="px-2 py-0.5 rounded-md bg-white/5 text-[7px] font-black text-slate-500 uppercase">{p.client}</span>
+                        <span className="px-2 py-0.5 rounded-md bg-white/5 text-[9px] font-black text-text-muted uppercase">{p.stage}</span>
+                        <span className="px-2 py-0.5 rounded-md bg-white/5 text-[9px] font-black text-text-muted uppercase">{p.priority || 'Medium'}</span>
+                        <span className="px-2 py-0.5 rounded-md bg-white/5 text-[9px] font-black text-text-muted uppercase">{p.client_name || '—'}</span>
                     </div>
                 </div>
 
@@ -147,31 +177,31 @@ function ListRow({ p, i, onSelect }) {
                     <div className="hidden md:flex items-center mb-2">
                         {STAGES.map((s, si) => (
                             <div key={s} className="flex items-center flex-1 min-w-0">
-                                <div className={`shrink-0 w-2 h-2 rounded-full border-2 ${si < p.stageIndex ? 'bg-brand-teal border-brand-teal' : si === p.stageIndex ? 'bg-brand-teal/30 border-brand-teal animate-pulse' : 'bg-white/5 border-white/10'}`} />
-                                {si < STAGES.length - 1 && <div className={`flex-1 h-px ${si < p.stageIndex ? 'bg-brand-teal' : 'bg-white/10'}`} />}
+                                <div className={`shrink-0 w-2.5 h-2.5 rounded-full border-2 ${si < stageIndex ? 'bg-brand-teal border-brand-teal' : si === stageIndex ? 'bg-brand-teal/30 border-brand-teal animate-pulse' : 'bg-white/5 border-white/10'}`} />
+                                {si < STAGES.length - 1 && <div className={`flex-1 h-px ${si < stageIndex ? 'bg-brand-teal' : 'bg-white/10'}`} />}
                             </div>
                         ))}
                     </div>
                     <div className="flex justify-between mb-1.5">
-                        <span className={`text-[8px] font-black uppercase tracking-widest ${meta.color}`}>{p.stage}</span>
-                        <span className="text-[8px] font-black text-white">{p.progress}%</span>
+                        <span className={`text-[10px] font-black uppercase tracking-widest ${meta.color}`}>{p.stage}</span>
+                        <span className="text-[10px] font-black text-text-primary">{p.progress || 0}%</span>
                     </div>
                     <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
-                        <motion.div initial={{ width: 0 }} animate={{ width: `${p.progress}%` }} transition={{ duration: 0.8, delay: i * 0.1 }}
-                            className={`h-full rounded-full ${p.progress === 100 ? 'bg-emerald-400' : 'bg-brand-teal'}`} />
+                        <motion.div initial={{ width: 0 }} animate={{ width: `${p.progress || 0}%` }} transition={{ duration: 0.8, delay: i * 0.05 }}
+                            className={`h-full rounded-full ${(p.progress || 0) === 100 ? 'bg-emerald-400' : 'bg-brand-teal'}`} />
                     </div>
                 </div>
 
                 <div className="lg:w-44 flex flex-row lg:flex-col items-center lg:items-end justify-between lg:justify-center gap-3">
                     <div className="text-right">
-                        <div className="text-xs font-black text-brand-teal">{p.value}</div>
+                        <div className="text-sm font-black text-brand-teal">${Number(p.value || 0).toLocaleString()}</div>
                         <div className="flex items-center gap-1 justify-end mt-0.5">
-                            <Calendar size={9} className="text-slate-600" />
-                            <div className="text-[8px] font-black text-slate-600 uppercase">{p.deadline}</div>
+                            <Calendar size={10} className="text-text-dim" />
+                            <div className="text-[10px] font-black text-text-dim uppercase">{p.deadline || '—'}</div>
                         </div>
                     </div>
                     <button onClick={() => onSelect(p)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-teal/10 hover:bg-brand-teal text-brand-teal hover:text-white text-[8px] font-black uppercase tracking-widest transition-all">
+                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-brand-teal/10 hover:bg-brand-teal text-brand-teal hover:text-text-primary text-[10px] font-black uppercase tracking-widest transition-all">
                         Manage <ChevronRight size={10} />
                     </button>
                 </div>
@@ -181,233 +211,854 @@ function ListRow({ p, i, onSelect }) {
 }
 
 // ─── Detail Drawer ───────────────────────────────────────────────────────────
-function ProjectDrawer({ project, onClose, onMilestoneDone }) {
-    const meta = STAGE_META[project.stage];
-    const completedCount = project.milestones.filter(m => m.done).length;
+function ProjectDrawer({ project, onClose, onToggleMilestone, onDeleteMilestone, onAddMilestone, onUpdateProject, onAddNote, onDeleteNote, onUploadFile, onDeleteFile }) {
+    const [isEditing, setIsEditing] = useState(false);
+    const [isAddingNote, setIsAddingNote] = useState(false);
+    const [noteText, setNoteText] = useState('');
+    const [noteLoading, setNoteLoading] = useState(false);
+    const [newMilestoneLabel, setNewMilestoneLabel] = useState('');
+    const [fileUploading, setFileUploading] = useState(false);
+    const fileInputRef = useRef(null);
+    const [editForm, setEditForm] = useState({
+        title: project.title || '',
+        description: project.description || '',
+        value: project.value || 0,
+        deadline: project.deadline || '',
+        priority: project.priority || 'Medium',
+        stage: project.stage || 'Dev',
+        tagsStr: (project.tags || []).join(', ')
+    });
+    
+    const handleAddNewMilestone = (e) => {
+        e.preventDefault();
+        if (!newMilestoneLabel.trim()) return;
+        onAddMilestone(project.id, newMilestoneLabel.trim());
+        setNewMilestoneLabel('');
+    };
+
+    const handleSaveEdit = async (e) => {
+        e.preventDefault();
+        onUpdateProject(project.id, editForm);
+        setIsEditing(false);
+    };
+
+    const handlePickFile = () => {
+        fileInputRef.current?.click();
+    };
+
+    const handleFileSelected = async (e) => {
+        const file = e.target.files?.[0];
+        e.target.value = '';
+        if (!file) return;
+        setFileUploading(true);
+        try {
+            await onUploadFile(project.id, file);
+        } finally {
+            setFileUploading(false);
+        }
+    };
+
+    const resolveBackendUrl = (url) => {
+        if (!url) return '';
+        return url.startsWith('/') ? `http://127.0.0.1:8000${url}` : url;
+    };
+
+    const handleDownload = async (url, filename) => {
+        const finalUrl = resolveBackendUrl(url);
+        if (!finalUrl) return;
+        try {
+            const res = await fetch(finalUrl);
+            if (!res.ok) throw new Error('Download failed');
+            const blob = await res.blob();
+            const objectUrl = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = objectUrl;
+            a.download = filename || 'download';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+
+            URL.revokeObjectURL(objectUrl);
+        } catch (e) {
+            window.open(finalUrl, '_blank', 'noopener,noreferrer');
+        }
+    };
+
+    const handleSubmitNote = async (e) => {
+        e.preventDefault();
+        if (!noteText.trim()) return;
+        setNoteLoading(true);
+        await onAddNote(project.id, noteText.trim());
+        setNoteText('');
+        setIsAddingNote(false);
+        setNoteLoading(false);
+    };
+
+    const meta = STAGE_META[project.stage] || { color: 'text-text-muted', bg: 'bg-white/5', border: 'border-white/5' };
+    const milestones = project.milestones || [];
+    const files = project.files || [];
+    const activities = project.activities || [];
+    const isNoteLog = (log) => (log?.action_text || '').includes('Note:');
+    const notes = activities.filter(isNoteLog);
+    const nonNoteActivities = activities.filter((log) => !isNoteLog(log));
+    const tags = project.tags || [];
+    const completedCount = milestones.filter(m => m.done).length;
+
     return (
-        <div className="fixed inset-0 z-[200] flex justify-end">
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                onClick={onClose} className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" />
-            <motion.div initial={{ x: '100%' }} animate={{ x: 0 }} exit={{ x: '100%' }}
-                transition={{ type: 'spring', damping: 25 }}
-                className="relative w-full max-w-xl bg-[#080f1e] border-l border-white/10 flex flex-col h-full shadow-2xl">
+        <AdminModal
+            open
+            onClose={onClose}
+            title={isEditing ? 'Edit Project Protocols' : project.title}
+            subtitle={`${project.id} • ${project.client_name || '—'}`}
+            maxWidthClass="max-w-5xl"
+            footer={
+                !isEditing ? (
+                    <div className="space-y-2">
+                        {isAddingNote && (
+                            <form onSubmit={handleSubmitNote} className="flex gap-2 pb-2">
+                                <input
+                                    type="text"
+                                    value={noteText}
+                                    onChange={(e) => setNoteText(e.target.value)}
+                                    placeholder="Type a note for the activity log..."
+                                    autoFocus
+                                    className="flex-grow bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-text-primary placeholder:text-text-dim focus:outline-none focus:border-brand-teal/50"
+                                />
+                                <button
+                                    type="submit"
+                                    disabled={noteLoading || !noteText.trim()}
+                                    className="px-3.5 py-2 bg-brand-teal text-text-primary rounded-xl font-black uppercase tracking-widest text-[10px] hover:-translate-y-0.5 transition-all shadow-glow-teal shrink-0 disabled:opacity-50"
+                                >
+                                    {noteLoading ? <Loader2 size={12} className="animate-spin" /> : 'Post'}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => { setIsAddingNote(false); setNoteText(''); }}
+                                    className="px-3 py-2 bg-white/5 border border-white/5 text-text-muted rounded-xl font-black text-[10px] hover:bg-white/10 transition-all shrink-0"
+                                >
+                                    Cancel
+                                </button>
+                            </form>
+                        )}
+                        <div className="grid grid-cols-2 gap-2">
+                            <button onClick={() => setIsEditing(true)}
+                                className="py-2.5 bg-brand-teal text-text-primary rounded-xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:-translate-y-0.5 transition-all shadow-glow-teal">
+                                <Edit3 size={12} /> Edit Project
+                            </button>
+                            <button
+                                onClick={() => setIsAddingNote(v => !v)}
+                                className={`py-2.5 border text-text-primary rounded-xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 transition-all ${
+                                    isAddingNote
+                                        ? 'bg-brand-indigo/20 border-brand-indigo/30 text-brand-indigo'
+                                        : 'bg-white/5 border-white/5 hover:bg-white/10'
+                                }`}
+                            >
+                                <Plus size={12} /> Add Note
+                            </button>
+                        </div>
+                    </div>
+                ) : null
+            }
+        >
+            <div className="flex flex-col">
 
                 {/* Header */}
-                <div className="p-6 border-b border-white/5 sticky top-0 bg-[#080f1e] z-10">
+                <div className="p-5 border-b border-border-subtle sticky top-0 bg-surface-900 z-10">
                     <div className="flex items-start justify-between mb-4">
                         <div>
-                            <span className="text-[8px] font-black text-brand-teal uppercase tracking-[0.3em]">{project.id}</span>
-                            <h2 className="text-lg font-black text-white uppercase leading-tight mt-1">{project.title}</h2>
-                            <p className="text-[10px] text-slate-500 mt-1">{project.client} &bull; {project.type}</p>
+                            <span className="text-[10px] font-black text-brand-teal uppercase tracking-[0.3em]">{project.id}</span>
+                            <h2 className="text-xl font-black text-text-primary uppercase leading-tight mt-1">
+                                {isEditing ? 'Edit Project Protocols' : project.title}
+                            </h2>
+                            <p className="text-xs text-text-muted mt-1">{project.client_name || '—'}</p>
                         </div>
-                        <button onClick={onClose} className="p-2 rounded-xl bg-white/5 text-slate-500 hover:text-white transition-all shrink-0">
-                            <X size={16} />
-                        </button>
+                        <div className="text-right">
+                            <span className="text-[10px] font-black text-text-dim uppercase tracking-widest">Protocol</span>
+                        </div>
                     </div>
                     {/* Mini stats */}
-                    <div className="grid grid-cols-3 gap-2">
-                        {[['Value', project.value, 'text-brand-teal'], ['Deadline', project.deadline, 'text-white'], ['Progress', `${project.progress}%`, 'text-white']].map(([l, v, c]) => (
-                            <div key={l} className="p-2.5 rounded-xl bg-white/5 border border-white/5 text-center">
-                                <div className="text-[7px] font-black text-slate-600 uppercase tracking-widest mb-0.5">{l}</div>
-                                <div className={`text-xs font-black ${c}`}>{v}</div>
-                            </div>
-                        ))}
-                    </div>
+                    {!isEditing && (
+                        <div className="grid grid-cols-3 gap-2">
+                            {[['Value', `$${Number(project.value || 0).toLocaleString()}`, 'text-brand-teal'], ['Deadline', project.deadline || '—', 'text-text-primary'], ['Progress', `${project.progress || 0}%`, 'text-text-primary']].map(([l, v, c]) => (
+                                <div key={l} className="p-2 rounded-xl bg-white/5 border border-white/5 text-center">
+                                    <div className="text-[9px] font-black text-text-dim uppercase tracking-widest mb-0.5">{l}</div>
+                                    <div className={`text-sm font-black ${c}`}>{v}</div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
                 </div>
 
                 {/* Body */}
-                <div className="flex-grow overflow-y-auto p-6 space-y-6">
-                    {/* Stage badge */}
-                    <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest border ${meta.bg} ${meta.color} ${meta.border}`}>
-                        <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
-                        Current Stage: {project.stage}
-                    </div>
+                <div className="flex-grow overflow-y-auto p-5 space-y-5">
+                    {isEditing ? (
+                        <form onSubmit={handleSaveEdit} className="space-y-4">
+                            <div className="space-y-1.5">
+                                <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 ml-1">Title</label>
+                                <input 
+                                    type="text" 
+                                    value={editForm.title}
+                                    onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-text-primary focus:outline-none focus:border-brand-teal/50 font-bold"
+                                    required
+                                />
+                            </div>
 
-                    {/* Description */}
-                    <div>
-                        <div className="text-[8px] font-black text-slate-600 uppercase tracking-widest mb-2">Brief</div>
-                        <p className="text-sm text-slate-400 leading-relaxed italic">"{project.description}"</p>
-                    </div>
+                            <div className="space-y-1.5">
+                                <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 ml-1">Mission Brief</label>
+                                <textarea 
+                                    value={editForm.description}
+                                    onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                                    rows="4"
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-text-primary focus:outline-none focus:border-brand-teal/50 resize-y font-bold"
+                                />
+                            </div>
 
-                    {/* Milestones */}
-                    <div>
-                        <div className="flex items-center justify-between mb-3">
-                            <div className="text-[8px] font-black text-slate-600 uppercase tracking-widest">Milestones</div>
-                            <span className="text-[8px] font-black text-brand-teal">{completedCount}/{project.milestones.length} Done</span>
-                        </div>
-                        <div className="space-y-2">
-                            {project.milestones.map((m, mi) => (
-                                <div key={mi} className={`flex items-center gap-3 p-3 rounded-xl border transition-all ${m.done ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-white/5 border-white/5 hover:border-white/10'}`}>
-                                    {m.done
-                                        ? <CheckCircle2 size={14} className="text-emerald-400 shrink-0" />
-                                        : <Circle size={14} className="text-slate-700 shrink-0" />}
-                                    <span className={`text-xs font-bold flex-grow ${m.done ? 'text-slate-600 line-through' : 'text-white'}`}>{m.label}</span>
-                                    {!m.done && mi === completedCount && (
-                                        <button onClick={() => onMilestoneDone(project.id, mi)}
-                                            className="text-[7px] font-black text-brand-teal uppercase tracking-widest px-2 py-1 rounded-md bg-brand-teal/10 hover:bg-brand-teal hover:text-white transition-all shrink-0">
-                                            Mark Done
-                                        </button>
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="space-y-1.5">
+                                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 ml-1">Investment Value ($)</label>
+                                    <input 
+                                        type="number" 
+                                        value={editForm.value}
+                                        onChange={(e) => setEditForm({ ...editForm, value: e.target.value })}
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-text-primary focus:outline-none focus:border-brand-teal/50 font-bold"
+                                        required
+                                    />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 ml-1">Deadline Date</label>
+                                    <input 
+                                        type="date" 
+                                        value={editForm.deadline}
+                                        onChange={(e) => setEditForm({ ...editForm, deadline: e.target.value })}
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-text-primary focus:outline-none focus:border-brand-teal/50 font-mono font-bold"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3">
+                                <div className="space-y-1.5">
+                                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 ml-1">Priority</label>
+                                    <select 
+                                        value={editForm.priority}
+                                        onChange={(e) => setEditForm({ ...editForm, priority: e.target.value })}
+                                        className="w-full bg-surface-900 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-text-primary focus:outline-none focus:border-brand-teal/50 font-bold"
+                                    >
+                                        <option value="Low">Low</option>
+                                        <option value="Medium">Medium</option>
+                                        <option value="High">High</option>
+                                    </select>
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 ml-1">Mission Stage</label>
+                                    <select 
+                                        value={editForm.stage}
+                                        onChange={(e) => setEditForm({ ...editForm, stage: e.target.value })}
+                                        className="w-full bg-surface-900 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-text-primary focus:outline-none focus:border-brand-teal/50 font-bold"
+                                    >
+                                        {STAGES.map(s => (
+                                            <option key={s} value={s}>{s}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="space-y-1.5">
+                                <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 ml-1 flex items-center gap-1.5">
+                                    <Tag size={10} /> Tech Tags (comma-separated)
+                                </label>
+                                <input 
+                                    type="text" 
+                                    value={editForm.tagsStr}
+                                    onChange={(e) => setEditForm({ ...editForm, tagsStr: e.target.value })}
+                                    placeholder="Python, Django, PostgreSQL..."
+                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-text-primary focus:outline-none focus:border-brand-teal/50 font-bold"
+                                />
+                            </div>
+
+                            <div className="flex gap-2 pt-4 border-t border-white/5">
+                                <button type="submit"
+                                    className="flex-grow py-2.5 bg-brand-teal text-text-primary rounded-xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:-translate-y-0.5 transition-all shadow-glow-teal">
+                                    Save Protocol Changes
+                                </button>
+                                <button type="button" onClick={() => setIsEditing(false)}
+                                    className="px-5 py-2.5 bg-white/5 border border-white/5 text-text-primary rounded-xl font-black uppercase tracking-widest text-xs hover:bg-white/10 transition-all">
+                                    Cancel
+                                </button>
+                            </div>
+                        </form>
+                    ) : (
+                        <>
+                            {/* Stage badge */}
+                            <div className="flex flex-wrap gap-2">
+                                <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-xl text-[11px] font-black uppercase tracking-widest border ${meta.bg} ${meta.color} ${meta.border}`}>
+                                    <span className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
+                                    Current Stage: {project.stage}
+                                </div>
+                                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-xl text-[11px] font-black uppercase tracking-widest border bg-white/5 text-text-primary border-white/10">
+                                    <span className={`w-1.5 h-1.5 rounded-full ${PRIORITY_DOT[project.priority] || 'bg-slate-600'}`} />
+                                    Priority: {project.priority || 'Medium'}
+                                </div>
+                            </div>
+
+                            {/* Description */}
+                            {project.description && (
+                                <div>
+                                    <div className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-2">Brief</div>
+                                    <p className="text-base text-text-secondary leading-relaxed italic">&ldquo;{project.description}&rdquo;</p>
+                                </div>
+                            )}
+
+                            {/* Milestones */}
+                            <div className="p-4 rounded-xl bg-white/[0.01] border border-white/5 space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <div className="text-[10px] font-black text-text-muted uppercase tracking-widest">Project Milestones</div>
+                                    {milestones.length > 0 && (
+                                        <span className="text-[10px] font-black text-brand-teal">{completedCount}/{milestones.length} Done</span>
                                     )}
                                 </div>
-                            ))}
-                        </div>
-                    </div>
 
-                    {/* Tech stack */}
-                    <div>
-                        <div className="text-[8px] font-black text-slate-600 uppercase tracking-widest mb-2">Tech Stack</div>
-                        <div className="flex flex-wrap gap-1.5">
-                            {project.tech.map(t => (
-                                <span key={t} className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/5 text-[8px] font-black text-white uppercase tracking-widest">{t}</span>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Deliverables */}
-                    <div>
-                        <div className="text-[8px] font-black text-slate-600 uppercase tracking-widest mb-2">Deliverables</div>
-                        {project.files.length > 0 ? (
-                            <div className="space-y-2 mb-3">
-                                {project.files.map((f, fi) => (
-                                    <div key={fi} className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/5">
-                                        <div className="w-8 h-8 rounded-lg bg-brand-teal/10 flex items-center justify-center text-brand-teal text-[7px] font-black uppercase">
-                                            {f.name.split('.').pop()}
-                                        </div>
-                                        <div className="flex-grow min-w-0">
-                                            <div className="text-[10px] font-bold text-white truncate">{f.name}</div>
-                                            <div className="text-[7px] font-black text-slate-600 uppercase">{f.size} &bull; {f.date}</div>
-                                        </div>
-                                        <button className="p-1.5 rounded-lg bg-white/5 text-slate-500 hover:text-white transition-all">
-                                            <ChevronRight size={12} />
-                                        </button>
+                                {milestones.length > 0 ? (
+                                    <div className="space-y-2">
+                                        {milestones.map((m, mi) => (
+                                            <div key={m.id || mi} className={`flex items-center gap-3 p-2.5 rounded-xl border transition-all ${m.done ? 'bg-emerald-500/5 border-emerald-500/10' : 'bg-white/5 border-white/5 hover:border-white/10'}`}>
+                                                <button 
+                                                    onClick={() => onToggleMilestone(project.id, m.id, m.done)}
+                                                    className={`shrink-0 p-0.5 rounded-lg hover:bg-white/5 transition-all text-left ${m.done ? 'text-emerald-400' : 'text-text-dim hover:text-text-primary'}`}
+                                                    title={m.done ? "Mark as Pending" : "Mark as Done"}
+                                                >
+                                                    {m.done ? <CheckCircle2 size={16} /> : <Circle size={16} />}
+                                                </button>
+                                                <span className={`text-xs font-bold flex-grow ${m.done ? 'text-text-muted line-through' : 'text-text-primary'}`}>{m.label}</span>
+                                                <button
+                                                    onClick={() => onDeleteMilestone(project.id, m.id, m.label)}
+                                                    className="shrink-0 p-1.5 rounded-lg hover:bg-white/5 transition-all text-text-dim hover:text-brand-red"
+                                                    title="Delete milestone"
+                                                >
+                                                    <Trash2 size={14} />
+                                                </button>
+                                            </div>
+                                        ))}
                                     </div>
-                                ))}
+                                ) : (
+                                    <p className="text-xs text-text-dim italic mb-3 ml-1">No milestones established for this project.</p>
+                                )}
+
+                                {/* Add Milestone Form */}
+                                <form onSubmit={handleAddNewMilestone} className="flex gap-2 pt-2 border-t border-white/5">
+                                    <input 
+                                        type="text"
+                                        value={newMilestoneLabel}
+                                        onChange={(e) => setNewMilestoneLabel(e.target.value)}
+                                        placeholder="Establish new milestone label..."
+                                        className="flex-grow bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-text-primary placeholder:text-text-dim focus:outline-none focus:border-brand-teal/50"
+                                    />
+                                    <button 
+                                        type="submit"
+                                        className="px-3.5 py-2 bg-brand-teal text-text-primary rounded-xl font-black uppercase tracking-widest text-[10px] hover:-translate-y-0.5 transition-all shadow-glow-teal shrink-0"
+                                    >
+                                        Add
+                                    </button>
+                                </form>
                             </div>
-                        ) : null}
-                        <label className="flex items-center justify-center gap-2 p-4 rounded-xl border-2 border-dashed border-white/10 hover:border-brand-teal/30 hover:bg-brand-teal/5 transition-all cursor-pointer">
-                            <Upload size={16} className="text-slate-600" />
-                            <span className="text-[9px] font-black text-slate-600 uppercase tracking-widest">Upload Deliverable</span>
-                            <input type="file" className="hidden" />
-                        </label>
-                    </div>
 
-                    {/* Activity log */}
-                    <div>
-                        <div className="text-[8px] font-black text-slate-600 uppercase tracking-widest mb-3">Activity Log</div>
-                        <div className="space-y-3 border-l border-white/5 ml-2 pl-4">
-                            {project.logs.map((log, li) => (
-                                <div key={li} className="relative">
-                                    <div className="absolute -left-[21px] top-1.5 w-1.5 h-1.5 rounded-full bg-brand-teal" />
-                                    <div className="text-[7px] font-black text-slate-700 uppercase tracking-widest mb-0.5">{log.date} &bull; {log.time}</div>
-                                    <div className="text-[10px] text-slate-400">{log.event}</div>
+                            {/* Tech stack */}
+                            {tags.length > 0 && (
+                                <div>
+                                    <div className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-2">Tech Stack</div>
+                                    <div className="flex flex-wrap gap-1.5">
+                                        {tags.map(t => (
+                                            <span key={t} className="px-2 py-0.5 rounded-lg bg-white/5 border border-white/5 text-[10px] font-black text-text-primary uppercase tracking-widest">{t}</span>
+                                        ))}
+                                    </div>
                                 </div>
-                            ))}
-                        </div>
-                    </div>
+                            )}
+
+                            {/* Deliverables */}
+                            <div className="flex items-center justify-between mb-2">
+                                <div className="text-[10px] font-black text-text-muted uppercase tracking-widest">Deliverables</div>
+                                <div className="flex items-center gap-2">
+                                    <input
+                                        ref={fileInputRef}
+                                        type="file"
+                                        className="hidden"
+                                        onChange={handleFileSelected}
+                                    />
+                                    <button
+                                        onClick={handlePickFile}
+                                        disabled={fileUploading}
+                                        className="px-3 py-1.5 rounded-xl bg-white/[0.03] border border-border-subtle text-text-primary hover:border-border-light transition-all text-[10px] font-black uppercase tracking-widest flex items-center gap-2 disabled:opacity-60"
+                                    >
+                                        {fileUploading ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
+                                        Upload
+                                    </button>
+                                </div>
+                            </div>
+                            {files.length > 0 && (
+                                <div>
+                                    <div className="space-y-2 mb-3">
+                                        {files.map((f, fi) => (
+                                            <div key={f.id || fi} className="flex items-center gap-3 p-2.5 rounded-xl bg-white/5 border border-white/5">
+                                                <div className="w-8 h-8 rounded-lg bg-brand-teal/10 flex items-center justify-center text-brand-teal text-[9px] font-black uppercase">
+                                                    {f.name?.split('.').pop() || 'file'}
+                                                </div>
+                                                <div className="flex-grow min-w-0">
+                                                    <div className="text-xs font-bold text-text-primary truncate">{f.name}</div>
+                                                    <div className="text-[9px] font-black text-text-muted uppercase">{formatBytes(f.size)}</div>
+                                                </div>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => onDeleteFile?.(project.id, f.id, f.name)}
+                                                    className="p-2 rounded-lg bg-white/5 text-text-muted hover:text-brand-red transition-all"
+                                                    title="Delete"
+                                                    aria-label="Delete file"
+                                                >
+                                                    <Trash2 size={14} />
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleDownload(f.file_url || f.file, f.name)}
+                                                    className="p-2 rounded-lg bg-white/5 text-text-muted hover:text-text-primary transition-all"
+                                                    title="Download"
+                                                >
+                                                    <Download size={14} />
+                                                </button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                            {files.length === 0 && (
+                                <div className="p-3 rounded-xl bg-white/[0.02] border border-dashed border-white/10 text-[10px] text-text-dim font-black uppercase tracking-widest">
+                                    No files yet
+                                </div>
+                            )}
+
+                            {/* Activity log */}
+                            {notes.length > 0 && (
+                                <div>
+                                    <div className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-3">Notes</div>
+                                    <div className="space-y-3">
+                                        {notes.map((log, li) => {
+                                            const raw = log.action_text || '';
+                                            const text = raw.includes('Note:') ? raw.split('Note:').slice(1).join('Note:').trim() : raw;
+                                            return (
+                                                <div key={log.id || li} className="p-3 rounded-xl bg-white/[0.02] border border-white/5">
+                                                    <div className="flex items-start justify-between gap-3">
+                                                        <div className="text-[9px] font-black text-text-dim uppercase tracking-widest mb-1">
+                                                            {new Date(log.timestamp).toLocaleString()}
+                                                        </div>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => onDeleteNote(project.id, log.id)}
+                                                            className="shrink-0 p-1.5 rounded-lg hover:bg-white/5 transition-all text-text-dim hover:text-brand-red"
+                                                            title="Delete note"
+                                                        >
+                                                            <Trash2 size={14} />
+                                                        </button>
+                                                    </div>
+                                                    <div className="text-xs text-text-secondary">{text}</div>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Activity log */}
+                            {nonNoteActivities.length > 0 && (
+                                <div>
+                                    <div className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-3">Activity Log</div>
+                                    <div className="space-y-3 border-l border-white/5 ml-2 pl-4">
+                                        {nonNoteActivities.map((log, li) => (
+                                            <div key={log.id || li} className="relative">
+                                                <div className="absolute -left-[21px] top-1.5 w-1.5 h-1.5 rounded-full bg-brand-teal" />
+                                                <div className="text-[9px] font-black text-text-dim uppercase tracking-widest mb-0.5">
+                                                    {new Date(log.timestamp).toLocaleString()}
+                                                </div>
+                                                <div className="text-xs text-text-secondary">{log.action_text}</div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </>
+                    )}
                 </div>
 
-                {/* Footer */}
-                <div className="p-6 border-t border-white/5 space-y-2 sticky bottom-0 bg-[#080f1e]">
-                    <div className="grid grid-cols-2 gap-2">
-                        <button className="py-3 bg-brand-teal text-white rounded-xl font-black uppercase tracking-widest text-[9px] flex items-center justify-center gap-2 hover:-translate-y-0.5 transition-all shadow-glow-teal">
-                            <Edit3 size={12} /> Edit Project
-                        </button>
-                        <button className="py-3 bg-white/5 border border-white/5 text-white rounded-xl font-black uppercase tracking-widest text-[9px] flex items-center justify-center gap-2 hover:bg-white/10 transition-all">
-                            <Plus size={12} /> Add Note
-                        </button>
-                    </div>
-                </div>
-            </motion.div>
-        </div>
+            </div>
+        </AdminModal>
     );
 }
 
 // ─── Main Page ───────────────────────────────────────────────────────────────
 export default function AdminProjectsPage() {
     const [search, setSearch] = useState('');
-    const [view, setView] = useState('list'); // 'list' | 'kanban'
+    const [view, setView] = useState('kanban');
+    const [stageFilter, setStageFilter] = useState('');
+    const [priorityFilter, setPriorityFilter] = useState('');
     const [selected, setSelected] = useState(null);
-    const [projects, setProjects] = useState(PROJECTS);
+    const [projects, setProjects] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [dangerConfirm, setDangerConfirm] = useState({ open: false, kind: null, projectId: null, id: null, label: '' });
+    const [dangerLoading, setDangerLoading] = useState(false);
 
-    const filtered = projects.filter(p =>
-        [p.title, p.client, p.id].some(s => s.toLowerCase().includes(search.toLowerCase()))
-    );
+    useEffect(() => {
+        // Default to list view on mobile to reduce horizontal density.
+        if (typeof window === 'undefined') return;
+        const isMobile = window.matchMedia?.('(max-width: 639px)')?.matches;
+        if (isMobile) setView('list');
+    }, []);
 
-    const handleMilestoneDone = (projectId, milestoneIndex) => {
-        setProjects(prev => prev.map(p => {
-            if (p.id !== projectId) return p;
-            const milestones = p.milestones.map((m, i) => i === milestoneIndex ? { ...m, done: true } : m);
-            const done = milestones.filter(m => m.done).length;
-            const progress = Math.round((done / milestones.length) * 100);
-            return { ...p, milestones, progress };
-        }));
-        setSelected(prev => {
-            if (!prev || prev.id !== projectId) return prev;
-            const milestones = prev.milestones.map((m, i) => i === milestoneIndex ? { ...m, done: true } : m);
-            const done = milestones.filter(m => m.done).length;
-            return { ...prev, milestones, progress: Math.round((done / milestones.length) * 100) };
-        });
+    // Toast state
+    const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+    const showToast = (message, type = 'success') => {
+        setToast({ show: true, message, type });
+        setTimeout(() => {
+            setToast(p => ({ ...p, show: false }));
+        }, 4000);
     };
 
+    // silent=true skips the full-page loading spinner so the drawer never unmounts
+    const fetchProjects = useCallback(async (silent = false) => {
+        try {
+            if (!silent) setLoading(true);
+            const res = await api.getAdminProjects({
+                stage: stageFilter || undefined,
+                priority: priorityFilter || undefined,
+            });
+            const data = Array.isArray(res) ? res : res.results || [];
+            setProjects(data);
+        } catch (err) {
+            if (!silent) setError(err.message);
+        } finally {
+            if (!silent) setLoading(false);
+        }
+	    }, [stageFilter, priorityFilter]);
+	
+	    useEffect(() => {
+	        const t = setTimeout(() => {
+	            fetchProjects();
+	        }, 0);
+	        return () => clearTimeout(t);
+	    }, [fetchProjects]);
+
+    async function handleSelectForDetail(project) {
+        try {
+            const detail = await api.getAdminProjectDetail(project.id);
+            setSelected(detail);
+        } catch (err) {
+            setSelected(project);
+        }
+    }
+
+    async function handleToggleMilestone(projectId, milestoneId, currentDone) {
+        try {
+            const nextDone = !currentDone;
+            await api.updateMilestone(projectId, milestoneId, { done: nextDone });
+            const detail = await api.getAdminProjectDetail(projectId);
+            setSelected(detail);
+            await fetchProjects(true); // silent — keeps drawer open
+            showToast(nextDone ? 'Milestone completed successfully' : 'Milestone marked as pending');
+        } catch (err) {
+            showToast(err.message || 'Failed to update milestone', 'error');
+        }
+    }
+
+    function handleDeleteMilestone(projectId, milestoneId, milestoneLabel = '') {
+        if (!milestoneId) return;
+        setDangerConfirm({ open: true, kind: 'milestone', projectId, id: milestoneId, label: milestoneLabel || '' });
+    }
+
+    async function doDeleteMilestone(projectId, milestoneId) {
+        await api.deleteMilestone(projectId, milestoneId);
+        setSelected(prev => {
+            if (!prev || prev.id !== projectId) return prev;
+            const nextMilestones = Array.isArray(prev.milestones)
+                ? prev.milestones.filter(m => String(m.id) !== String(milestoneId))
+                : prev.milestones;
+            return { ...prev, milestones: nextMilestones };
+        });
+        const detail = await api.getAdminProjectDetail(projectId);
+        setSelected(detail);
+        await fetchProjects(true);
+        showToast('Milestone deleted successfully');
+    }
+
+    async function handleAddMilestone(projectId, label) {
+        try {
+            await api.createMilestone(projectId, label);
+            const detail = await api.getAdminProjectDetail(projectId);
+            setSelected(detail);
+            await fetchProjects(true); // silent
+            showToast('New milestone added successfully');
+        } catch (err) {
+            showToast(err.message || 'Failed to construct milestone', 'error');
+        }
+    }
+
+    async function handleUpdateProject(projectId, formData) {
+        try {
+            // 1. Process tags (checks and creates if missing)
+            const enteredTagNames = formData.tagsStr
+                .split(',')
+                .map(t => t.trim())
+                .filter(Boolean);
+
+            const existingTags = await api.getAdminTags();
+            const existingTagNamesLower = existingTags.map(t => t.name.toLowerCase());
+
+            const finalTags = [];
+            for (const name of enteredTagNames) {
+                const index = existingTagNamesLower.indexOf(name.toLowerCase());
+                if (index === -1) {
+                    const newTag = await api.createAdminTag(name);
+                    finalTags.push(newTag.name);
+                } else {
+                    finalTags.push(existingTags[index].name);
+                }
+            }
+
+            // 2. Patch data
+            const payload = {
+                title: formData.title,
+                description: formData.description,
+                value: formData.value,
+                deadline: formData.deadline || null,
+                priority: formData.priority,
+                stage: formData.stage,
+                tags: finalTags
+            };
+
+            await api.updateAdminProject(projectId, payload);
+            
+            // Refresh detailed view & main projects list (silently — keep drawer open)
+            const detail = await api.getAdminProjectDetail(projectId);
+            setSelected(detail);
+            await fetchProjects(true);
+            showToast('Project updated successfully');
+        } catch (err) {
+            showToast(err.message || 'Failed to update project', 'error');
+        }
+    }
+
+    async function handleAddNote(projectId, text) {
+        try {
+            const createdLog = await api.addProjectNote(projectId, text);
+            setSelected(prev => {
+                if (!prev || prev.id !== projectId) return prev;
+                const nextActivities = Array.isArray(prev.activities) ? [createdLog, ...prev.activities] : [createdLog];
+                return { ...prev, activities: nextActivities };
+            });
+            // Refresh drawer to show the new note in the activity log
+            const detail = await api.getAdminProjectDetail(projectId);
+            setSelected(detail);
+            showToast('Note added to activity log');
+        } catch (err) {
+            showToast(err.message || 'Failed to add note', 'error');
+        }
+    }
+
+    function handleDeleteNote(projectId, noteId) {
+        if (!noteId) return;
+        setDangerConfirm({ open: true, kind: 'note', projectId, id: noteId, label: '' });
+    }
+
+    async function doDeleteNote(projectId, noteId) {
+        await api.deleteProjectNote(projectId, noteId);
+        setSelected(prev => {
+            if (!prev || prev.id !== projectId) return prev;
+            const nextActivities = Array.isArray(prev.activities)
+                ? prev.activities.filter(a => String(a.id) !== String(noteId))
+                : prev.activities;
+            return { ...prev, activities: nextActivities };
+        });
+        const detail = await api.getAdminProjectDetail(projectId);
+        setSelected(detail);
+        showToast('Note deleted successfully');
+    }
+
+    async function handleUploadFile(projectId, file) {
+        try {
+            const createdFile = await api.uploadAdminProjectFile(projectId, file);
+            setSelected(prev => {
+                if (!prev || prev.id !== projectId) return prev;
+                const nextFiles = Array.isArray(prev.files) ? [createdFile, ...prev.files] : [createdFile];
+                return { ...prev, files: nextFiles };
+            });
+            const detail = await api.getAdminProjectDetail(projectId);
+            setSelected(detail);
+            await fetchProjects(true);
+            showToast('File uploaded successfully');
+        } catch (err) {
+            showToast(err.message || 'Failed to upload file', 'error');
+            throw err;
+        }
+    }
+
+    function handleDeleteFile(projectId, fileId, fileName = '') {
+        if (!fileId) return;
+        setDangerConfirm({ open: true, kind: 'file', projectId, id: fileId, label: fileName || '' });
+    }
+
+    async function doDeleteFile(projectId, fileId) {
+        await api.deleteAdminProjectFile(projectId, fileId);
+        setSelected(prev => {
+            if (!prev || prev.id !== projectId) return prev;
+            const nextFiles = Array.isArray(prev.files)
+                ? prev.files.filter(f => String(f.id) !== String(fileId))
+                : prev.files;
+            return { ...prev, files: nextFiles };
+        });
+        const detail = await api.getAdminProjectDetail(projectId);
+        setSelected(detail);
+        await fetchProjects(true);
+        showToast('File deleted successfully');
+    }
+
+    async function confirmDangerAction() {
+        const { kind, projectId, id } = dangerConfirm || {};
+        if (!kind || !projectId || !id) return;
+        try {
+            setDangerLoading(true);
+            if (kind === 'file') await doDeleteFile(projectId, id);
+            if (kind === 'note') await doDeleteNote(projectId, id);
+            if (kind === 'milestone') await doDeleteMilestone(projectId, id);
+            setDangerConfirm({ open: false, kind: null, projectId: null, id: null, label: '' });
+        } catch (err) {
+            showToast(err.message || 'Delete failed', 'error');
+        } finally {
+            setDangerLoading(false);
+        }
+    }
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center h-64">
+                <Loader2 size={24} className="animate-spin text-brand-teal" />
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="flex items-center justify-center h-64">
+                <div className="text-center">
+                    <AlertCircle size={24} className="text-admin-danger mx-auto mb-2" />
+                    <p className="text-text-muted text-sm">{error}</p>
+                </div>
+            </div>
+        );
+    }
+
+    const filtered = projects.filter(p =>
+        [p.title, p.client_name, p.id].some(s => (s || '').toLowerCase().includes(search.toLowerCase()))
+    );
+
+    const stageCounts = STAGES.reduce((acc, s) => {
+        acc[s] = projects.filter(p => p.stage === s).length;
+        return acc;
+    }, {});
+
     return (
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
             {/* Header */}
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                 className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
                 <div>
-                    <p className="text-[9px] font-black text-brand-teal uppercase tracking-[0.3em] mb-1">Admin / Projects</p>
-                    <h1 className="text-2xl font-black text-white uppercase tracking-tight">Project Management</h1>
-                    <p className="text-slate-500 text-xs mt-1">{projects.length} active projects &bull; Track stages, milestones & deliverables.</p>
+                    <p className="text-xs font-black text-brand-teal uppercase tracking-[0.3em] mb-1">Admin / Projects</p>
+                    <h1 className="text-2xl font-black text-text-primary uppercase tracking-tight">Project Management</h1>
+                    <p className="text-text-muted text-sm mt-1">{projects.length} projects &bull; Track stages, milestones &amp; deliverables.</p>
                 </div>
-                <div className="flex items-center gap-2">
-                    {/* Search */}
-                    <div className="flex items-center gap-2 bg-white/5 border border-white/5 rounded-xl px-3.5 py-2 w-52">
-                        <Search size={12} className="text-slate-600 shrink-0" />
-                        <input type="text" placeholder="Search projects..." value={search}
-                            onChange={e => setSearch(e.target.value)}
-                            className="bg-transparent border-none outline-none text-[10px] text-white placeholder:text-slate-700 w-full font-bold" />
+                <div className="flex flex-col sm:flex-row sm:flex-nowrap items-stretch sm:items-center gap-2 w-full sm:w-auto">
+                    <div className="flex items-center gap-2 w-full sm:contents">
+                        {/* Search */}
+                        <div className="flex items-center gap-2 bg-white/5 border border-white/5 rounded-xl px-3 py-1.5 flex-1 min-w-0 sm:flex-none sm:w-80">
+                            <Search size={12} className="text-text-muted shrink-0" />
+                            <input type="text" placeholder="Search projects, Project ID, client name..." value={search}
+                                onChange={e => setSearch(e.target.value)}
+                                className="bg-transparent border-none outline-none text-xs text-text-primary placeholder:text-text-dim w-full font-bold min-w-0" />
+                        </div>
+
+                        {/* View toggle */}
+                        <div className="flex items-center gap-1 p-1 bg-white/5 border border-white/5 rounded-xl shrink-0">
+                            <button onClick={() => setView('list')}
+                                className={`p-1.5 rounded-lg transition-all ${view === 'list' ? 'bg-brand-teal/20 text-brand-teal' : 'text-text-muted hover:text-text-primary'}`}>
+                                <List size={14} />
+                            </button>
+                            <button onClick={() => setView('kanban')}
+                                className={`p-1.5 rounded-lg transition-all ${view === 'kanban' ? 'bg-brand-teal/20 text-brand-teal' : 'text-text-muted hover:text-text-primary'}`}>
+                                <LayoutGrid size={14} />
+                            </button>
+                        </div>
                     </div>
-                    {/* View toggle */}
-                    <div className="flex items-center gap-1 p-1 bg-white/5 border border-white/5 rounded-xl">
-                        <button onClick={() => setView('list')}
-                            className={`p-1.5 rounded-lg transition-all ${view === 'list' ? 'bg-brand-teal/20 text-brand-teal' : 'text-slate-600 hover:text-white'}`}>
-                            <List size={14} />
-                        </button>
-                        <button onClick={() => setView('kanban')}
-                            className={`p-1.5 rounded-lg transition-all ${view === 'kanban' ? 'bg-brand-teal/20 text-brand-teal' : 'text-slate-600 hover:text-white'}`}>
-                            <LayoutGrid size={14} />
-                        </button>
+
+                    {/* Filters */}
+                    <div className="flex items-center gap-2 w-full sm:contents">
+                        <div className="hidden md:flex items-center gap-2 px-2.5 py-2 rounded-xl bg-white/[0.03] border border-border-subtle">
+                            <SlidersHorizontal size={14} className="text-text-dim" />
+                            <span className="text-[10px] font-black uppercase tracking-[0.25em] text-text-dim">Filter</span>
+                        </div>
+                        <FilterSelect
+                            label="Filter by stage"
+                            value={stageFilter}
+                            onChange={(e) => setStageFilter(e.target.value)}
+                            icon={Circle}
+                            options={[
+                                { value: '', label: `All Stages (${projects.length})` },
+                                ...STAGES.map(s => ({ value: s, label: `${s} (${stageCounts[s] || 0})` }))
+                            ]}
+                        />
+                        <FilterSelect
+                            label="Filter by priority"
+                            value={priorityFilter}
+                            onChange={(e) => setPriorityFilter(e.target.value)}
+                            icon={Tag}
+                            options={[
+                                { value: '', label: 'All Priorities' },
+                                ...PRIORITIES.map(p => ({ value: p, label: p }))
+                            ]}
+                        />
+                        {(stageFilter || priorityFilter) && (
+                            <button
+                                onClick={() => { setStageFilter(''); setPriorityFilter(''); }}
+                                className="p-2.5 rounded-xl bg-white/[0.03] border border-border-subtle text-text-muted hover:text-text-primary hover:border-border-light transition-all"
+                                aria-label="Clear filters"
+                                title="Clear filters"
+                            >
+                                <X size={14} />
+                            </button>
+                        )}
                     </div>
                 </div>
             </motion.div>
 
-            {/* Summary pills */}
-            <div className="flex flex-wrap gap-2">
-                {STAGES.map(s => {
-                    const count = projects.filter(p => p.stage === s).length;
-                    const meta = STAGE_META[s];
-                    return count > 0 ? (
-                        <div key={s} className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest border ${meta.bg} ${meta.color} ${meta.border}`}>
-                            <span className="w-1.5 h-1.5 rounded-full bg-current" /> {s} ({count})
-                        </div>
-                    ) : null;
-                })}
-            </div>
+            {/* (removed) Summary pills */}
 
             {/* List view */}
             {view === 'list' && (
                 <div className="space-y-3">
-                    {filtered.map((p, i) => <ListRow key={p.id} p={p} i={i} onSelect={setSelected} />)}
+                    <div className="grid grid-cols-1 gap-3 sm:hidden">
+                        {filtered.map((p, i) => <MobileProjectCard key={p.id} p={p} i={i} onSelect={handleSelectForDetail} />)}
+                    </div>
+                    <div className="hidden sm:block space-y-3">
+                        {filtered.map((p, i) => <ListRow key={p.id} p={p} i={i} onSelect={handleSelectForDetail} />)}
+                    </div>
+                    {filtered.length === 0 && (
+                        <div className="text-center py-12 text-sm font-bold text-text-muted">No projects found.</div>
+                    )}
                 </div>
             )}
 
             {/* Kanban view */}
             {view === 'kanban' && (
-                <div className="flex gap-3 overflow-x-auto pb-4">
+                <div className="flex flex-col sm:flex-row gap-3 sm:overflow-x-auto pb-4">
                     {STAGES.map(s => (
                         <KanbanColumn key={s} stage={s}
                             projects={filtered.filter(p => p.stage === s)}
-                            onSelect={setSelected} />
+                            onSelect={handleSelectForDetail} />
                     ))}
                 </div>
             )}
@@ -416,12 +1067,61 @@ export default function AdminProjectsPage() {
             <AnimatePresence>
                 {selected && (
                     <ProjectDrawer
+                        key={selected.id}
                         project={selected}
                         onClose={() => setSelected(null)}
-                        onMilestoneDone={handleMilestoneDone}
+                        onToggleMilestone={handleToggleMilestone}
+                        onDeleteMilestone={handleDeleteMilestone}
+                        onAddMilestone={handleAddMilestone}
+                        onUpdateProject={handleUpdateProject}
+                        onAddNote={handleAddNote}
+                        onDeleteNote={handleDeleteNote}
+                        onUploadFile={handleUploadFile}
+                        onDeleteFile={handleDeleteFile}
                     />
                 )}
             </AnimatePresence>
+
+            {/* Bottom Right Toast Notification */}
+            <AnimatePresence>
+                {toast.show && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 50, scale: 0.9 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: 20, scale: 0.9 }}
+                        className={`fixed bottom-6 right-6 z-[300] px-4 py-3 rounded-xl border flex items-center gap-2 shadow-2xl backdrop-blur-md ${
+                            toast.type === 'error'
+                                ? 'bg-brand-red/10 border-brand-red/20 text-brand-red font-bold'
+                                : 'bg-brand-teal/10 border-brand-teal/20 text-brand-teal font-bold'
+                        }`}
+                    >
+                        {toast.type === 'error' ? <AlertCircle size={16} /> : <CheckCircle2 size={16} />}
+                        <span className="text-xs font-black uppercase tracking-widest">{toast.message}</span>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            <ConfirmDangerModal
+                open={dangerConfirm.open}
+                loading={dangerLoading}
+                onClose={() => setDangerConfirm({ open: false, kind: null, projectId: null, id: null, label: '' })}
+                onConfirm={confirmDangerAction}
+                title={
+                    dangerConfirm.kind === 'file'
+                        ? 'Delete File'
+                        : dangerConfirm.kind === 'milestone'
+                            ? 'Delete Milestone'
+                            : 'Delete Note'
+                }
+                subtitle={dangerConfirm.label || 'This action cannot be undone.'}
+                body={
+                    dangerConfirm.kind === 'file'
+                        ? 'You are about to permanently delete this file from the project.'
+                        : dangerConfirm.kind === 'milestone'
+                            ? 'You are about to permanently delete this milestone from the project.'
+                            : 'You are about to permanently delete this note from the activity log.'
+                }
+            />
         </div>
     );
 }

@@ -1,20 +1,45 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import Image from 'next/image';
-import { motion } from 'framer-motion';
 import { Calendar, User, ArrowLeft, Share2, Bookmark } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
-import { posts } from '@/data/blog';
+import { api } from '@/lib/api';
 import ScrollReveal from '@/components/ScrollReveal';
 
 export default function BlogPostDetail() {
-  const { id } = useParams();
+  const { id: slug } = useParams();
   const router = useRouter();
-  const post = posts.find(p => p.id === id);
+  const [post, setPost] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
-  if (!post) {
+  useEffect(() => {
+    async function loadPost() {
+      try {
+        const data = await api.getBlogPostDetail(slug);
+        setPost(data);
+      } catch (err) {
+        console.error('Failed to load blog post:', err);
+        setError(true);
+      } finally {
+        setLoading(false);
+      }
+    }
+    if (slug) {
+      loadPost();
+    }
+  }, [slug]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background text-white">
+        <div className="w-8 h-8 border-4 border-brand-teal/30 border-t-brand-teal rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  if (error || !post) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background text-white">
         <div className="text-center">
@@ -26,6 +51,12 @@ export default function BlogPostDetail() {
       </div>
     );
   }
+
+  const formattedDate = post.published_at 
+    ? new Date(post.published_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+    : 'Recent';
+  const category = post.tags?.[0]?.name || 'Engineering';
+  const image = post.cover_image_url || 'https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=800&q=80&fit=crop';
 
   return (
     <main className="pt-32 pb-24 bg-background min-h-screen">
@@ -53,7 +84,7 @@ export default function BlogPostDetail() {
         <div className="max-w-4xl mx-auto mb-16">
           <ScrollReveal>
             <span className="text-[10px] font-black uppercase tracking-[0.4em] text-brand-teal mb-6 block">
-              {post.category}
+              {category}
             </span>
             <h1 className="text-5xl md:text-7xl font-black text-white mb-10 tracking-tighter leading-[0.9]">
               {post.title}
@@ -72,7 +103,12 @@ export default function BlogPostDetail() {
               <div className="h-10 w-px bg-white/10" />
               <div className="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-widest">
                 <Calendar size={14} className="text-brand-teal" />
-                <span>{post.date}</span>
+                <span>{formattedDate}</span>
+              </div>
+              <div className="h-10 w-px bg-white/10" />
+              <div className="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                <User size={14} className="text-brand-teal" />
+                <span>{post.author_username}</span>
               </div>
             </div>
           </ScrollReveal>
@@ -81,7 +117,7 @@ export default function BlogPostDetail() {
         {/* Cover Image */}
         <div className="max-w-5xl mx-auto mb-16 px-0 md:px-12">
           <div className="relative aspect-[21/9] rounded-3xl overflow-hidden border border-white/10 shadow-2xl">
-            <img src={post.image} alt={post.title} className="w-full h-full object-cover" />
+            <img src={image} alt={post.title} className="w-full h-full object-cover" />
             <div className="absolute inset-0 bg-gradient-to-t from-background/40 to-transparent" />
           </div>
         </div>
@@ -114,7 +150,7 @@ export default function BlogPostDetail() {
                 )
               }}
             >
-              {post.content}
+              {post.content_markdown}
             </ReactMarkdown>
           </div>
 
@@ -125,7 +161,7 @@ export default function BlogPostDetail() {
               Our engineering team specializes in solving high-stakes automation and data problems.
             </p>
             <button 
-              onClick={() => router.push('/contact')}
+              onClick={() => router.push('/start-project')}
               className="px-10 py-5 bg-brand-teal text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:-translate-y-1 transition-all shadow-glow-teal"
             >
               Start Mission Briefing

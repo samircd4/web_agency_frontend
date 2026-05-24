@@ -1,16 +1,20 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Send, Cpu, Database, Zap, ArrowLeft, ArrowRight, 
   CheckCircle2, Server, Globe, Shield, Rocket, 
-  BarChart, Layers, Terminal, Lock
+  Terminal, Lock, AlertCircle
 } from 'lucide-react';
 import Link from 'next/link';
+import { api } from '@/lib/api';
 
 export default function StartProjectView() {
   const [step, setStep] = useState(1);
+  const [submitting, setSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+  
   const [formData, setFormData] = useState({
     service: '',
     budget: '',
@@ -22,8 +26,74 @@ export default function StartProjectView() {
     techPreference: []
   });
 
+  // Bottom Right Toast State
+  const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
+  const showToast = (message, type = 'success') => {
+    setToast({ show: true, message, type });
+    setTimeout(() => {
+      setToast(p => ({ ...p, show: false }));
+    }, 4000);
+  };
+
+  // Pre-load current user details if authenticated
+  useEffect(() => {
+    const loadUserProfile = async () => {
+      const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+      if (token) {
+        try {
+          const me = await api.getMe();
+          const fullName = `${me.first_name || ''} ${me.last_name || ''}`.trim() || me.username;
+          setFormData(prev => ({
+            ...prev,
+            name: fullName,
+            email: me.email || ''
+          }));
+        } catch (err) {
+          console.error('Failed to load user profile for autofill:', err);
+        }
+      }
+    };
+    loadUserProfile();
+  }, []);
+
   const nextStep = () => setStep(s => Math.min(s + 1, 4));
   const prevStep = () => setStep(s => Math.max(s - 1, 1));
+
+  const handleSubmit = async () => {
+    if (!formData.name || !formData.email || !formData.description) {
+      showToast('Please fill in Name, Email, and Mission description.', 'error');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const serviceMap = {
+        scraping: 'Web Scraping',
+        ecommerce: 'E-commerce',
+        automation: 'Automation',
+        security: 'Security',
+        ai: 'AI Agent',
+        cloud: 'Cloud / DevOps'
+      };
+      const objective = serviceMap[formData.service] || formData.service;
+      
+      await api.createLead({
+        client_name: formData.name,
+        client_email: formData.email,
+        title: `${objective} Project`,
+        description: formData.description,
+        estimated_budget: formData.budget,
+      });
+
+      showToast('Briefing transmitted successfully!');
+      setSubmitted(true);
+    } catch (err) {
+      console.error(err);
+      showToast(err.message || 'Failed to transmit briefing', 'error');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const steps = [
     { id: 1, title: "Mission Scope" },
@@ -31,6 +101,26 @@ export default function StartProjectView() {
     { id: 3, title: "Briefing Details" },
     { id: 4, title: "Review" }
   ];
+
+  if (submitted) {
+    return (
+      <main className="min-h-screen bg-background text-foreground pt-12 pb-12 overflow-hidden relative flex items-center justify-center">
+        <div className="absolute top-0 right-0 w-[50rem] h-[50rem] bg-brand-teal/5 rounded-full blur-[150px] pointer-events-none" />
+        <div className="max-w-md w-full glass border-white/5 rounded-xl p-8 text-center shadow-2xl relative z-10">
+          <div className="w-16 h-16 bg-brand-teal/10 rounded-full flex items-center justify-center text-brand-teal mx-auto mb-6 border border-brand-teal/20">
+            <CheckCircle2 size={32} className="text-brand-teal" />
+          </div>
+          <h2 className="text-2xl font-black text-white uppercase tracking-tight mb-2">Briefing Transmitted</h2>
+          <p className="text-slate-500 text-xs mb-8 leading-relaxed">
+            Your mission briefing has been securely encrypted and logged. A certified engineer will review the specs within 2 hours.
+          </p>
+          <Link href="/" className="px-8 py-4 bg-brand-teal text-text-primary rounded-xl font-black uppercase tracking-widest text-xs inline-flex items-center gap-2 shadow-glow-teal hover:-translate-y-0.5 transition-all">
+            <ArrowLeft size={14} /> Return to Base
+          </Link>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen bg-background text-foreground pt-12 pb-12 overflow-hidden relative">
@@ -251,11 +341,11 @@ export default function StartProjectView() {
                       <div className="md:col-span-2 space-y-1.5">
                         <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 ml-2">Mission Intelligence</label>
                         <textarea 
-                          rows="3" 
+                          rows="8" 
                           value={formData.description}
                           onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                           placeholder="Describe the problem..." 
-                          className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-teal/50 transition-all placeholder:text-slate-700 font-bold resize-none"
+                          className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-teal/50 transition-all placeholder:text-slate-700 font-bold resize-y min-h-[140px]"
                         ></textarea>
                       </div>
                     </div>
@@ -295,7 +385,7 @@ export default function StartProjectView() {
                       <div className="flex items-center gap-2 text-brand-teal font-black text-[9px] uppercase tracking-widest mb-1.5">
                         <Zap size={12} /> Encryption Active
                       </div>
-                      <p className="text-slate-400 text-[10px] italic leading-relaxed line-clamp-3">
+                      <p className="text-slate-400 text-[10px] italic leading-relaxed line-clamp-4">
                         &quot;{formData.description || 'No additional mission details provided.'}&quot;
                       </p>
                     </div>
@@ -325,10 +415,11 @@ export default function StartProjectView() {
                   </button>
                 ) : (
                   <button 
-                    onClick={() => alert('Mission Briefing Transmitted!')}
-                    className="px-6 py-3 bg-brand-teal text-white rounded-lg font-black text-[9px] uppercase tracking-widest flex items-center gap-2 transition-all shadow-glow-teal hover:-translate-y-0.5"
+                    onClick={handleSubmit}
+                    disabled={submitting}
+                    className="px-6 py-3 bg-brand-teal text-text-primary rounded-lg font-black text-[9px] uppercase tracking-widest flex items-center gap-2 transition-all shadow-glow-teal hover:-translate-y-0.5 disabled:opacity-50"
                   >
-                    Transmit <Send size={12} />
+                    {submitting ? 'Transmitting...' : 'Transmit'} <Send size={12} />
                   </button>
                 )}
               </div>
@@ -337,6 +428,25 @@ export default function StartProjectView() {
           </div>
         </div>
       </div>
+
+      {/* Bottom Right Toast Notification */}
+      <AnimatePresence>
+        {toast.show && (
+          <motion.div
+            initial={{ opacity: 0, y: 50, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.9 }}
+            className={`fixed bottom-6 right-6 z-[300] px-4 py-3 rounded-xl border flex items-center gap-2 shadow-2xl backdrop-blur-md ${
+              toast.type === 'error'
+                ? 'bg-brand-red/10 border-brand-red/20 text-brand-red font-bold'
+                : 'bg-brand-teal/10 border-brand-teal/20 text-brand-teal font-bold'
+            }`}
+          >
+            {toast.type === 'error' ? <AlertCircle size={16} /> : <CheckCircle2 size={16} />}
+            <span className="text-xs font-black uppercase tracking-widest">{toast.message}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </main>
   );
 }

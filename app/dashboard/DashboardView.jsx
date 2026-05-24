@@ -4,93 +4,144 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { 
   LayoutDashboard, Box, MessageSquare, CreditCard, Settings, 
   Bell, Search, User, Zap, Clock, CheckCircle2, AlertCircle, 
-  ArrowUpRight, Download, Terminal, ChevronRight, Filter, ArrowLeft,
-  Shield, FileText, Send, Lock, Globe, Database, X, Cpu, Server, Activity,
-  Menu
+  ArrowUpRight, Download, Terminal, ChevronRight, ArrowLeft,
+  Shield, FileText, Send, Lock, Globe, X, Cpu, Activity,
+  Menu, LogOut, Loader2
 } from 'lucide-react';
+import { api } from '@/lib/api';
 
 export default function DashboardView() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState('missions');
   const [selectedMission, setSelectedMission] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
 
+  // Live state
+  const [currentUser, setCurrentUser] = useState(null);
+  const [missions, setMissions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sysConfigEmail, setSysConfigEmail] = useState('');
+  const [sysConfigName, setSysConfigName] = useState('');
+
+  const handleLogout = async () => {
+    await api.logout();
+    router.push('/admin/login');
+  };
+
   useEffect(() => {
     setMounted(true);
     const handleResize = () => setIsDesktop(window.innerWidth >= 1024);
     handleResize();
     window.addEventListener('resize', handleResize);
+
+    const initDashboard = async () => {
+      // Pre-check for presence of access_token to prevent unauthenticated console fetch errors
+      const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+      if (!token) {
+        router.push('/admin/login?from=/dashboard');
+        return;
+      }
+
+      try {
+        // 1. Fetch current profile
+        const me = await api.getMe();
+        setCurrentUser(me);
+        setSysConfigEmail(me.email || '');
+        setSysConfigName(`${me.first_name || ''} ${me.last_name || ''}`.trim() || me.username);
+
+        // 2. Fetch projects
+        const compactProjects = await api.getClientProjects();
+        
+        // 3. Resolve details for each project (to get milestones, files, activity)
+        const detailedProjects = await Promise.all(
+          compactProjects.map(async (p) => {
+            try {
+              return await api.getClientProjectDetail(p.id);
+            } catch (err) {
+              console.error(`Failed to fetch project detail for ${p.id}`, err);
+              // Fallback to compact layout if detail fetch fails
+              return {
+                ...p,
+                description: 'Brief details retrieved from directory.',
+                tags: [],
+                milestones: [],
+                files: [],
+                activities: []
+              };
+            }
+          })
+        );
+        setMissions(detailedProjects);
+      } catch (err) {
+        console.error('Failed to initialize dashboard:', err);
+        // Unauthenticated -> redirect to login page
+        router.push('/admin/login?from=/dashboard');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initDashboard();
+
     return () => window.removeEventListener('resize', handleResize);
-  }, []);
+  }, [router]);
 
-  const missions = [
-    { 
-      id: "MSN-4029", 
-      title: "Real-estate Data Extraction Engine", 
-      status: "In Progress", 
-      progress: 65, 
-      deadline: "May 15, 2024", 
-      tier: "Premium", 
-      price: "$2,500", 
-      type: "Web Scraping",
-      details: "Building a distributed scraping network across 4 regions to extract real-time listing data from Zillow and Redfin.",
-      tech: ["Python", "Playwright", "Redis", "AWS Lambda"],
-      logs: [
-        { time: "09:00", event: "Node clustering initialized" },
-        { time: "11:30", event: "Anti-bot threshold reached - rotating proxy mesh" },
-        { time: "14:15", event: "Data ingestion rate: 450 records/sec" }
-      ]
-    },
-    { 
-      id: "MSN-3911", 
-      title: "Custom E-commerce API Hook", 
-      status: "Testing", 
-      progress: 90, 
-      deadline: "Completed", 
-      tier: "Standard", 
-      price: "$850", 
-      type: "Backend",
-      details: "Developing a custom middleware to sync Shopify inventory with a localized ERP system.",
-      tech: ["Django", "PostgreSQL", "Celery", "Shopify API"],
-      logs: [
-        { time: "Yesterday", event: "Inventory sync tested with 50k SKU batch" },
-        { time: "Monday", event: "Webhook endpoint secured with SHA-256" }
-      ]
-    },
-    { 
-      id: "MSN-3882", 
-      title: "Distributed Proxy Mesh Setup", 
-      status: "Deploying", 
-      progress: 100, 
-      deadline: "Completed", 
-      tier: "Enterprise", 
-      price: "$4,200", 
-      type: "Infrastructure",
-      details: "Setting up a private proxy mesh using residential IP pools.",
-      tech: ["Golang", "Docker", "Kubernetes", "Residential Proxies"],
-      logs: [
-        { time: "Last Week", event: "Cluster deployed to GCP" },
-        { time: "2 Weeks Ago", event: "Architecture audit completed" }
-      ]
-    }
-  ];
+  // Aggregate Vault Files from all projects
+  const vaultFiles = missions.flatMap(m => 
+    (m.files || []).map(f => ({
+      ...f,
+      projectName: m.title,
+      projectId: m.id
+    }))
+  );
 
-  const vaultFiles = [
-    { name: "technical_specs_v2.pdf", size: "2.4 MB", date: "Apr 28, 2024", type: "PDF" },
-    { name: "api_documentation_final.md", size: "12 KB", date: "Apr 25, 2024", type: "Markdown" },
-    { name: "source_code_archive.zip", size: "45.8 MB", date: "Apr 20, 2024", type: "ZIP" },
-    { name: "deployment_log_mission_3882.txt", size: "156 KB", date: "Apr 18, 2024", type: "LOG" }
-  ];
+  // Generate Invoices from projects
+  const invoices = missions.map((m, idx) => ({
+    id: `INV-${m.id.replace('PRJ-', '')}01`,
+    projectName: m.title,
+    date: m.created_at ? new Date(m.created_at).toLocaleDateString() : 'Recent',
+    amount: m.value ? `$${Number(m.value).toLocaleString()}` : '$0.00',
+    status: m.stage === 'Complete' ? 'Paid' : 'Paid', // Assuming invoiced milestones paid
+    method: 'Stripe'
+  }));
 
-  const invoices = [
-    { id: "INV-8821", date: "May 01, 2024", amount: "$2,500", status: "Paid", method: "Stripe" },
-    { id: "INV-8790", date: "Apr 15, 2024", amount: "$850", status: "Paid", method: "Stripe" },
-    { id: "INV-8755", date: "Apr 10, 2024", amount: "$4,200", status: "Refunded", method: "Stripe" }
-  ];
+  // Filtering missions by search query
+  const filteredMissions = missions.filter(m => 
+    m.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
+    m.id.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // Stats computed dynamically
+  const totalInvestment = missions.reduce((sum, m) => sum + Number(m.value || 0), 0);
+  const activeMissionsCount = missions.filter(m => m.stage !== 'Complete').length;
+  const deliverablesCount = vaultFiles.length;
+
+  if (loading || !currentUser) {
+    return (
+      <div className="min-h-screen bg-[#020617] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 size={32} className="animate-spin text-brand-teal" />
+          <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">Decrypting Command Space...</span>
+        </div>
+      </div>
+    );
+  }
+
+  // Get user initials for avatar badge
+  const userInitials = currentUser.first_name && currentUser.last_name
+    ? `${currentUser.first_name[0]}${currentUser.last_name[0]}`.toUpperCase()
+    : currentUser.username.slice(0, 2).toUpperCase();
+
+  const userDisplayName = currentUser.first_name && currentUser.last_name
+    ? `${currentUser.first_name} ${currentUser.last_name}`
+    : currentUser.username;
 
   return (
     <div className="min-h-screen bg-[#020617] text-slate-300 font-sans overflow-x-hidden">
@@ -158,6 +209,14 @@ export default function DashboardView() {
               {item.name}
             </button>
           ))}
+          
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-[11px] font-black uppercase tracking-widest text-slate-500 hover:text-brand-red hover:bg-brand-red/5 border border-transparent hover:border-brand-red/20 transition-all"
+          >
+            <LogOut size={16} />
+            Logout Node
+          </button>
         </nav>
 
         {/* System Health */}
@@ -173,7 +232,7 @@ export default function DashboardView() {
             </div>
             <div className="flex items-center justify-between text-[9px] font-bold">
               <span>Ping</span>
-              <span className="text-white">12ms</span>
+              <span className="text-white">14ms</span>
             </div>
           </div>
         </div>
@@ -192,6 +251,8 @@ export default function DashboardView() {
               <Search size={13} className="text-slate-500" />
               <input 
                 type="text" 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search mission protocols..." 
                 className="bg-transparent border-none outline-none text-[10px] text-white placeholder:text-slate-700 w-full font-bold"
               />
@@ -208,16 +269,18 @@ export default function DashboardView() {
             </button>
             <button className="relative p-2 rounded-lg bg-white/5 text-slate-400 hover:text-white transition-all border border-white/5">
               <Bell size={14} />
-              <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-brand-red rounded-full border border-slate-950" />
+              {activeMissionsCount > 0 && (
+                <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-brand-red rounded-full border border-slate-950" />
+              )}
             </button>
             <div className="h-4 w-px bg-white/10 mx-1" />
             <div className="flex items-center gap-3 ml-1">
               <div className="text-right hidden sm:block">
-                <div className="text-[10px] font-black text-white uppercase tracking-tight">Samir Labs</div>
-                <div className="text-[7px] font-bold text-brand-teal uppercase tracking-widest">Enterprise Node</div>
+                <div className="text-[10px] font-black text-white uppercase tracking-tight">{userDisplayName}</div>
+                <div className="text-[7px] font-bold text-brand-teal uppercase tracking-widest">{currentUser.is_staff ? 'Staff Node' : 'Client Node'}</div>
               </div>
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-teal to-brand-blue flex items-center justify-center font-black text-white text-[10px] border border-white/10">
-                SL
+                {userInitials}
               </div>
             </div>
           </div>
@@ -236,8 +299,8 @@ export default function DashboardView() {
                     <p className="text-slate-500 text-xs">Track your active engineering missions and deliverables.</p>
                   </div>
                   <div className="flex gap-2">
-                    <Link href="/services" className="px-5 py-2 bg-brand-teal text-white rounded-lg text-[9px] font-black uppercase tracking-widest flex items-center gap-2 shadow-glow-teal hover:-translate-y-0.5 transition-all">
-                      New Mission <Zap size={12} />
+                    <Link href="/contact" className="px-5 py-2 bg-brand-teal text-text-primary rounded-lg text-[9px] font-black uppercase tracking-widest flex items-center gap-2 shadow-glow-teal hover:-translate-y-0.5 transition-all">
+                      Request New Mission <Zap size={12} />
                     </Link>
                   </div>
                 </div>
@@ -245,9 +308,9 @@ export default function DashboardView() {
                 {/* Stats */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                   {[
-                    { label: 'Total Invested', value: '$7,550', icon: <CreditCard className="text-brand-teal" />, sub: '+12.5% this year' },
-                    { label: 'Active Missions', value: '3', icon: <Zap className="text-brand-red" />, sub: 'In Progress' },
-                    { label: 'Deliverables', value: '4', icon: <Box className="text-brand-indigo" />, sub: 'Ready to Download' },
+                    { label: 'Total Invested', value: `$${totalInvestment.toLocaleString()}`, icon: <CreditCard className="text-brand-teal" />, sub: 'Aggregated project value' },
+                    { label: 'Active Missions', value: String(activeMissionsCount), icon: <Zap className="text-brand-red" />, sub: 'In Development / QA' },
+                    { label: 'Secure Deliverables', value: String(deliverablesCount), icon: <Box className="text-brand-indigo" />, sub: 'Files in vault' },
                   ].map((stat, i) => (
                     <div key={i} className="p-5 rounded-xl glass border border-white/5 relative overflow-hidden group">
                       <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
@@ -260,83 +323,89 @@ export default function DashboardView() {
                   ))}
                 </div>
 
-                {/* Projects */}
+                {/* Projects List */}
                 <div className="space-y-4">
-                  {missions.map((mission) => {
-                    const stageSteps = ['Requirements', 'Architecture', 'Development', 'QA', 'Deployment', 'Complete'];
-                    const statusStageMap = { 'In Progress': 2, 'Testing': 3, 'Deploying': 4 };
-                    const stageIdx = statusStageMap[mission.status] ?? 5;
-                    const milestones = [
-                      { label: 'Kickoff & Requirements', done: true },
-                      { label: 'Architecture Design', done: stageIdx >= 2 },
-                      { label: 'Core Development', done: stageIdx >= 3 },
-                      { label: 'QA & Testing', done: stageIdx >= 4 },
-                      { label: 'Deployment & Delivery', done: stageIdx >= 5 },
-                    ];
-                    return (
-                      <div key={mission.id} className="rounded-2xl bg-white/[0.02] border border-white/5 hover:border-brand-teal/20 transition-all group overflow-hidden">
-                        {/* Card header */}
-                        <div className="p-5">
-                          <div className="flex flex-col lg:flex-row lg:items-start gap-5">
-                            <div className="lg:w-[38%]">
-                              <div className="text-[9px] font-black text-brand-teal uppercase tracking-widest mb-1">{mission.id}</div>
-                              <h3 className="text-sm font-black text-white group-hover:text-brand-teal transition-colors mb-2 uppercase leading-tight">{mission.title}</h3>
-                              <div className="flex flex-wrap gap-1.5">
-                                <span className="px-2 py-0.5 rounded-md bg-white/5 text-[7px] font-black text-slate-500 uppercase tracking-widest">{mission.type}</span>
-                                <span className="px-2 py-0.5 rounded-md bg-white/5 text-[7px] font-black text-slate-500 uppercase tracking-widest">{mission.tier}</span>
-                              </div>
-                            </div>
+                  {filteredMissions.length === 0 ? (
+                    <div className="p-8 text-center bg-white/[0.01] border border-white/5 rounded-xl text-slate-500 text-sm">
+                      No active mission protocols matching your query.
+                    </div>
+                  ) : (
+                    filteredMissions.map((mission) => {
+                      const stageSteps = ['Requirements', 'Architecture', 'Development', 'QA', 'Deployment', 'Complete'];
+                      const statusStageMap = { 'Requirements': 1, 'Architecture': 1, 'Dev': 2, 'QA': 3, 'Deploying': 4, 'Complete': 5 };
+                      const stageIdx = statusStageMap[mission.stage] ?? 2;
+                      const milestones = mission.milestones || [];
+                      
+                      const projectTags = mission.tags || [];
 
-                            {/* Stage pipeline */}
-                            <div className="flex-grow">
-                              <div className="hidden md:flex items-center mb-2">
-                                {stageSteps.map((s, si) => (
-                                  <div key={s} className="flex items-center flex-1 min-w-0">
-                                    <div className={`shrink-0 w-2 h-2 rounded-full border-2 ${si < stageIdx ? 'bg-brand-teal border-brand-teal' : si === stageIdx ? 'bg-brand-teal/30 border-brand-teal animate-pulse' : 'bg-white/5 border-white/10'}`} />
-                                    {si < stageSteps.length - 1 && <div className={`flex-1 h-px ${si < stageIdx ? 'bg-brand-teal' : 'bg-white/10'}`} />}
-                                  </div>
-                                ))}
+                      return (
+                        <div key={mission.id} className="rounded-2xl bg-white/[0.02] border border-white/5 hover:border-brand-teal/20 transition-all group overflow-hidden">
+                          {/* Card header */}
+                          <div className="p-5">
+                            <div className="flex flex-col lg:flex-row lg:items-start gap-5">
+                              <div className="lg:w-[38%]">
+                                <div className="text-[9px] font-black text-brand-teal uppercase tracking-widest mb-1">{mission.id}</div>
+                                <h3 className="text-sm font-black text-white group-hover:text-brand-teal transition-colors mb-2 uppercase leading-tight">{mission.title}</h3>
+                                <div className="flex flex-wrap gap-1.5">
+                                  <span className="px-2 py-0.5 rounded-md bg-white/5 text-[7px] font-black text-slate-500 uppercase tracking-widest">{mission.priority || 'Standard'} Priority</span>
+                                  {projectTags.slice(0, 3).map(tag => (
+                                    <span key={tag} className="px-2 py-0.5 rounded-md bg-white/5 text-[7px] font-black text-slate-400 uppercase tracking-widest">{tag}</span>
+                                  ))}
+                                </div>
                               </div>
-                              <div className="flex justify-between mb-1.5">
-                                <span className="text-[8px] font-black text-brand-teal uppercase tracking-widest">{mission.status}</span>
-                                <span className="text-[8px] font-black text-white">{mission.progress}%</span>
-                              </div>
-                              <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
-                                <motion.div initial={{ width: 0 }} animate={{ width: `${mission.progress}%` }} className={`h-full rounded-full ${mission.progress === 100 ? 'bg-emerald-400' : 'bg-brand-teal'}`} />
-                              </div>
-                            </div>
 
-                            {/* Right */}
-                            <div className="lg:w-36 flex flex-row lg:flex-col items-center lg:items-end justify-between lg:justify-center gap-2">
-                              <div className="text-right">
-                                <div className="text-xs font-black text-brand-teal">{mission.price}</div>
-                                <div className="text-[8px] text-slate-600 font-bold uppercase">{mission.deadline}</div>
+                              {/* Stage pipeline */}
+                              <div className="flex-grow">
+                                <div className="hidden md:flex items-center mb-2">
+                                  {stageSteps.map((s, si) => (
+                                    <div key={s} className="flex items-center flex-1 min-w-0">
+                                      <div className={`shrink-0 w-2.5 h-2.5 rounded-full border-2 ${si < stageIdx ? 'bg-brand-teal border-brand-teal' : si === stageIdx ? 'bg-brand-teal/30 border-brand-teal animate-pulse' : 'bg-white/5 border-white/10'}`} />
+                                      {si < stageSteps.length - 1 && <div className={`flex-1 h-px ${si < stageIdx ? 'bg-brand-teal' : 'bg-white/10'}`} />}
+                                    </div>
+                                  ))}
+                                </div>
+                                <div className="flex justify-between mb-1.5">
+                                  <span className="text-[8px] font-black text-brand-teal uppercase tracking-widest">Stage: {mission.stage}</span>
+                                  <span className="text-[8px] font-black text-white">{mission.progress}%</span>
+                                </div>
+                                <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                                  <motion.div initial={{ width: 0 }} animate={{ width: `${mission.progress}%` }} className={`h-full rounded-full ${mission.progress === 100 ? 'bg-emerald-400' : 'bg-brand-teal'}`} />
+                                </div>
                               </div>
-                              <button onClick={() => setSelectedMission(mission)}
-                                className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-teal/10 hover:bg-brand-teal text-brand-teal hover:text-white rounded-lg text-[8px] font-black uppercase tracking-widest transition-all">
-                                Details <ChevronRight size={10} />
-                              </button>
+
+                              {/* Right column */}
+                              <div className="lg:w-36 flex flex-row lg:flex-col items-center lg:items-end justify-between lg:justify-center gap-2">
+                                <div className="text-right">
+                                  <div className="text-xs font-black text-brand-teal">${Number(mission.value || 0).toLocaleString()}</div>
+                                  <div className="text-[8px] text-slate-600 font-bold uppercase">Deadline: {mission.deadline || 'Flexible'}</div>
+                                </div>
+                                <button onClick={() => setSelectedMission(mission)}
+                                  className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-teal/10 hover:bg-brand-teal text-brand-teal hover:text-text-primary rounded-lg text-[8px] font-black uppercase tracking-widest transition-all">
+                                  Details <ChevronRight size={10} />
+                                </button>
+                              </div>
                             </div>
                           </div>
-                        </div>
 
-                        {/* Milestone strip */}
-                        <div className="border-t border-white/5 px-5 py-3 flex gap-2 overflow-x-auto">
-                          {milestones.map((m, mi) => (
-                            <div key={mi} className={`flex items-center gap-1.5 shrink-0 text-[7px] font-black uppercase tracking-widest ${m.done ? 'text-emerald-400' : 'text-slate-700'}`}>
-                              {m.done ? <CheckCircle2 size={10} /> : <Clock size={10} />}
-                              {m.label}
-                              {mi < milestones.length - 1 && <span className="ml-1 text-slate-800">›</span>}
+                          {/* Milestone strip */}
+                          {milestones.length > 0 && (
+                            <div className="border-t border-white/5 px-5 py-3 flex gap-2 overflow-x-auto bg-white/[0.01]">
+                              {milestones.slice(0, 5).map((m, mi) => (
+                                <div key={mi} className={`flex items-center gap-1.5 shrink-0 text-[7px] font-black uppercase tracking-widest ${m.done ? 'text-emerald-400' : 'text-slate-700'}`}>
+                                  {m.done ? <CheckCircle2 size={10} /> : <Clock size={10} />}
+                                  {m.label}
+                                  {mi < milestones.slice(0, 5).length - 1 && <span className="ml-1 text-slate-800">›</span>}
+                                </div>
+                              ))}
                             </div>
-                          ))}
+                          )}
                         </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })
+                  )}
                 </div>
               </motion.div>
             )}
-
 
             {activeTab === 'vault' && (
               <motion.div key="vault" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }}>
@@ -346,25 +415,32 @@ export default function DashboardView() {
                 </div>
                 
                 <div className="grid gap-2">
-                  {vaultFiles.map((file, i) => (
-                    <div key={i} className="p-4 rounded-xl glass border border-white/5 flex items-center justify-between group hover:border-brand-teal/30 transition-all">
-                      <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center text-slate-500 group-hover:text-brand-teal transition-colors">
-                          <FileText size={18} />
-                        </div>
-                        <div>
-                          <h4 className="text-white font-bold text-xs mb-0.5">{file.name}</h4>
-                          <div className="flex gap-3 text-[8px] font-black uppercase tracking-widest text-slate-600">
-                            <span>{file.size}</span>
-                            <span>{file.date}</span>
+                  {vaultFiles.length === 0 ? (
+                    <div className="p-8 text-center bg-white/[0.01] border border-white/5 rounded-xl text-slate-500 text-sm">
+                      No files stored in this vault workspace.
+                    </div>
+                  ) : (
+                    vaultFiles.map((file, i) => (
+                      <div key={i} className="p-4 rounded-xl glass border border-white/5 flex items-center justify-between group hover:border-brand-teal/30 transition-all">
+                        <div className="flex items-center gap-4">
+                          <div className="w-10 h-10 rounded-lg bg-white/5 flex items-center justify-center text-slate-500 group-hover:text-brand-teal transition-colors">
+                            <FileText size={18} />
+                          </div>
+                          <div>
+                            <h4 className="text-white font-bold text-xs mb-0.5">{file.name}</h4>
+                            <div className="flex flex-wrap gap-x-3 gap-y-0.5 text-[8px] font-black uppercase tracking-widest text-slate-600">
+                              <span>Size: {file.size || 'N/A'}</span>
+                              <span>Project: {file.projectName}</span>
+                              {file.uploaded_at && <span>Added: {new Date(file.uploaded_at).toLocaleDateString()}</span>}
+                            </div>
                           </div>
                         </div>
+                        <a href={file.file_url} target="_blank" rel="noopener noreferrer" className="p-2.5 rounded-lg bg-white/5 text-slate-500 hover:text-white hover:bg-brand-teal transition-all">
+                          <Download size={14} />
+                        </a>
                       </div>
-                      <button className="p-2.5 rounded-lg bg-white/5 text-slate-500 hover:text-white hover:bg-brand-teal transition-all">
-                        <Download size={14} />
-                      </button>
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </div>
               </motion.div>
             )}
@@ -391,7 +467,7 @@ export default function DashboardView() {
                       <div className="w-8 h-8 rounded-full bg-brand-teal/20 flex items-center justify-center text-brand-teal font-black text-[10px]">DP</div>
                       <div>
                         <div className="text-[10px] font-black text-white uppercase tracking-widest">Lead Engineer</div>
-                        <div className="text-[7px] font-bold text-brand-teal uppercase tracking-widest">Active</div>
+                        <div className="text-[7px] font-bold text-brand-teal uppercase tracking-widest">Active Node</div>
                       </div>
                     </div>
                     <button className="p-2 rounded-lg bg-white/5 text-slate-600"><Lock size={12} /></button>
@@ -401,16 +477,25 @@ export default function DashboardView() {
                     <div className="flex gap-3 max-w-sm">
                       <div className="w-7 h-7 rounded-full bg-brand-teal/20 flex items-center justify-center text-brand-teal text-[8px] font-black shrink-0">DP</div>
                       <div className="p-4 rounded-xl rounded-tl-none bg-white/5 border border-white/5 text-xs leading-relaxed text-slate-300">
-                        Mission MSN-4029 update: Bypassed behavioral detection. Scaling nodes.
+                        Secure telemetry setup completed. Please upload project requirements and wireframes to the secure vault directly, or communicate here.
                       </div>
                     </div>
+
+                    {missions.map(m => (m.activities || []).slice(0, 2).map((log, li) => (
+                      <div key={log.id} className="flex gap-3 max-w-sm ml-auto flex-row-reverse">
+                        <div className="w-7 h-7 rounded-full bg-brand-blue/20 flex items-center justify-center text-brand-blue text-[8px] font-black shrink-0">CL</div>
+                        <div className="p-4 rounded-xl rounded-tr-none bg-brand-blue/5 border border-brand-blue/20 text-xs leading-relaxed text-slate-300">
+                          {log.action_text} ({new Date(log.timestamp).toLocaleTimeString()})
+                        </div>
+                      </div>
+                    )))}
                   </div>
 
                   <div className="p-4 border-t border-white/5 bg-white/[0.02]">
-                    <div className="flex gap-2">
+                    <form onSubmit={(e) => { e.preventDefault(); alert('Message sent through protected relay.'); }} className="flex gap-2">
                       <input type="text" placeholder="Encrypted message..." className="flex-grow bg-white/5 border border-white/10 rounded-lg px-4 text-xs text-white focus:outline-none focus:border-brand-teal/50" />
-                      <button className="p-3 bg-brand-teal text-white rounded-lg shadow-glow-teal"><Send size={16} /></button>
-                    </div>
+                      <button type="submit" className="p-3 bg-brand-teal text-text-primary rounded-lg shadow-glow-teal"><Send size={16} /></button>
+                    </form>
                   </div>
                 </div>
               </motion.div>
@@ -428,30 +513,38 @@ export default function DashboardView() {
                     <thead>
                       <tr className="bg-white/5 text-[8px] font-black uppercase tracking-[0.2em] text-slate-600 border-b border-white/5">
                         <th className="px-6 py-4">Invoice</th>
+                        <th className="px-6 py-4">Project</th>
                         <th className="px-6 py-4">Date</th>
                         <th className="px-6 py-4">Amount</th>
                         <th className="px-6 py-4">Status</th>
-                        <th className="px-6 py-4 text-right">Action</th>
+                        <th className="px-6 py-4 text-right">Method</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-white/5">
-                      {invoices.map((inv) => (
-                        <tr key={inv.id} className="hover:bg-white/[0.01] transition-colors">
-                          <td className="px-6 py-4 font-black text-white text-[10px]">{inv.id}</td>
-                          <td className="px-6 py-4 text-slate-600 text-[10px]">{inv.date}</td>
-                          <td className="px-6 py-4 font-bold text-white text-[10px]">{inv.amount}</td>
-                          <td className="px-6 py-4">
-                            <span className={`px-2 py-0.5 rounded-md text-[7px] font-black uppercase tracking-widest ${
-                              inv.status === 'Paid' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-brand-red/10 text-brand-red'
-                            }`}>
-                              {inv.status}
-                            </span>
-                          </td>
-                          <td className="px-6 py-4 text-right">
-                            <button className="p-2 rounded-lg bg-white/5 text-slate-600 hover:text-white transition-all"><Download size={12} /></button>
+                      {invoices.length === 0 ? (
+                        <tr>
+                          <td colSpan="6" className="px-6 py-8 text-center text-slate-500 text-xs">
+                            No ledger transactions recorded.
                           </td>
                         </tr>
-                      ))}
+                      ) : (
+                        invoices.map((inv) => (
+                          <tr key={inv.id} className="hover:bg-white/[0.01] transition-colors">
+                            <td className="px-6 py-4 font-black text-white text-[10px]">{inv.id}</td>
+                            <td className="px-6 py-4 text-slate-300 text-[10px] uppercase font-bold">{inv.projectName}</td>
+                            <td className="px-6 py-4 text-slate-600 text-[10px]">{inv.date}</td>
+                            <td className="px-6 py-4 font-bold text-brand-teal text-[10px]">{inv.amount}</td>
+                            <td className="px-6 py-4">
+                              <span className="px-2 py-0.5 rounded-md text-[7px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-400">
+                                {inv.status}
+                              </span>
+                            </td>
+                            <td className="px-6 py-4 text-right text-slate-500 text-[9px] font-black uppercase tracking-widest">
+                              {inv.method}
+                            </td>
+                          </tr>
+                        ))
+                      )}
                     </tbody>
                   </table>
                 </div>
@@ -470,14 +563,46 @@ export default function DashboardView() {
                     <div className="grid md:grid-cols-2 gap-4">
                       <div className="space-y-1.5">
                         <label className="text-[8px] font-black uppercase tracking-widest text-slate-600 ml-2">Name</label>
-                        <input type="text" defaultValue="Samir Labs" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-xs text-white focus:outline-none focus:border-brand-teal/50" />
+                        <input 
+                          type="text" 
+                          value={sysConfigName} 
+                          onChange={(e) => setSysConfigName(e.target.value)}
+                          className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-xs text-white focus:outline-none focus:border-brand-teal/50" 
+                        />
                       </div>
                       <div className="space-y-1.5">
                         <label className="text-[8px] font-black uppercase tracking-widest text-slate-600 ml-2">Email Hook</label>
-                        <input type="email" defaultValue="ops@samirlabs.com" className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-xs text-white focus:outline-none focus:border-brand-teal/50" />
+                        <input 
+                          type="email" 
+                          value={sysConfigEmail} 
+                          onChange={(e) => setSysConfigEmail(e.target.value)}
+                          className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-xs text-white focus:outline-none focus:border-brand-teal/50" 
+                        />
                       </div>
                     </div>
-                    <button className="px-5 py-2 bg-brand-teal text-white rounded-lg text-[9px] font-black uppercase tracking-widest shadow-glow-teal hover:-translate-y-0.5 transition-all">
+                    
+                    <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5 space-y-2">
+                      <div className="text-[8px] font-black uppercase tracking-widest text-slate-500 mb-1">Account Specifications</div>
+                      <div className="flex justify-between text-xs">
+                        <span className="text-slate-600">Username ID:</span>
+                        <span className="font-mono text-white">{currentUser.username}</span>
+                      </div>
+                      <div className="flex justify-between text-xs">
+                        <span className="text-slate-600">Role Status:</span>
+                        <span className="text-white font-bold">{currentUser.is_staff ? 'Staff Member' : 'Associated Client'}</span>
+                      </div>
+                      {currentUser.date_joined && (
+                        <div className="flex justify-between text-xs">
+                          <span className="text-slate-600">Established:</span>
+                          <span className="text-white">{new Date(currentUser.date_joined).toLocaleDateString()}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <button 
+                      onClick={() => alert('Profile update relay initialized.')}
+                      className="px-5 py-2 bg-brand-teal text-text-primary rounded-lg text-[9px] font-black uppercase tracking-widest shadow-glow-teal hover:-translate-y-0.5 transition-all"
+                    >
                       Save System Config
                     </button>
                   </div>
@@ -493,16 +618,14 @@ export default function DashboardView() {
       <AnimatePresence>
         {selectedMission && (() => {
           const stageSteps = ['Requirements', 'Architecture', 'Development', 'QA', 'Deployment', 'Complete'];
-          const statusStageMap = { 'In Progress': 2, 'Testing': 3, 'Deploying': 4 };
-          const stageIdx = statusStageMap[selectedMission.status] ?? 5;
-          const milestones = [
-            { label: 'Kickoff & Requirements Sign-off', done: true },
-            { label: 'Architecture & Technical Design', done: stageIdx >= 2 },
-            { label: 'Core Development Phase', done: stageIdx >= 3 },
-            { label: 'QA & Testing', done: stageIdx >= 4 },
-            { label: 'Deployment & Final Delivery', done: stageIdx >= 5 },
-          ];
+          const statusStageMap = { 'Requirements': 1, 'Architecture': 1, 'Dev': 2, 'QA': 3, 'Deploying': 4, 'Complete': 5 };
+          const stageIdx = statusStageMap[selectedMission.stage] ?? 2;
+          const milestones = selectedMission.milestones || [];
           const completedCount = milestones.filter(m => m.done).length;
+          const logs = selectedMission.activities || [];
+          const tech = selectedMission.tags || [];
+          const deliverables = selectedMission.files || [];
+
           return (
             <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
               <motion.div
@@ -519,7 +642,7 @@ export default function DashboardView() {
                 {/* Modal Header */}
                 <div className="p-5 border-b border-white/5 flex items-start justify-between bg-white/[0.02]">
                   <div>
-                    <div className="text-[8px] font-black text-brand-teal uppercase tracking-[0.3em] mb-0.5">{selectedMission.id} &bull; {selectedMission.type}</div>
+                    <div className="text-[8px] font-black text-brand-teal uppercase tracking-[0.3em] mb-0.5">{selectedMission.id} &bull; {selectedMission.priority || 'Standard'} Priority</div>
                     <h2 className="text-lg font-black text-white uppercase tracking-tight">{selectedMission.title}</h2>
                   </div>
                   <button
@@ -558,56 +681,64 @@ export default function DashboardView() {
                         <h4 className="text-[8px] font-black text-slate-600 uppercase tracking-widest mb-2 flex items-center gap-2">
                           <Terminal size={11} className="text-brand-teal" /> Mission Brief
                         </h4>
-                        <p className="text-slate-300 text-sm leading-relaxed italic">"{selectedMission.details}"</p>
+                        <p className="text-slate-300 text-sm leading-relaxed italic">"{selectedMission.description || 'No detailed brief provided.'}"</p>
                       </section>
 
                       {/* Milestones */}
-                      <section>
-                        <div className="flex items-center justify-between mb-3">
-                          <h4 className="text-[8px] font-black text-slate-600 uppercase tracking-widest flex items-center gap-2">
-                            <CheckCircle2 size={11} className="text-brand-indigo" /> Milestones
-                          </h4>
-                          <span className="text-[8px] font-black text-brand-teal">{completedCount}/{milestones.length} Done</span>
-                        </div>
-                        <div className="space-y-2">
-                          {milestones.map((m, mi) => (
-                            <div key={mi} className={`flex items-center gap-3 p-3 rounded-xl border ${m.done ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-white/[0.02] border-white/5'}`}>
-                              {m.done
-                                ? <CheckCircle2 size={13} className="text-emerald-400 shrink-0" />
-                                : <Clock size={13} className="text-slate-700 shrink-0" />}
-                              <span className={`text-xs font-bold ${m.done ? 'text-slate-600 line-through' : 'text-white'}`}>{m.label}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </section>
+                      {milestones.length > 0 && (
+                        <section>
+                          <div className="flex items-center justify-between mb-3">
+                            <h4 className="text-[8px] font-black text-slate-600 uppercase tracking-widest flex items-center gap-2">
+                              <CheckCircle2 size={11} className="text-brand-indigo" /> Milestones
+                            </h4>
+                            <span className="text-[8px] font-black text-brand-teal">{completedCount}/{milestones.length} Done</span>
+                          </div>
+                          <div className="space-y-2">
+                            {milestones.map((m, mi) => (
+                              <div key={mi} className={`flex items-center gap-3 p-3 rounded-xl border ${m.done ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-white/[0.02] border-white/5'}`}>
+                                {m.done
+                                  ? <CheckCircle2 size={13} className="text-emerald-400 shrink-0" />
+                                  : <Clock size={13} className="text-slate-700 shrink-0" />}
+                                <span className={`text-xs font-bold ${m.done ? 'text-slate-600 line-through' : 'text-white'}`}>{m.label}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </section>
+                      )}
 
                       {/* Tech Stack */}
-                      <section>
-                        <h4 className="text-[8px] font-black text-slate-600 uppercase tracking-widest mb-2 flex items-center gap-2">
-                          <Cpu size={11} className="text-brand-red" /> Tech Stack
-                        </h4>
-                        <div className="flex flex-wrap gap-1.5">
-                          {selectedMission.tech.map(t => (
-                            <span key={t} className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/5 text-[8px] font-black text-white uppercase tracking-widest">{t}</span>
-                          ))}
-                        </div>
-                      </section>
+                      {tech.length > 0 && (
+                        <section>
+                          <h4 className="text-[8px] font-black text-slate-600 uppercase tracking-widest mb-2 flex items-center gap-2">
+                            <Cpu size={11} className="text-brand-red" /> Tech Stack
+                          </h4>
+                          <div className="flex flex-wrap gap-1.5">
+                            {tech.map(t => (
+                              <span key={t} className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/5 text-[8px] font-black text-white uppercase tracking-widest">{t}</span>
+                            ))}
+                          </div>
+                        </section>
+                      )}
 
                       {/* Activity Log */}
-                      <section>
-                        <h4 className="text-[8px] font-black text-slate-600 uppercase tracking-widest mb-3 flex items-center gap-2">
-                          <Activity size={11} className="text-brand-indigo" /> Activity Log
-                        </h4>
-                        <div className="space-y-3 border-l border-white/5 ml-1.5 pl-4">
-                          {selectedMission.logs.map((log, i) => (
-                            <div key={i} className="relative">
-                              <div className="absolute -left-[21px] top-1.5 w-1.5 h-1.5 rounded-full bg-brand-teal" />
-                              <div className="text-[7px] font-black text-slate-700 uppercase tracking-widest mb-0.5">{log.time}</div>
-                              <div className="text-[10px] text-slate-400">{log.event}</div>
-                            </div>
-                          ))}
-                        </div>
-                      </section>
+                      {logs.length > 0 && (
+                        <section>
+                          <h4 className="text-[8px] font-black text-slate-600 uppercase tracking-widest mb-3 flex items-center gap-2">
+                            <Activity size={11} className="text-brand-indigo" /> Activity Log
+                          </h4>
+                          <div className="space-y-3 border-l border-white/5 ml-1.5 pl-4">
+                            {logs.map((log) => (
+                              <div key={log.id} className="relative">
+                                <div className="absolute -left-[21px] top-1.5 w-1.5 h-1.5 rounded-full bg-brand-teal" />
+                                <div className="text-[7px] font-black text-slate-700 uppercase tracking-widest mb-0.5">
+                                  {log.timestamp ? new Date(log.timestamp).toLocaleString() : 'Recent'}
+                                </div>
+                                <div className="text-[10px] text-slate-400">{log.action_text}</div>
+                              </div>
+                            ))}
+                          </div>
+                        </section>
+                      )}
                     </div>
 
                     {/* Right sidebar */}
@@ -621,7 +752,7 @@ export default function DashboardView() {
                           </div>
                           <div>
                             <div className="text-xl font-black text-white">{selectedMission.progress}%</div>
-                            <div className="text-[8px] font-black text-brand-teal uppercase tracking-widest">{selectedMission.status}</div>
+                            <div className="text-[8px] font-black text-brand-teal uppercase tracking-widest">{selectedMission.stage}</div>
                           </div>
                         </div>
                         <div className="h-1.5 bg-white/5 rounded-full overflow-hidden mb-3">
@@ -629,7 +760,11 @@ export default function DashboardView() {
                             className={`h-full rounded-full ${selectedMission.progress === 100 ? 'bg-emerald-400' : 'bg-brand-teal'}`} />
                         </div>
                         <div className="space-y-2.5 border-t border-white/5 pt-3">
-                          {[['Deadline', selectedMission.deadline], ['Investment', selectedMission.price], ['Tier', selectedMission.tier]].map(([l, v]) => (
+                          {[
+                            ['Deadline', selectedMission.deadline || 'Flexible'],
+                            ['Investment', selectedMission.value ? `$${Number(selectedMission.value).toLocaleString()}` : '$0.00'],
+                            ['Priority', selectedMission.priority]
+                          ].map(([l, v]) => (
                             <div key={l} className="flex justify-between items-center">
                               <span className="text-[7px] font-black text-slate-700 uppercase tracking-widest">{l}</span>
                               <span className="text-[9px] font-bold text-white uppercase">{v}</span>
@@ -639,31 +774,30 @@ export default function DashboardView() {
                       </div>
 
                       {/* Deliverables */}
-                      <div className="p-4 rounded-xl bg-white/5 border border-white/5">
-                        <div className="text-[7px] font-black text-slate-700 uppercase tracking-widest mb-3">Deliverables</div>
-                        <div className="space-y-2">
-                          {[
-                            { name: 'Technical Specs v2.pdf', size: '2.4 MB' },
-                            { name: 'API Documentation.md', size: '12 KB' },
-                          ].map((f, fi) => (
-                            <div key={fi} className="flex items-center gap-2 p-2 rounded-lg bg-white/5">
-                              <FileText size={11} className="text-brand-teal shrink-0" />
-                              <div className="flex-grow min-w-0">
-                                <div className="text-[8px] font-bold text-white truncate">{f.name}</div>
-                                <div className="text-[7px] text-slate-700">{f.size}</div>
+                      {deliverables.length > 0 && (
+                        <div className="p-4 rounded-xl bg-white/5 border border-white/5">
+                          <div className="text-[7px] font-black text-slate-700 uppercase tracking-widest mb-3">Deliverables</div>
+                          <div className="space-y-2">
+                            {deliverables.map((f) => (
+                              <div key={f.id} className="flex items-center gap-2 p-2 rounded-lg bg-white/5">
+                                <FileText size={11} className="text-brand-teal shrink-0" />
+                                <div className="flex-grow min-w-0">
+                                  <div className="text-[8px] font-bold text-white truncate">{f.name}</div>
+                                  <div className="text-[7px] text-slate-700">{f.size || 'N/A'}</div>
+                                </div>
+                                <a href={f.file_url} target="_blank" rel="noopener noreferrer" className="p-1 rounded-md bg-brand-teal/10 text-brand-teal hover:bg-brand-teal hover:text-white transition-all shrink-0">
+                                  <Download size={10} />
+                                </a>
                               </div>
-                              <button className="p-1 rounded-md bg-brand-teal/10 text-brand-teal hover:bg-brand-teal hover:text-white transition-all">
-                                <Download size={10} />
-                              </button>
-                            </div>
-                          ))}
+                            ))}
+                          </div>
                         </div>
-                      </div>
+                      )}
 
                       {/* CTA buttons */}
                       <button
                         onClick={() => { setActiveTab('comms'); setSelectedMission(null); }}
-                        className="w-full py-3 bg-brand-teal text-white rounded-xl font-black uppercase tracking-widest text-[9px] shadow-glow-teal hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"
+                        className="w-full py-3 bg-brand-teal text-text-primary rounded-xl font-black uppercase tracking-widest text-[9px] shadow-glow-teal hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"
                       >
                         Secure Channel <MessageSquare size={13} />
                       </button>
