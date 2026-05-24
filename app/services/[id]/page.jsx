@@ -105,10 +105,10 @@ export default function ServiceDetailPage() {
 
 
 
-                        {/* Mission Success Stats Bar */}
+                        {/* Project Success Stats Bar */}
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4 mb-8">
                             {[
-                                { label: 'Missions Done', value: '1,240+', icon: Zap, color: 'text-brand-teal' },
+                                { label: 'Projects Done', value: '1,240+', icon: Zap, color: 'text-brand-teal' },
                                 { label: 'Success Rate', value: '99.8%', icon: Activity, color: 'text-brand-blue' },
                                 { label: 'Client Rating', value: '5.0/5.0', icon: Star, color: 'text-brand-teal' },
                                 { label: 'Awarded Pro', value: 'Verified', icon: Award, color: 'text-purple-500' },
@@ -292,7 +292,7 @@ export default function ServiceDetailPage() {
                             <div className="col-span-1 md:col-span-2 flex flex-col gap-8">
                                 {/* About This Service */}
                                 <div className="prose prose-invert prose-brand max-w-none pt-4 md:pt-0">
-                                    <h2 className="text-xl font-black text-white mb-4 uppercase tracking-tight not-prose">Mission Briefing</h2>
+                                    <h2 className="text-xl font-black text-white mb-4 uppercase tracking-tight not-prose">Project Briefing</h2>
                                     <ReactMarkdown
                                         components={{
                                             h1: ({ node, ...props }) => <h1 className="text-2xl font-black text-white mb-4 mt-8 first:mt-0 uppercase tracking-tighter" {...props} />,
@@ -529,7 +529,7 @@ export default function ServiceDetailPage() {
                                     <div className="space-y-3">
                                         {(service.faqs || [
                                             { q: "Is this service customizable?", a: "Yes, we can tailor the mission to your specific requirements." },
-                                            { q: "What is the typical turnaround time?", a: "Most missions are completed within 3-7 days depending on complexity." }
+                                            { q: "What is the typical turnaround time?", a: "Most projects are completed within 3-7 days depending on complexity." }
                                         ]).map((faq, i) => (
                                             <div key={i} className="rounded-xl border border-white/5 bg-surface-900/30 overflow-hidden">
                                                 <button
@@ -591,7 +591,7 @@ export default function ServiceDetailPage() {
                             onClick={() => setIsModalOpen(true)}
                             className="flex-grow py-3 bg-brand-red text-white rounded-xl font-black uppercase tracking-widest text-[10px] shadow-glow-red active:scale-95 transition-all flex items-center justify-center gap-2"
                         >
-                            Start Mission <ArrowRight size={14} />
+                            Start Project <ArrowRight size={14} />
                         </button>
                     </motion.div>
                 )}

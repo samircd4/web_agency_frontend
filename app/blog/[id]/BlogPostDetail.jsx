@@ -43,7 +43,7 @@ export default function BlogPostDetail() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background text-white">
         <div className="text-center">
-          <h1 className="text-4xl font-black mb-4 tracking-tight">Mission Not Found</h1>
+          <h1 className="text-4xl font-black mb-4 tracking-tight">Post Not Found</h1>
           <button onClick={() => router.push('/blog')} className="text-brand-teal font-bold hover:underline uppercase tracking-widest text-xs">
             Return to Journal
           </button>
@@ -164,7 +164,7 @@ export default function BlogPostDetail() {
               onClick={() => router.push('/start-project')}
               className="px-10 py-5 bg-brand-teal text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:-translate-y-1 transition-all shadow-glow-teal"
             >
-              Start Mission Briefing
+              Start Project Briefing
             </button>
           </div>
         </div>

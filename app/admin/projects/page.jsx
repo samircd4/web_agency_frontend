@@ -211,7 +211,7 @@ function ListRow({ p, i, onSelect }) {
 }
 
 // ─── Detail Drawer ───────────────────────────────────────────────────────────
-function ProjectDrawer({ project, onClose, onToggleMilestone, onDeleteMilestone, onAddMilestone, onUpdateProject, onAddNote, onDeleteNote, onUploadFile, onDeleteFile }) {
+function ProjectDrawer({ project, onClose, onToggleMilestone, onDeleteMilestone, onAddMilestone, onUpdateProject, onAddNote, onDeleteNote, onUploadFile, onDeleteFile, onToast }) {
     const [isEditing, setIsEditing] = useState(false);
     const [isAddingNote, setIsAddingNote] = useState(false);
     const [noteText, setNoteText] = useState('');
@@ -219,6 +219,106 @@ function ProjectDrawer({ project, onClose, onToggleMilestone, onDeleteMilestone,
     const [newMilestoneLabel, setNewMilestoneLabel] = useState('');
     const [fileUploading, setFileUploading] = useState(false);
     const fileInputRef = useRef(null);
+
+    const [billingTab, setBillingTab] = useState('invoices'); // invoices | proposals
+    const [billingLoading, setBillingLoading] = useState(false);
+    const [proposals, setProposals] = useState([]);
+    const [invoices, setInvoices] = useState([]);
+    const [createProposalOpen, setCreateProposalOpen] = useState(false);
+    const [proposalForm, setProposalForm] = useState({ title: '', body_md: '' });
+    const [createInvoiceOpen, setCreateInvoiceOpen] = useState(false);
+    const [invoiceForm, setInvoiceForm] = useState({ due_date: '', notes: '', currency: 'usd', item_description: 'Deposit', item_amount: '' });
+    const [addItemOpen, setAddItemOpen] = useState(false);
+    const [addItemForm, setAddItemForm] = useState({ invoiceId: null, description: '', amount: '' });
+    const [billingConfirm, setBillingConfirm] = useState({ open: false, kind: null, invoice: null });
+    const [billingActionLoading, setBillingActionLoading] = useState(false);
+
+    const centsToMoney = (cents) => {
+        const n = Number(cents || 0) / 100;
+        return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    };
+
+    const refreshBilling = useCallback(async () => {
+        setBillingLoading(true);
+        try {
+            const [p, i] = await Promise.all([
+                api.getAdminProjectProposals(project.id),
+                api.getAdminProjectInvoices(project.id),
+            ]);
+            setProposals(Array.isArray(p) ? p : p.results || []);
+            setInvoices(Array.isArray(i) ? i : i.results || []);
+        } finally {
+            setBillingLoading(false);
+        }
+    }, [project.id]);
+
+    useEffect(() => {
+        refreshBilling();
+    }, [refreshBilling]);
+
+    const handleCreateProposal = async (e) => {
+        e?.preventDefault?.();
+        const title = (proposalForm.title || '').trim();
+        if (!title) return;
+        try {
+            await api.createAdminProjectProposal(project.id, {
+                title,
+                body_md: proposalForm.body_md || '',
+                status: 'draft',
+            });
+            setCreateProposalOpen(false);
+            setProposalForm({ title: '', body_md: '' });
+            await refreshBilling();
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const handleCreateInvoice = async (e) => {
+        e?.preventDefault?.();
+        try {
+            const inv = await api.createAdminProjectInvoice(project.id, {
+                currency: invoiceForm.currency || 'usd',
+                due_date: invoiceForm.due_date || null,
+                notes: invoiceForm.notes || '',
+                status: 'draft',
+            });
+            const amount = Number(invoiceForm.item_amount);
+            if (Number.isFinite(amount) && amount > 0) {
+                await api.createAdminInvoiceItem(project.id, inv.id, {
+                    description: (invoiceForm.item_description || 'Service').trim() || 'Service',
+                    quantity: 1,
+                    unit_amount_cents: Math.round(amount * 100),
+                });
+            }
+            setCreateInvoiceOpen(false);
+            setInvoiceForm({ due_date: '', notes: '', currency: 'usd', item_description: 'Deposit', item_amount: '' });
+            await refreshBilling();
+        } catch (err) {
+            console.error(err);
+        }
+    };
+
+    const handleAddInvoiceItem = async (e) => {
+        e?.preventDefault?.();
+        const invoiceId = addItemForm.invoiceId;
+        if (!invoiceId) return;
+        const description = (addItemForm.description || '').trim();
+        const amount = Number(addItemForm.amount);
+        if (!description || !Number.isFinite(amount) || amount <= 0) return;
+        try {
+            await api.createAdminInvoiceItem(project.id, invoiceId, {
+                description,
+                quantity: 1,
+                unit_amount_cents: Math.round(amount * 100),
+            });
+            setAddItemOpen(false);
+            setAddItemForm({ invoiceId: null, description: '', amount: '' });
+            await refreshBilling();
+        } catch (err) {
+            console.error(err);
+        }
+    };
     const [editForm, setEditForm] = useState({
         title: project.title || '',
         description: project.description || '',
@@ -260,7 +360,7 @@ function ProjectDrawer({ project, onClose, onToggleMilestone, onDeleteMilestone,
 
     const resolveBackendUrl = (url) => {
         if (!url) return '';
-        return url.startsWith('/') ? `http://127.0.0.1:8000${url}` : url;
+        return url.startsWith('/') ? `http://localhost:8000${url}` : url;
     };
 
     const handleDownload = async (url, filename) => {
@@ -406,7 +506,7 @@ function ProjectDrawer({ project, onClose, onToggleMilestone, onDeleteMilestone,
                             </div>
 
                             <div className="space-y-1.5">
-                                <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 ml-1">Mission Brief</label>
+                                <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 ml-1">Project Brief</label>
                                 <textarea 
                                     value={editForm.description}
                                     onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
@@ -451,7 +551,7 @@ function ProjectDrawer({ project, onClose, onToggleMilestone, onDeleteMilestone,
                                     </select>
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 ml-1">Mission Stage</label>
+                                    <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 ml-1">Project Stage</label>
                                     <select 
                                         value={editForm.stage}
                                         onChange={(e) => setEditForm({ ...editForm, stage: e.target.value })}
@@ -635,6 +735,222 @@ function ProjectDrawer({ project, onClose, onToggleMilestone, onDeleteMilestone,
                                 </div>
                             )}
 
+                            {/* Billing */}
+                            <div className="p-4 rounded-xl bg-white/[0.01] border border-white/5 space-y-3">
+                                <div className="flex items-center justify-between gap-3">
+                                    <div className="text-[10px] font-black text-text-muted uppercase tracking-widest">Billing</div>
+                                    <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-1 p-1 bg-white/5 border border-white/5 rounded-xl">
+                                            <button
+                                                type="button"
+                                                onClick={() => setBillingTab('invoices')}
+                                                className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${
+                                                    billingTab === 'invoices' ? 'bg-brand-teal/20 text-brand-teal' : 'text-text-muted hover:text-text-primary'
+                                                }`}
+                                            >
+                                                Invoices
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setBillingTab('proposals')}
+                                                className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${
+                                                    billingTab === 'proposals' ? 'bg-brand-teal/20 text-brand-teal' : 'text-text-muted hover:text-text-primary'
+                                                }`}
+                                            >
+                                                Proposals
+                                            </button>
+                                        </div>
+                                        {billingTab === 'invoices' ? (
+                                            <button
+                                                type="button"
+                                                onClick={() => setCreateInvoiceOpen(true)}
+                                                className="px-3 py-1.5 rounded-xl bg-white/[0.03] border border-border-subtle text-text-primary hover:border-border-light transition-all text-[10px] font-black uppercase tracking-widest"
+                                            >
+                                                + Invoice
+                                            </button>
+                                        ) : (
+                                            <button
+                                                type="button"
+                                                onClick={() => setCreateProposalOpen(true)}
+                                                className="px-3 py-1.5 rounded-xl bg-white/[0.03] border border-border-subtle text-text-primary hover:border-border-light transition-all text-[10px] font-black uppercase tracking-widest"
+                                            >
+                                                + Proposal
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {billingLoading ? (
+                                    <div className="flex items-center gap-2 text-xs text-text-muted font-bold">
+                                        <Loader2 size={14} className="animate-spin" /> Loading billing…
+                                    </div>
+                                ) : billingTab === 'invoices' ? (
+                                    <div className="space-y-2">
+                                        {invoices.length === 0 && (
+                                            <div className="p-3 rounded-xl bg-white/[0.02] border border-dashed border-white/10 text-[10px] text-text-dim font-black uppercase tracking-widest">
+                                                No invoices yet
+                                            </div>
+                                        )}
+                                        {invoices.map(inv => (
+                                            <div key={inv.id} className="p-3 rounded-xl bg-white/[0.02] border border-white/5">
+                                                <div className="flex items-start justify-between gap-3">
+                                                    <div className="min-w-0">
+                                                        <div className="text-xs font-black text-text-primary">{inv.number}</div>
+                                                        <div className="text-[10px] font-black text-text-dim uppercase tracking-widest mt-0.5">
+                                                            {inv.status} • {inv.currency?.toUpperCase?.() || 'USD'} {centsToMoney(inv.amount_total_cents)}
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-1.5 shrink-0">
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setBillingConfirm({ open: true, kind: 'send_invoice', invoice: inv })}
+                                                            className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-text-primary hover:bg-white/10 transition-all"
+                                                            title={inv.status === 'draft' ? 'Mark as sent' : 'Resend'}
+                                                        >
+                                                            {inv.status === 'draft' ? 'Send' : 'Resend'}
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setBillingConfirm({ open: true, kind: 'toggle_paid', invoice: inv })}
+                                                            className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${
+                                                                inv.status === 'paid'
+                                                                    ? 'bg-brand-red/10 border border-brand-red/20 text-brand-red hover:bg-brand-red/15'
+                                                                    : 'bg-brand-teal/10 border border-brand-teal/20 text-brand-teal hover:bg-brand-teal/15'
+                                                            }`}
+                                                            title={inv.status === 'paid' ? 'Mark as unpaid' : 'Mark as paid'}
+                                                        >
+                                                            {inv.status === 'paid' ? 'Unpaid' : 'Paid'}
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => setAddItemForm({ invoiceId: inv.id, description: '', amount: '' }) || setAddItemOpen(true)}
+                                                            className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-text-primary hover:bg-white/10 transition-all"
+                                                            title="Add item"
+                                                        >
+                                                            + Item
+                                                        </button>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => window.open(resolveBackendUrl(`/api/admin/projects/${project.id}/invoices/${inv.id}/print/`), '_blank', 'noopener,noreferrer')}
+                                                            className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-text-primary hover:bg-white/10 transition-all"
+                                                            title="Open printable invoice"
+                                                        >
+                                                            Print
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="space-y-2">
+                                        {proposals.length === 0 && (
+                                            <div className="p-3 rounded-xl bg-white/[0.02] border border-dashed border-white/10 text-[10px] text-text-dim font-black uppercase tracking-widest">
+                                                No proposals yet
+                                            </div>
+                                        )}
+                                        {proposals.map(p => (
+                                            <div key={p.id} className="p-3 rounded-xl bg-white/[0.02] border border-white/5">
+                                                <div className="flex items-start justify-between gap-3">
+                                                    <div className="min-w-0">
+                                                        <div className="text-xs font-black text-text-primary truncate">{p.title}</div>
+                                                        <div className="text-[10px] font-black text-text-dim uppercase tracking-widest mt-0.5">{p.status}</div>
+                                                    </div>
+                                                    <div className="flex items-center gap-1.5 shrink-0">
+                                                        <button
+                                                            type="button"
+                                                            onClick={async () => { await api.sendAdminProposal(p.id); await refreshBilling(); }}
+                                                            className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-text-primary hover:bg-white/10 transition-all"
+                                                            title="Mark as sent"
+                                                        >
+                                                            Send
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+
+                            <AdminModal
+                                open={billingConfirm.open}
+                                onClose={() => (billingActionLoading ? null : setBillingConfirm({ open: false, kind: null, invoice: null }))}
+                                title={billingConfirm.kind === 'send_invoice'
+                                    ? (billingConfirm.invoice?.status === 'draft' ? 'Send Invoice' : 'Resend Invoice')
+                                    : 'Update Payment Status'}
+                                subtitle={billingConfirm.invoice?.number || 'Are you sure?'}
+                                icon={AlertCircle}
+                                maxWidthClass="max-w-md"
+                                footer={
+                                    <div className="flex justify-end gap-2">
+                                        <button
+                                            type="button"
+                                            onClick={() => setBillingConfirm({ open: false, kind: null, invoice: null })}
+                                            disabled={billingActionLoading}
+                                            className="px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-text-primary font-black uppercase tracking-widest text-[10px] hover:bg-white/10 transition-all disabled:opacity-60"
+                                        >
+                                            Cancel
+                                        </button>
+                                        <button
+                                            type="button"
+                                            disabled={billingActionLoading}
+                                            onClick={async () => {
+                                                const inv = billingConfirm.invoice;
+                                                if (!inv) return;
+                                                try {
+                                                    setBillingActionLoading(true);
+                                                    if (billingConfirm.kind === 'send_invoice') {
+                                                        await api.sendAdminInvoice(project.id, inv.id);
+                                                        onToast?.(inv.status === 'draft' ? 'Invoice marked as sent' : 'Invoice resent');
+                                                    } else if (billingConfirm.kind === 'toggle_paid') {
+                                                        if (inv.status === 'paid') {
+                                                            await api.markAdminInvoiceUnpaid(project.id, inv.id);
+                                                            onToast?.('Invoice marked as unpaid');
+                                                        } else {
+                                                            await api.markAdminInvoicePaid(project.id, inv.id);
+                                                            onToast?.('Invoice marked as paid');
+                                                        }
+                                                    }
+                                                    await refreshBilling();
+                                                    setBillingConfirm({ open: false, kind: null, invoice: null });
+                                                } catch (err) {
+                                                    onToast?.(err?.message || 'Action failed', 'error');
+                                                } finally {
+                                                    setBillingActionLoading(false);
+                                                }
+                                            }}
+                                            className={`px-3.5 py-2 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all flex items-center gap-2 disabled:opacity-60 ${
+                                                billingConfirm.kind === 'send_invoice'
+                                                    ? 'bg-brand-teal text-text-primary hover:-translate-y-0.5 shadow-glow-teal'
+                                                    : (billingConfirm.invoice?.status === 'paid'
+                                                        ? 'bg-brand-red/15 border border-brand-red/30 text-brand-red hover:bg-brand-red/25'
+                                                        : 'bg-brand-teal text-text-primary hover:-translate-y-0.5 shadow-glow-teal')
+                                            }`}
+                                        >
+                                            {billingActionLoading ? <Loader2 size={14} className="animate-spin" /> : null}
+                                            {billingConfirm.kind === 'send_invoice'
+                                                ? (billingConfirm.invoice?.status === 'draft' ? 'Send' : 'Resend')
+                                                : 'Confirm'}
+                                        </button>
+                                    </div>
+                                }
+                            >
+                                <div className="p-5">
+                                    <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5">
+                                        <div className="text-xs font-bold text-text-secondary">
+                                            {billingConfirm.kind === 'send_invoice'
+                                                ? (billingConfirm.invoice?.status === 'draft'
+                                                    ? 'This will set the invoice status to SENT and set the issued date. You can then share the Print link with the client.'
+                                                    : 'This will resend the invoice. You can also share the Print link with the client.')
+                                                : (billingConfirm.invoice?.status === 'paid'
+                                                    ? 'This will mark the invoice as UNPAID (clears paid date).'
+                                                    : 'This will mark the invoice as PAID (sets paid date).')}
+                                        </div>
+                                    </div>
+                                </div>
+                            </AdminModal>
+
                             {/* Activity log */}
                             {notes.length > 0 && (
                                 <div>
@@ -688,6 +1004,181 @@ function ProjectDrawer({ project, onClose, onToggleMilestone, onDeleteMilestone,
                 </div>
 
             </div>
+
+            <AdminModal
+                open={createProposalOpen}
+                onClose={() => setCreateProposalOpen(false)}
+                title="New Proposal"
+                subtitle={`${project.id} • ${project.client_name || '—'}`}
+                maxWidthClass="max-w-2xl"
+                footer={
+                    <div className="flex justify-end gap-2">
+                        <button
+                            type="button"
+                            onClick={() => setCreateProposalOpen(false)}
+                            className="px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-text-primary font-black uppercase tracking-widest text-[10px] hover:bg-white/10 transition-all"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleCreateProposal}
+                            className="px-3.5 py-2 rounded-xl bg-brand-teal text-text-primary font-black uppercase tracking-widest text-[10px] hover:-translate-y-0.5 transition-all shadow-glow-teal"
+                        >
+                            Create
+                        </button>
+                    </div>
+                }
+            >
+                <div className="p-5 space-y-3">
+                    <div className="space-y-1.5">
+                        <label className="text-[9px] font-black uppercase tracking-widest text-text-dim ml-1">Title</label>
+                        <input
+                            value={proposalForm.title}
+                            onChange={(e) => setProposalForm(p => ({ ...p, title: e.target.value }))}
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-text-primary focus:outline-none focus:border-brand-teal/50 font-bold"
+                            placeholder="Website Proposal"
+                        />
+                    </div>
+                    <div className="space-y-1.5">
+                        <label className="text-[9px] font-black uppercase tracking-widest text-text-dim ml-1">Body (Markdown)</label>
+                        <textarea
+                            value={proposalForm.body_md}
+                            onChange={(e) => setProposalForm(p => ({ ...p, body_md: e.target.value }))}
+                            className="w-full min-h-40 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs text-text-primary focus:outline-none focus:border-brand-teal/50 font-bold"
+                            placeholder="Scope, timeline, milestones (50/30/20), revision policy…"
+                        />
+                    </div>
+                </div>
+            </AdminModal>
+
+            <AdminModal
+                open={createInvoiceOpen}
+                onClose={() => setCreateInvoiceOpen(false)}
+                title="New Invoice"
+                subtitle={`${project.id} • ${project.client_name || '—'}`}
+                maxWidthClass="max-w-2xl"
+                footer={
+                    <div className="flex justify-end gap-2">
+                        <button
+                            type="button"
+                            onClick={() => setCreateInvoiceOpen(false)}
+                            className="px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-text-primary font-black uppercase tracking-widest text-[10px] hover:bg-white/10 transition-all"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleCreateInvoice}
+                            className="px-3.5 py-2 rounded-xl bg-brand-teal text-text-primary font-black uppercase tracking-widest text-[10px] hover:-translate-y-0.5 transition-all shadow-glow-teal"
+                        >
+                            Create
+                        </button>
+                    </div>
+                }
+            >
+                <div className="p-5 space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1.5">
+                            <label className="text-[9px] font-black uppercase tracking-widest text-text-dim ml-1">Currency</label>
+                            <select
+                                value={invoiceForm.currency}
+                                onChange={(e) => setInvoiceForm(f => ({ ...f, currency: e.target.value }))}
+                                className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-text-primary focus:outline-none focus:border-brand-teal/50 font-bold"
+                            >
+                                <option value="usd">USD</option>
+                                <option value="bdt">BDT</option>
+                            </select>
+                        </div>
+                        <div className="space-y-1.5">
+                            <label className="text-[9px] font-black uppercase tracking-widest text-text-dim ml-1">Due Date</label>
+                            <input
+                                type="date"
+                                value={invoiceForm.due_date}
+                                onChange={(e) => setInvoiceForm(f => ({ ...f, due_date: e.target.value }))}
+                                className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-text-primary focus:outline-none focus:border-brand-teal/50 font-bold"
+                            />
+                        </div>
+                    </div>
+
+                    <div className="space-y-1.5">
+                        <label className="text-[9px] font-black uppercase tracking-widest text-text-dim ml-1">Notes</label>
+                        <textarea
+                            value={invoiceForm.notes}
+                            onChange={(e) => setInvoiceForm(f => ({ ...f, notes: e.target.value }))}
+                            className="w-full min-h-24 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs text-text-primary focus:outline-none focus:border-brand-teal/50 font-bold"
+                            placeholder="Payment terms, milestone details…"
+                        />
+                    </div>
+
+                    <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5">
+                        <div className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-2">First Item (optional)</div>
+                        <div className="grid grid-cols-2 gap-3">
+                            <input
+                                value={invoiceForm.item_description}
+                                onChange={(e) => setInvoiceForm(f => ({ ...f, item_description: e.target.value }))}
+                                className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-text-primary focus:outline-none focus:border-brand-teal/50 font-bold"
+                                placeholder="Deposit 50%"
+                            />
+                            <input
+                                value={invoiceForm.item_amount}
+                                onChange={(e) => setInvoiceForm(f => ({ ...f, item_amount: e.target.value }))}
+                                className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-text-primary focus:outline-none focus:border-brand-teal/50 font-bold"
+                                placeholder="Amount (e.g. 150)"
+                                inputMode="decimal"
+                            />
+                        </div>
+                    </div>
+                </div>
+            </AdminModal>
+
+            <AdminModal
+                open={addItemOpen}
+                onClose={() => setAddItemOpen(false)}
+                title="Add Invoice Item"
+                subtitle={`${project.id} • ${project.client_name || '—'}`}
+                maxWidthClass="max-w-lg"
+                footer={
+                    <div className="flex justify-end gap-2">
+                        <button
+                            type="button"
+                            onClick={() => setAddItemOpen(false)}
+                            className="px-3.5 py-2 rounded-xl bg-white/5 border border-white/10 text-text-primary font-black uppercase tracking-widest text-[10px] hover:bg-white/10 transition-all"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleAddInvoiceItem}
+                            className="px-3.5 py-2 rounded-xl bg-brand-teal text-text-primary font-black uppercase tracking-widest text-[10px] hover:-translate-y-0.5 transition-all shadow-glow-teal"
+                        >
+                            Add
+                        </button>
+                    </div>
+                }
+            >
+                <div className="p-5 space-y-3">
+                    <div className="space-y-1.5">
+                        <label className="text-[9px] font-black uppercase tracking-widest text-text-dim ml-1">Description</label>
+                        <input
+                            value={addItemForm.description}
+                            onChange={(e) => setAddItemForm(f => ({ ...f, description: e.target.value }))}
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-text-primary focus:outline-none focus:border-brand-teal/50 font-bold"
+                            placeholder="Build milestone (30%)"
+                        />
+                    </div>
+                    <div className="space-y-1.5">
+                        <label className="text-[9px] font-black uppercase tracking-widest text-text-dim ml-1">Amount</label>
+                        <input
+                            value={addItemForm.amount}
+                            onChange={(e) => setAddItemForm(f => ({ ...f, amount: e.target.value }))}
+                            className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-xs text-text-primary focus:outline-none focus:border-brand-teal/50 font-bold"
+                            placeholder="Amount (e.g. 90)"
+                            inputMode="decimal"
+                        />
+                    </div>
+                </div>
+            </AdminModal>
         </AdminModal>
     );
 }
@@ -1078,6 +1569,7 @@ export default function AdminProjectsPage() {
                         onDeleteNote={handleDeleteNote}
                         onUploadFile={handleUploadFile}
                         onDeleteFile={handleDeleteFile}
+                        onToast={showToast}
                     />
                 )}
             </AnimatePresence>

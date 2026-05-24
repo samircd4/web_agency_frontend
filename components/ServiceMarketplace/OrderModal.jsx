@@ -67,7 +67,7 @@ export default function OrderModal({ isOpen, onClose, service, tier }) {
           <div className="p-8 border-b border-white/5 flex items-center justify-between bg-white/[0.02]">
             <div>
               <h2 className="text-2xl font-black text-white mb-1 uppercase tracking-tight">
-                {step === 1 ? 'Mission Brief' : step === 2 ? 'Security Deposit' : 'Mission Active'}
+                {step === 1 ? 'Project Brief' : step === 2 ? 'Security Deposit' : 'Project Active'}
               </h2>
               <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest">
                 {service.title} • <span className="text-brand-teal">{tier.title}</span>
@@ -211,7 +211,7 @@ export default function OrderModal({ isOpen, onClose, service, tier }) {
                   <div className="w-20 h-20 rounded-full bg-brand-teal/10 flex items-center justify-center text-brand-teal mx-auto mb-8 shadow-[0_0_50px_rgba(0,200,150,0.2)]">
                     <CheckCircle2 size={48} />
                   </div>
-                  <h3 className="text-3xl font-black text-white mb-4 uppercase tracking-tighter">Mission Initialized</h3>
+                  <h3 className="text-3xl font-black text-white mb-4 uppercase tracking-tighter">Project Initialized</h3>
                   <p className="text-slate-400 mb-8 max-w-sm mx-auto">
                     Payment of <span className="text-white font-bold">${paymentAmount}</span> confirmed. A Dr. Python architect will reach out to <span className="text-white font-bold">{formData.email}</span> within 24 hours to begin the engineering phase.
                   </p>
@@ -219,7 +219,7 @@ export default function OrderModal({ isOpen, onClose, service, tier }) {
                     onClick={onClose}
                     className="px-10 py-4 glass text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-white/10 transition-all"
                   >
-                    Return to Mission Hub
+                    Return to Project Hub
                   </button>
                 </motion.div>
               )}

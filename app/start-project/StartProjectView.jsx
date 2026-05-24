@@ -61,7 +61,7 @@ export default function StartProjectView() {
 
   const handleSubmit = async () => {
     if (!formData.name || !formData.email || !formData.description) {
-      showToast('Please fill in Name, Email, and Mission description.', 'error');
+      showToast('Please fill in Name, Email, and Project description.', 'error');
       return;
     }
 
@@ -96,7 +96,7 @@ export default function StartProjectView() {
   };
 
   const steps = [
-    { id: 1, title: "Mission Scope" },
+    { id: 1, title: "Project Scope" },
     { id: 2, title: "Technical Specs" },
     { id: 3, title: "Briefing Details" },
     { id: 4, title: "Review" }
@@ -112,7 +112,7 @@ export default function StartProjectView() {
           </div>
           <h2 className="text-2xl font-black text-white uppercase tracking-tight mb-2">Briefing Transmitted</h2>
           <p className="text-slate-500 text-xs mb-8 leading-relaxed">
-            Your mission briefing has been securely encrypted and logged. A certified engineer will review the specs within 2 hours.
+            Your project briefing has been securely encrypted and logged. A certified engineer will review the specs within 2 hours.
           </p>
           <Link href="/" className="px-8 py-4 bg-brand-teal text-text-primary rounded-xl font-black uppercase tracking-widest text-xs inline-flex items-center gap-2 shadow-glow-teal hover:-translate-y-0.5 transition-all">
             <ArrowLeft size={14} /> Return to Base
@@ -141,7 +141,7 @@ export default function StartProjectView() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
           >
-            <span className="text-[9px] font-black uppercase tracking-[0.4em] text-brand-teal mb-2 block">Mission Initiation</span>
+            <span className="text-[9px] font-black uppercase tracking-[0.4em] text-brand-teal mb-2 block">Project Initiation</span>
             <h1 className="text-3xl md:text-5xl font-black text-white mb-4 tracking-tighter leading-[0.9]">
               Secure your <span className="text-gradient-teal">next breakthrough.</span>
             </h1>
@@ -210,7 +210,7 @@ export default function StartProjectView() {
                   >
                     <div>
                       <h3 className="text-lg font-black text-white uppercase tracking-tight mb-1">Select Objective</h3>
-                      <p className="text-slate-500 text-xs">Which engineering domain does your mission fall under?</p>
+                      <p className="text-slate-500 text-xs">Which engineering domain does your project fall under?</p>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
@@ -339,7 +339,7 @@ export default function StartProjectView() {
                         />
                       </div>
                       <div className="md:col-span-2 space-y-1.5">
-                        <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 ml-2">Mission Intelligence</label>
+                        <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 ml-2">Project Intelligence</label>
                         <textarea 
                           rows="8" 
                           value={formData.description}
@@ -386,7 +386,7 @@ export default function StartProjectView() {
                         <Zap size={12} /> Encryption Active
                       </div>
                       <p className="text-slate-400 text-[10px] italic leading-relaxed line-clamp-4">
-                        &quot;{formData.description || 'No additional mission details provided.'}&quot;
+                        &quot;{formData.description || 'No additional project details provided.'}&quot;
                       </p>
                     </div>
                   </motion.div>

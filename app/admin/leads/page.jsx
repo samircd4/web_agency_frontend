@@ -109,7 +109,7 @@ export default function LeadsPage() {
                 <div>
                     <p className="text-xs font-black text-admin-accent uppercase tracking-[0.3em] mb-1">Admin / Leads</p>
                     <h1 className="text-2xl font-black text-text-primary uppercase tracking-tight">Lead Management</h1>
-                    <p className="text-text-muted text-sm mt-1">Triage incoming Mission Briefings and convert to active projects.</p>
+                    <p className="text-text-muted text-sm mt-1">Triage incoming Project Briefings and convert to active projects.</p>
                 </div>
                 <div className="flex items-center gap-2 bg-white/5 border border-white/5 rounded-xl px-3 py-1.5 w-56">
                     <Search size={12} className="text-text-muted shrink-0" />

@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
+import ReactMarkdown from 'react-markdown';
 import { 
   LayoutDashboard, Box, MessageSquare, CreditCard, Settings, 
   Bell, Search, User, Zap, Clock, CheckCircle2, AlertCircle, 
@@ -29,6 +30,13 @@ export default function DashboardView() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sysConfigEmail, setSysConfigEmail] = useState('');
   const [sysConfigName, setSysConfigName] = useState('');
+  const [billingView, setBillingView] = useState('invoices'); // invoices | proposals
+  const [clientInvoices, setClientInvoices] = useState([]);
+  const [clientProposals, setClientProposals] = useState([]);
+  const [billingDocsLoading, setBillingDocsLoading] = useState(false);
+  const [billingDocsError, setBillingDocsError] = useState(null);
+  const [selectedInvoice, setSelectedInvoice] = useState(null);
+  const [selectedProposal, setSelectedProposal] = useState(null);
 
   const handleLogout = async () => {
     await api.logout();
@@ -102,16 +110,6 @@ export default function DashboardView() {
     }))
   );
 
-  // Generate Invoices from projects
-  const invoices = missions.map((m, idx) => ({
-    id: `INV-${m.id.replace('PRJ-', '')}01`,
-    projectName: m.title,
-    date: m.created_at ? new Date(m.created_at).toLocaleDateString() : 'Recent',
-    amount: m.value ? `$${Number(m.value).toLocaleString()}` : '$0.00',
-    status: m.stage === 'Complete' ? 'Paid' : 'Paid', // Assuming invoiced milestones paid
-    method: 'Stripe'
-  }));
-
   // Filtering missions by search query
   const filteredMissions = missions.filter(m => 
     m.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
@@ -122,6 +120,74 @@ export default function DashboardView() {
   const totalInvestment = missions.reduce((sum, m) => sum + Number(m.value || 0), 0);
   const activeMissionsCount = missions.filter(m => m.stage !== 'Complete').length;
   const deliverablesCount = vaultFiles.length;
+
+  const centsToMoney = (cents) => {
+    const value = Number(cents || 0) / 100;
+    return value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  };
+
+  const valueToMoney = (value) => {
+    const numeric = Number(value || 0);
+    if (!Number.isFinite(numeric)) return '0.00';
+    return numeric.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  };
+
+  const invoicePaymentLabel = (status) => (status === 'paid' ? 'Paid' : 'Unpaid');
+  const canPayInvoice = (status) => status !== 'paid' && status !== 'void';
+
+  const normalizeList = (res) => (Array.isArray(res) ? res : (res?.results || []));
+
+  useEffect(() => {
+    if (activeTab !== 'billing') return;
+    if (!missions?.length) {
+      setClientInvoices([]);
+      setClientProposals([]);
+      return;
+    }
+
+    let cancelled = false;
+    const loadBillingDocs = async () => {
+      try {
+        setBillingDocsLoading(true);
+        setBillingDocsError(null);
+
+        const perProject = await Promise.all(
+          missions.map(async (p) => {
+            const [invRes, propRes] = await Promise.all([
+              api.getClientProjectInvoices(p.id).catch(() => []),
+              api.getClientProjectProposals(p.id).catch(() => []),
+            ]);
+            return {
+              projectId: p.id,
+              projectTitle: p.title,
+              projectValue: p.value,
+              invoices: normalizeList(invRes),
+              proposals: normalizeList(propRes),
+            };
+          })
+        );
+
+        const mergedInvoices = perProject.flatMap(({ projectId, projectTitle, projectValue, invoices }) =>
+          invoices.map(inv => ({ ...inv, _projectId: projectId, _projectTitle: projectTitle, _projectValue: projectValue }))
+        );
+        const mergedProposals = perProject.flatMap(({ projectId, projectTitle, projectValue, proposals }) =>
+          proposals.map(prop => ({ ...prop, _projectId: projectId, _projectTitle: projectTitle, _projectValue: projectValue }))
+        );
+
+        if (cancelled) return;
+        setClientInvoices(mergedInvoices);
+        setClientProposals(mergedProposals);
+      } catch (err) {
+        if (cancelled) return;
+        setBillingDocsError(err?.message || 'Failed to load billing documents');
+      } finally {
+        if (!cancelled) setBillingDocsLoading(false);
+      }
+    };
+
+    loadBillingDocs();
+    return () => { cancelled = true; };
+  }, [activeTab, missions]);
 
   if (loading || !currentUser) {
     return (
@@ -187,7 +253,7 @@ export default function DashboardView() {
             <ArrowLeft size={14} />
           </Link>
           {[
-            { id: 'missions', name: 'Active Missions', icon: <Zap size={16} /> },
+            { id: 'missions', name: 'Active Projects', icon: <Zap size={16} /> },
             { id: 'vault', name: 'Secure Vault', icon: <Box size={16} /> },
             { id: 'comms', name: 'Communications', icon: <MessageSquare size={16} /> },
             { id: 'billing', name: 'Billing Ledger', icon: <CreditCard size={16} /> },
@@ -253,7 +319,7 @@ export default function DashboardView() {
                 type="text" 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search mission protocols..." 
+                placeholder="Search projects..." 
                 className="bg-transparent border-none outline-none text-[10px] text-white placeholder:text-slate-700 w-full font-bold"
               />
             </div>
@@ -296,11 +362,11 @@ export default function DashboardView() {
                 <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
                   <div>
                     <h1 className="text-2xl font-black text-white mb-1 tracking-tight uppercase">My Projects</h1>
-                    <p className="text-slate-500 text-xs">Track your active engineering missions and deliverables.</p>
+                    <p className="text-slate-500 text-xs">Track your active projects and deliverables.</p>
                   </div>
                   <div className="flex gap-2">
                     <Link href="/contact" className="px-5 py-2 bg-brand-teal text-text-primary rounded-lg text-[9px] font-black uppercase tracking-widest flex items-center gap-2 shadow-glow-teal hover:-translate-y-0.5 transition-all">
-                      Request New Mission <Zap size={12} />
+                      Request New Project <Zap size={12} />
                     </Link>
                   </div>
                 </div>
@@ -309,7 +375,7 @@ export default function DashboardView() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
                   {[
                     { label: 'Total Invested', value: `$${totalInvestment.toLocaleString()}`, icon: <CreditCard className="text-brand-teal" />, sub: 'Aggregated project value' },
-                    { label: 'Active Missions', value: String(activeMissionsCount), icon: <Zap className="text-brand-red" />, sub: 'In Development / QA' },
+                    { label: 'Active Projects', value: String(activeMissionsCount), icon: <Zap className="text-brand-red" />, sub: 'In Development / QA' },
                     { label: 'Secure Deliverables', value: String(deliverablesCount), icon: <Box className="text-brand-indigo" />, sub: 'Files in vault' },
                   ].map((stat, i) => (
                     <div key={i} className="p-5 rounded-xl glass border border-white/5 relative overflow-hidden group">
@@ -327,7 +393,7 @@ export default function DashboardView() {
                 <div className="space-y-4">
                   {filteredMissions.length === 0 ? (
                     <div className="p-8 text-center bg-white/[0.01] border border-white/5 rounded-xl text-slate-500 text-sm">
-                      No active mission protocols matching your query.
+                      No active projects matching your query.
                     </div>
                   ) : (
                     filteredMissions.map((mission) => {
@@ -505,49 +571,170 @@ export default function DashboardView() {
               <motion.div key="billing" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }}>
                 <div className="mb-6">
                   <h1 className="text-2xl font-black text-white mb-1 tracking-tight uppercase">Billing Ledger</h1>
-                  <p className="text-slate-500 text-xs">Financial history.</p>
+                  <p className="text-slate-500 text-xs">Invoices and proposals.</p>
                 </div>
 
-                <div className="glass border-white/5 rounded-xl overflow-hidden">
-                  <table className="w-full text-left">
-                    <thead>
-                      <tr className="bg-white/5 text-[8px] font-black uppercase tracking-[0.2em] text-slate-600 border-b border-white/5">
-                        <th className="px-6 py-4">Invoice</th>
-                        <th className="px-6 py-4">Project</th>
-                        <th className="px-6 py-4">Date</th>
-                        <th className="px-6 py-4">Amount</th>
-                        <th className="px-6 py-4">Status</th>
-                        <th className="px-6 py-4 text-right">Method</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-white/5">
-                      {invoices.length === 0 ? (
-                        <tr>
-                          <td colSpan="6" className="px-6 py-8 text-center text-slate-500 text-xs">
-                            No ledger transactions recorded.
-                          </td>
+                <div className="flex items-center gap-2 mb-4">
+                  <button
+                    type="button"
+                    onClick={() => setBillingView('invoices')}
+                    className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border ${
+                      billingView === 'invoices'
+                        ? 'bg-brand-teal/10 border-brand-teal/20 text-brand-teal'
+                        : 'bg-white/5 border-white/10 text-slate-500 hover:text-white hover:bg-white/10'
+                    }`}
+                  >
+                    Invoices
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setBillingView('proposals')}
+                    className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border ${
+                      billingView === 'proposals'
+                        ? 'bg-brand-teal/10 border-brand-teal/20 text-brand-teal'
+                        : 'bg-white/5 border-white/10 text-slate-500 hover:text-white hover:bg-white/10'
+                    }`}
+                  >
+                    Proposals
+                  </button>
+                  {billingDocsLoading && (
+                    <span className="ml-2 text-[10px] font-black uppercase tracking-widest text-slate-600">Loading…</span>
+                  )}
+                  {billingDocsError && (
+                    <span className="ml-2 text-[10px] font-black uppercase tracking-widest text-brand-red">{billingDocsError}</span>
+                  )}
+                </div>
+
+                {billingView === 'invoices' ? (
+                  <div className="glass border-white/5 rounded-xl overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <table className="min-w-[980px] w-full text-left">
+                      <thead>
+                        <tr className="bg-slate-950/60 text-[10px] font-black uppercase tracking-[0.16em] text-slate-200 border-b border-white/10 sticky top-0 z-10 backdrop-blur">
+                          <th className="px-6 py-4">Invoice</th>
+                          <th className="px-6 py-4">Project</th>
+                          <th className="px-6 py-4">Budget</th>
+                          <th className="px-6 py-4">Issued</th>
+                          <th className="px-6 py-4">Amount</th>
+                          <th className="px-6 py-4">Status</th>
+                          <th className="px-6 py-4 text-right">Actions</th>
                         </tr>
-                      ) : (
-                        invoices.map((inv) => (
-                          <tr key={inv.id} className="hover:bg-white/[0.01] transition-colors">
-                            <td className="px-6 py-4 font-black text-white text-[10px]">{inv.id}</td>
-                            <td className="px-6 py-4 text-slate-300 text-[10px] uppercase font-bold">{inv.projectName}</td>
-                            <td className="px-6 py-4 text-slate-600 text-[10px]">{inv.date}</td>
-                            <td className="px-6 py-4 font-bold text-brand-teal text-[10px]">{inv.amount}</td>
-                            <td className="px-6 py-4">
-                              <span className="px-2 py-0.5 rounded-md text-[7px] font-black uppercase tracking-widest bg-emerald-500/10 text-emerald-400">
-                                {inv.status}
-                              </span>
-                            </td>
-                            <td className="px-6 py-4 text-right text-slate-500 text-[9px] font-black uppercase tracking-widest">
-                              {inv.method}
+                      </thead>
+                      <tbody className="divide-y divide-white/10">
+                        {clientInvoices.length === 0 ? (
+                          <tr>
+                            <td colSpan="7" className="px-6 py-10 text-center text-slate-400 text-sm">
+                              No invoices yet.
                             </td>
                           </tr>
-                        ))
-                      )}
-                    </tbody>
-                  </table>
-                </div>
+                        ) : (
+                          clientInvoices.map((inv, idx) => {
+                            const issued = inv.issued_at || inv.created_at;
+                            const paymentLabel = invoicePaymentLabel(inv.status);
+                            const showPayNow = canPayInvoice(inv.status);
+                            return (
+                              <tr key={`${inv._projectId}-${inv.id}`} className={`${idx % 2 === 0 ? 'bg-white/[0.01]' : ''} hover:bg-white/[0.04] transition-colors`}>
+                                <td className="px-6 py-4 font-black text-white text-xs">{inv.number || `#${inv.id}`}</td>
+                                <td className="px-6 py-4 text-slate-200 text-xs uppercase font-bold">{inv._projectTitle || inv.project}</td>
+                                <td className="px-6 py-4 text-slate-200 text-xs font-bold">USD {valueToMoney(inv._projectValue)}</td>
+                                <td className="px-6 py-4 text-slate-400 text-xs">{issued ? new Date(issued).toLocaleDateString() : '—'}</td>
+                                <td className="px-6 py-4 font-black text-brand-teal text-xs">
+                                  {(inv.currency || 'usd').toUpperCase()} {centsToMoney(inv.amount_total_cents)}
+                                </td>
+                                <td className="px-6 py-4">
+                                  <span className={`px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-[0.14em] border ${
+                                    paymentLabel === 'Paid'
+                                      ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20'
+                                      : 'bg-white/5 text-slate-200 border-white/10'
+                                  }`}>
+                                    {paymentLabel}
+                                  </span>
+                                </td>
+                                <td className="px-6 py-4 text-right">
+                                  <div className="flex items-center justify-end gap-2">
+                                    <button
+                                      type="button"
+                                      onClick={() => setSelectedInvoice(inv)}
+                                      className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/15 text-xs font-black uppercase tracking-[0.14em] text-white hover:bg-white/10 transition-all"
+                                    >
+                                      View
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => window.open(`http://localhost:8000/api/client/projects/${inv._projectId}/invoices/${inv.id}/print/`, '_blank', 'noopener,noreferrer')}
+                                      className="px-3 py-1.5 rounded-lg bg-brand-teal/10 border border-brand-teal/25 text-xs font-black uppercase tracking-[0.14em] text-brand-teal hover:bg-brand-teal/15 transition-all"
+                                    >
+                                      Print
+                                    </button>
+                                    {showPayNow ? (
+                                      <button
+                                        type="button"
+                                        onClick={() => router.push(`/contact?pay_invoice=${encodeURIComponent(inv.number || String(inv.id))}`)}
+                                        className="px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/25 text-xs font-black uppercase tracking-[0.14em] text-emerald-300 hover:bg-emerald-500/15 transition-all"
+                                      >
+                                        Pay Now
+                                      </button>
+                                    ) : null}
+                                  </div>
+                                </td>
+                              </tr>
+                            );
+                          })
+                        )}
+                      </tbody>
+                      </table>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="glass border-white/5 rounded-xl overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <table className="min-w-[900px] w-full text-left">
+                      <thead>
+                        <tr className="bg-slate-950/60 text-[10px] font-black uppercase tracking-[0.16em] text-slate-200 border-b border-white/10 sticky top-0 z-10 backdrop-blur">
+                          <th className="px-6 py-4">Proposal</th>
+                          <th className="px-6 py-4">Project</th>
+                          <th className="px-6 py-4">Budget</th>
+                          <th className="px-6 py-4">Sent</th>
+                          <th className="px-6 py-4">Status</th>
+                          <th className="px-6 py-4 text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-white/10">
+                        {clientProposals.length === 0 ? (
+                          <tr>
+                            <td colSpan="6" className="px-6 py-10 text-center text-slate-400 text-sm">
+                              No proposals yet.
+                            </td>
+                          </tr>
+                        ) : (
+                          clientProposals.map((p, idx) => (
+                            <tr key={`${p._projectId}-${p.id}`} className={`${idx % 2 === 0 ? 'bg-white/[0.01]' : ''} hover:bg-white/[0.04] transition-colors`}>
+                              <td className="px-6 py-4 font-black text-white text-xs">{p.title || `#${p.id}`}</td>
+                              <td className="px-6 py-4 text-slate-200 text-xs uppercase font-bold">{p._projectTitle || p.project}</td>
+                              <td className="px-6 py-4 text-slate-200 text-xs font-bold">USD {valueToMoney(p._projectValue)}</td>
+                              <td className="px-6 py-4 text-slate-400 text-xs">{p.sent_at ? new Date(p.sent_at).toLocaleDateString() : '—'}</td>
+                              <td className="px-6 py-4">
+                                <span className="px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-[0.14em] bg-white/5 text-slate-200 border border-white/10">
+                                  {p.status}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 text-right">
+                                <button
+                                  type="button"
+                                  onClick={() => setSelectedProposal(p)}
+                                  className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/15 text-xs font-black uppercase tracking-[0.14em] text-white hover:bg-white/10 transition-all"
+                                >
+                                  View
+                                </button>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )}
               </motion.div>
             )}
 
@@ -614,7 +801,7 @@ export default function DashboardView() {
         </div>
       </main>
 
-      {/* Mission Detail Modal */}
+      {/* Project Detail Modal */}
       <AnimatePresence>
         {selectedMission && (() => {
           const stageSteps = ['Requirements', 'Architecture', 'Development', 'QA', 'Deployment', 'Complete'];
@@ -679,7 +866,7 @@ export default function DashboardView() {
                       {/* Brief */}
                       <section>
                         <h4 className="text-[8px] font-black text-slate-600 uppercase tracking-widest mb-2 flex items-center gap-2">
-                          <Terminal size={11} className="text-brand-teal" /> Mission Brief
+                          <Terminal size={11} className="text-brand-teal" /> Project Brief
                         </h4>
                         <p className="text-slate-300 text-sm leading-relaxed italic">"{selectedMission.description || 'No detailed brief provided.'}"</p>
                       </section>
@@ -745,7 +932,7 @@ export default function DashboardView() {
                     <div className="space-y-3">
                       {/* Status card */}
                       <div className="p-4 rounded-xl bg-white/5 border border-white/5">
-                        <div className="text-[7px] font-black text-slate-700 uppercase tracking-widest mb-3">Mission Status</div>
+                        <div className="text-[7px] font-black text-slate-700 uppercase tracking-widest mb-3">Project Status</div>
                         <div className="flex items-center gap-3 mb-4">
                           <div className="w-10 h-10 rounded-xl bg-brand-teal/10 flex items-center justify-center text-brand-teal shrink-0">
                             <Zap size={18} />
@@ -814,6 +1001,169 @@ export default function DashboardView() {
             </div>
           );
         })()}
+      </AnimatePresence>
+
+      {/* Invoice Viewer Modal */}
+      <AnimatePresence>
+        {selectedInvoice && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[210] flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedInvoice(null)}
+              className="absolute inset-0 bg-slate-950/90 backdrop-blur-md"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.98, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.98, y: 10 }}
+              className="relative w-full max-w-3xl max-h-[90vh] overflow-hidden border border-white/10 rounded-2xl bg-[#080f1e] shadow-2xl flex flex-col"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="p-5 border-b border-white/5 flex items-start justify-between bg-white/[0.02]">
+                <div className="min-w-0">
+                  <div className="text-[8px] font-black text-brand-teal uppercase tracking-[0.3em] mb-0.5 truncate">
+                    {selectedInvoice._projectTitle || 'Project'} &bull; {selectedInvoice.number || `#${selectedInvoice.id}`}
+                  </div>
+                  <h2 className="text-lg font-black text-white uppercase tracking-tight">Invoice</h2>
+                </div>
+                <button
+                  onClick={() => setSelectedInvoice(null)}
+                  className="w-9 h-9 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center text-slate-600 hover:text-white hover:bg-brand-red/20 transition-all shrink-0"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              <div className="flex-grow overflow-y-auto p-6 space-y-6">
+                <div className="grid md:grid-cols-3 gap-3">
+                  <div className="p-4 rounded-xl bg-white/5 border border-white/5">
+                    <div className="text-[7px] font-black text-slate-700 uppercase tracking-widest mb-2">Status</div>
+                    <div className="text-xs font-black text-white uppercase tracking-widest">{invoicePaymentLabel(selectedInvoice.status)}</div>
+                  </div>
+                  <div className="p-4 rounded-xl bg-white/5 border border-white/5">
+                    <div className="text-[7px] font-black text-slate-700 uppercase tracking-widest mb-2">Issued</div>
+                    <div className="text-xs font-black text-white uppercase tracking-widest">
+                      {selectedInvoice.issued_at ? new Date(selectedInvoice.issued_at).toLocaleDateString() : '—'}
+                    </div>
+                  </div>
+                  <div className="p-4 rounded-xl bg-white/5 border border-white/5">
+                    <div className="text-[7px] font-black text-slate-700 uppercase tracking-widest mb-2">Total</div>
+                    <div className="text-xs font-black text-brand-teal uppercase tracking-widest">
+                      {(selectedInvoice.currency || 'usd').toUpperCase()} {centsToMoney(selectedInvoice.amount_total_cents)}
+                    </div>
+                  </div>
+                </div>
+
+                {selectedInvoice.notes ? (
+                  <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5">
+                    <div className="text-[8px] font-black text-slate-600 uppercase tracking-widest mb-2">Notes</div>
+                    <div className="text-xs text-slate-300 whitespace-pre-wrap">{selectedInvoice.notes}</div>
+                  </div>
+                ) : null}
+
+                <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5">
+                  <div className="text-[8px] font-black text-slate-600 uppercase tracking-widest mb-3">Items</div>
+                  {(selectedInvoice.items || []).length === 0 ? (
+                    <div className="text-xs text-slate-500">No items.</div>
+                  ) : (
+                    <div className="space-y-2">
+                      {(selectedInvoice.items || []).map((it) => (
+                        <div key={it.id} className="flex items-start justify-between gap-4 p-3 rounded-xl bg-white/5 border border-white/5">
+                          <div className="min-w-0">
+                            <div className="text-xs font-black text-white">{it.description}</div>
+                            <div className="text-[9px] font-black uppercase tracking-widest text-slate-600 mt-1">
+                              Qty {it.quantity} &bull; {(selectedInvoice.currency || 'usd').toUpperCase()} {centsToMoney(it.unit_amount_cents)} each
+                            </div>
+                          </div>
+                          <div className="text-xs font-black text-brand-teal shrink-0">
+                            {(selectedInvoice.currency || 'usd').toUpperCase()} {centsToMoney(it.amount_cents)}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="p-4 bg-white/[0.02] border-t border-white/5 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => window.open(`http://localhost:8000/api/client/projects/${selectedInvoice._projectId}/invoices/${selectedInvoice.id}/print/`, '_blank', 'noopener,noreferrer')}
+                  className="px-4 py-2 bg-brand-teal/10 border border-brand-teal/20 text-brand-teal rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-brand-teal/15 transition-all"
+                >
+                  Print
+                </button>
+                {canPayInvoice(selectedInvoice.status) ? (
+                  <button
+                    type="button"
+                    onClick={() => router.push(`/contact?pay_invoice=${encodeURIComponent(selectedInvoice.number || String(selectedInvoice.id))}`)}
+                    className="px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-emerald-500/15 transition-all"
+                  >
+                    Pay Now
+                  </button>
+                ) : null}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Proposal Viewer Modal */}
+      <AnimatePresence>
+        {selectedProposal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[210] flex items-center justify-center p-4"
+          >
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedProposal(null)}
+              className="absolute inset-0 bg-slate-950/90 backdrop-blur-md"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.98, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.98, y: 10 }}
+              className="relative w-full max-w-3xl max-h-[90vh] overflow-hidden border border-white/10 rounded-2xl bg-[#080f1e] shadow-2xl flex flex-col"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="p-5 border-b border-white/5 flex items-start justify-between bg-white/[0.02]">
+                <div className="min-w-0">
+                  <div className="text-[8px] font-black text-brand-teal uppercase tracking-[0.3em] mb-0.5 truncate">
+                    {selectedProposal._projectTitle || 'Project'} &bull; #{selectedProposal.id}
+                  </div>
+                  <h2 className="text-lg font-black text-white uppercase tracking-tight truncate">{selectedProposal.title || 'Proposal'}</h2>
+                  <div className="text-[9px] font-black uppercase tracking-widest text-slate-600 mt-1">
+                    {selectedProposal.status}{selectedProposal.sent_at ? ` • sent ${new Date(selectedProposal.sent_at).toLocaleDateString()}` : ''}
+                  </div>
+                </div>
+                <button
+                  onClick={() => setSelectedProposal(null)}
+                  className="w-9 h-9 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center text-slate-600 hover:text-white hover:bg-brand-red/20 transition-all shrink-0"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+
+              <div className="flex-grow overflow-y-auto p-6">
+                <div className="prose prose-invert max-w-none prose-a:text-brand-teal prose-strong:text-white prose-p:text-slate-300">
+                  <ReactMarkdown>{selectedProposal.body_md || ''}</ReactMarkdown>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
       </AnimatePresence>
 
     </div>
