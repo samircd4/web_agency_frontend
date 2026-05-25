@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -37,6 +37,11 @@ export default function DashboardView() {
   const [billingDocsError, setBillingDocsError] = useState(null);
   const [selectedInvoice, setSelectedInvoice] = useState(null);
   const [selectedProposal, setSelectedProposal] = useState(null);
+  const [checkoutInvoiceId, setCheckoutInvoiceId] = useState(null);
+  const [billingNotice, setBillingNotice] = useState(null); // { kind: 'success'|'cancel', invoiceId?: string, sessionId?: string }
+  const [billingRefreshNonce, setBillingRefreshNonce] = useState(0);
+  const syncAttemptedRef = useRef(new Set()); // `${invoiceId}:${sessionId}`
+  const pollAttemptedRef = useRef(new Set()); // `${invoiceId}:${sessionId}`
 
   const handleLogout = async () => {
     await api.logout();
@@ -48,6 +53,20 @@ export default function DashboardView() {
     const handleResize = () => setIsDesktop(window.innerWidth >= 1024);
     handleResize();
     window.addEventListener('resize', handleResize);
+
+    // Handle Stripe return params (success/cancel) and deep-link to billing tab.
+    try {
+      const qs = new URLSearchParams(window.location.search || '');
+      const tab = qs.get('tab');
+      const checkout = qs.get('checkout');
+      const invoiceId = qs.get('invoice');
+      const sessionId = qs.get('session_id');
+      if (tab === 'billing') setActiveTab('billing');
+      if (checkout === 'success') { setActiveTab('billing'); setBillingNotice({ kind: 'success', invoiceId, sessionId }); setBillingView('invoices'); }
+      if (checkout === 'cancel') { setActiveTab('billing'); setBillingNotice({ kind: 'cancel', invoiceId, sessionId }); setBillingView('invoices'); }
+    } catch (err) {
+      // ignore
+    }
 
     const initDashboard = async () => {
       // Pre-check for presence of access_token to prevent unauthenticated console fetch errors
@@ -187,7 +206,41 @@ export default function DashboardView() {
 
     loadBillingDocs();
     return () => { cancelled = true; };
-  }, [activeTab, missions]);
+  }, [activeTab, missions, billingRefreshNonce]);
+
+  // After returning from Stripe success, re-fetch billing docs (webhook may land slightly after redirect).
+  useEffect(() => {
+    if (activeTab !== 'billing') return;
+    if (billingNotice?.kind !== 'success') return;
+    const invoiceId = billingNotice?.invoiceId ? Number(billingNotice.invoiceId) : null;
+    const sessionId = billingNotice?.sessionId ? String(billingNotice.sessionId) : '';
+    if (!invoiceId || !missions?.length) return;
+
+    const invoice = clientInvoices.find((i) => Number(i.id) === invoiceId);
+    const alreadyPaid = String(invoice?.status || '').toLowerCase() === 'paid';
+    if (alreadyPaid) return;
+
+    const syncKey = `${invoiceId}:${sessionId}`;
+    const pollKey = `${invoiceId}:${sessionId}`;
+
+    // In local dev, Stripe webhooks may not reach localhost. Best-effort 1-time sync from Stripe session.
+    if (invoice?._projectId && !syncAttemptedRef.current.has(syncKey)) {
+      syncAttemptedRef.current.add(syncKey);
+      api.syncClientInvoiceStripe(invoice._projectId, invoiceId)
+        .then(() => setBillingRefreshNonce((n) => n + 1))
+        .catch((err) => setBillingDocsError(err?.message || 'Failed to sync payment status'));
+    }
+
+    // Poll a few times until it flips to paid.
+    if (pollAttemptedRef.current.has(pollKey)) return;
+    pollAttemptedRef.current.add(pollKey);
+    const timeouts = [
+      setTimeout(() => setBillingRefreshNonce((n) => n + 1), 1500),
+      setTimeout(() => setBillingRefreshNonce((n) => n + 1), 3500),
+      setTimeout(() => setBillingRefreshNonce((n) => n + 1), 7000),
+    ];
+    return () => timeouts.forEach((t) => clearTimeout(t));
+  }, [activeTab, billingNotice, missions, clientInvoices]);
 
   if (loading || !currentUser) {
     return (
@@ -351,6 +404,36 @@ export default function DashboardView() {
             </div>
           </div>
         </header>
+
+        {billingNotice?.kind ? (
+          <div className="mb-6">
+            <div className={`p-4 rounded-xl border ${
+              billingNotice.kind === 'success'
+                ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-200'
+                : 'bg-amber-500/10 border-amber-500/20 text-amber-200'
+            }`}>
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <div className="font-black uppercase tracking-widest text-[10px] mb-1">
+                    {billingNotice.kind === 'success' ? 'Payment Successful' : 'Payment Canceled'}
+                  </div>
+                  <div className="text-slate-200/90 text-xs">
+                    {billingNotice.kind === 'success'
+                      ? 'Thanks — your payment was received. Your invoice status will update shortly.'
+                      : 'No charges were made. You can try again anytime.'}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => { setActiveTab('billing'); setBillingView('invoices'); }}
+                  className="shrink-0 px-3 py-1.5 rounded-lg bg-white/5 border border-white/15 text-xs font-black uppercase tracking-[0.14em] text-white hover:bg-white/10 transition-all"
+                >
+                  View Billing
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : null}
 
         {/* Dashboard Content Container */}
         <div className="w-full">
@@ -669,10 +752,23 @@ export default function DashboardView() {
                                     {showPayNow ? (
                                       <button
                                         type="button"
-                                        onClick={() => router.push(`/contact?pay_invoice=${encodeURIComponent(inv.number || String(inv.id))}`)}
+                                        disabled={checkoutInvoiceId === inv.id}
+                                        onClick={async () => {
+                                          try {
+                                            setCheckoutInvoiceId(inv.id);
+                                            setBillingDocsError(null);
+                                            const res = await api.createClientInvoiceCheckout(inv._projectId, inv.id);
+                                            if (!res?.url) throw new Error('Failed to start checkout');
+                                            window.location.href = res.url;
+                                          } catch (err) {
+                                            setBillingDocsError(err?.message || 'Failed to start checkout');
+                                          } finally {
+                                            setCheckoutInvoiceId(null);
+                                          }
+                                        }}
                                         className="px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/25 text-xs font-black uppercase tracking-[0.14em] text-emerald-300 hover:bg-emerald-500/15 transition-all"
                                       >
-                                        Pay Now
+                                        {checkoutInvoiceId === inv.id ? 'Starting…' : 'Pay Now'}
                                       </button>
                                     ) : null}
                                   </div>
