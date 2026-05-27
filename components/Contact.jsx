@@ -1,11 +1,70 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Send, Mail, Phone, MapPin, LayoutDashboard } from 'lucide-react';
 import Link from 'next/link';
+import { api } from '../lib/api';
 
 export default function Contact() {
+    const [name, setName] = useState('');
+    const [email, setEmail] = useState('');
+    const [message, setMessage] = useState('');
+    const [status, setStatus] = useState(null);
+    const [error, setError] = useState(null);
+    const [submitting, setSubmitting] = useState(false);
+
+    useEffect(() => {
+        const loadUserProfile = async () => {
+            if (typeof window === 'undefined') return;
+            const token = localStorage.getItem('access_token');
+            if (!token) return;
+
+            try {
+                const me = await api.getMe();
+                const fullName = `${me.first_name || ''} ${me.last_name || ''}`.trim() || me.username || '';
+                if (fullName) setName(fullName);
+                if (me.email) setEmail(me.email);
+            } catch (err) {
+                console.error('Failed to load contact autofill:', err);
+            }
+        };
+
+        loadUserProfile();
+    }, []);
+
+    const handleSubmit = async (event) => {
+        event.preventDefault();
+        setStatus(null);
+        setError(null);
+
+        if (!name.trim() || !email.trim() || !message.trim()) {
+            setError('Please provide your name, email, and message.');
+            return;
+        }
+
+        setSubmitting(true);
+        try {
+            await api.createLead({
+                client_name: name.trim(),
+                client_email: email.trim(),
+                title: `Website contact form: ${name.trim()}`,
+                description: message.trim(),
+            });
+            setStatus('Your message was sent successfully. We will be in touch soon.');
+            setName('');
+            setEmail('');
+            setMessage('');
+        } catch (err) {
+            console.error('Contact form submission failed', err);
+            setError(
+                err?.message || 'There was an issue sending your message. Please try again.',
+            );
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
     return (
         <section id="contact" className="pt-0 pb-4 bg-background relative overflow-hidden">
             <div className="absolute top-1/2 right-0 w-[40rem] h-[40rem] bg-brand-teal/5 rounded-full blur-[150px] pointer-events-none" />
@@ -89,17 +148,29 @@ export default function Contact() {
                         {/* Form Side */}
                         <div className="p-6 md:p-10 lg:p-12">
                             {/* Form */}
-                            <form className="space-y-5">
+                            <form className="space-y-5" onSubmit={handleSubmit}>
+
+                                {status ? (
+                                    <div className="rounded-2xl border border-emerald-400/20 bg-emerald-500/10 p-4 text-emerald-200">
+                                        {status}
+                                    </div>
+                                ) : null}
+
+                                {error ? (
+                                    <div className="rounded-2xl border border-red-400/20 bg-red-500/10 p-4 text-red-200">
+                                        {error}
+                                    </div>
+                                ) : null}
 
                                 {/* Name + Email */}
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
                                     {/* Name */}
                                     <div className="space-y-1">
-                                        <label className="text-xs font-medium text-slate-400">
-                                            Name
-                                        </label>
+                                        <label className="text-xs font-medium text-slate-400">Name</label>
                                         <input
+                                            value={name}
+                                            onChange={(event) => setName(event.target.value)}
                                             type="text"
                                             placeholder="Your Name"
                                             className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white 
@@ -110,10 +181,10 @@ export default function Contact() {
 
                                     {/* Email */}
                                     <div className="space-y-1">
-                                        <label className="text-xs font-medium text-slate-400">
-                                            Email
-                                        </label>
+                                        <label className="text-xs font-medium text-slate-400">Email</label>
                                         <input
+                                            value={email}
+                                            onChange={(event) => setEmail(event.target.value)}
                                             type="email"
                                             placeholder="Your Email"
                                             className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white 
@@ -126,10 +197,10 @@ export default function Contact() {
 
                                 {/* Message */}
                                 <div className="space-y-1">
-                                    <label className="text-xs font-medium text-slate-400">
-                                        Message
-                                    </label>
+                                    <label className="text-xs font-medium text-slate-400">Message</label>
                                     <textarea
+                                        value={message}
+                                        onChange={(event) => setMessage(event.target.value)}
                                         rows="5"
                                         placeholder="Tell us what you need..."
                                         className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white 
@@ -141,12 +212,13 @@ export default function Contact() {
                                 {/* Button */}
                                 <button
                                     type="submit"
+                                    disabled={submitting}
                                     className="w-full py-3 sm:py-4 bg-teal-500 hover:bg-teal-500/90 
               text-white rounded-lg font-semibold text-sm uppercase tracking-wide
               transition-all flex items-center justify-center gap-2
-              shadow-lg shadow-teal-500/20 active:scale-95"
+              shadow-lg shadow-teal-500/20 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
                                 >
-                                    Send Message
+                                    {submitting ? 'Sending...' : 'Send Message'}
                                     <Send size={16} />
                                 </button>
 

@@ -1,0 +1,314 @@
+import React from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+import { X, Terminal, CheckCircle2, Activity, Cpu, FileText, Download, Shield, Loader2, Clock, Zap, MessageSquare } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
+
+const centsToMoney = (cents) => {
+    const value = Number(cents || 0) / 100;
+    return value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+};
+
+const invoicePaymentLabel = (status) => (status === 'paid' ? 'Paid' : 'Unpaid');
+
+export default function DashboardModals({
+    selectedMission,
+    setSelectedMission,
+    selectedInvoice,
+    setSelectedInvoice,
+    selectedProposal,
+    setSelectedProposal,
+    handleProposalRespond,
+    proposalActionInProgress,
+    proposalActionError,
+    showDeclineConfirm,
+    setShowDeclineConfirm,
+    onPayInvoice,
+    onPrintInvoice,
+    router,
+}) {
+    return (
+        <>
+            <AnimatePresence>
+                {selectedMission && (
+                    <motion.div className="fixed inset-0 z-[100] flex items-center justify-center p-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                        <motion.div onClick={() => setSelectedMission(null)} className="absolute inset-0 bg-slate-950/90 backdrop-blur-md" />
+                        <motion.div initial={{ opacity: 0, scale: 0.98, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.98, y: 10 }} className="relative w-full max-w-3xl max-h-[90vh] overflow-hidden border border-white/10 rounded-2xl bg-[#080f1e] shadow-2xl flex flex-col" onClick={(e) => e.stopPropagation()}>
+                            <div className="p-5 border-b border-white/5 flex items-start justify-between bg-white/[0.02]">
+                                <div>
+                                    <div className="text-[8px] font-black text-brand-teal uppercase tracking-[0.3em] mb-0.5">{selectedMission.id} • {selectedMission.priority || 'Standard'} Priority</div>
+                                    <h2 className="text-lg font-black text-white uppercase tracking-tight">{selectedMission.title}</h2>
+                                </div>
+                                <button onClick={() => setSelectedMission(null)} className="w-9 h-9 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center text-slate-600 hover:text-white hover:bg-brand-red/20 transition-all shrink-0">
+                                    <X size={16} />
+                                </button>
+                            </div>
+
+                            <div className="px-6 py-4 border-b border-white/5 bg-white/[0.01]">
+                                <div className="flex items-center mb-2">
+                                    {['Requirements', 'Architecture', 'Development', 'QA', 'Deployment', 'Complete'].map((s, si) => {
+                                        const stageIdx = { Requirements: 1, Architecture: 1, Dev: 2, QA: 3, Deploying: 4, Complete: 5 }[selectedMission.stage] ?? 2;
+                                        return (
+                                            <React.Fragment key={s}>
+                                                <div title={s} className={`shrink-0 w-2.5 h-2.5 rounded-full border-2 transition-all ${si < stageIdx ? 'bg-brand-teal border-brand-teal' : si === stageIdx ? 'bg-brand-teal/40 border-brand-teal animate-pulse' : 'bg-white/5 border-white/10'}`} />
+                                                {si < 5 && <div className={`flex-1 h-px ${si < stageIdx ? 'bg-brand-teal' : 'bg-white/10'}`} />}
+                                            </React.Fragment>
+                                        );
+                                    })}
+                                </div>
+                                <div className="flex justify-between">
+                                    {['Requirements', 'Architecture', 'Development', 'QA', 'Deployment', 'Complete'].map((s, si) => {
+                                        const stageIdx = { Requirements: 1, Architecture: 1, Dev: 2, QA: 3, Deploying: 4, Complete: 5 }[selectedMission.stage] ?? 2;
+                                        return (
+                                            <span key={s} className={`text-[6px] font-black uppercase tracking-widest flex-1 text-center ${si === stageIdx ? 'text-brand-teal' : si < stageIdx ? 'text-slate-600' : 'text-slate-800'}`}>{s}</span>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+
+                            <div className="flex-grow overflow-y-auto p-6">
+                                <div className="grid md:grid-cols-[1fr_220px] gap-6">
+                                    <div className="space-y-6">
+                                        <section>
+                                            <h4 className="text-[8px] font-black text-slate-600 uppercase tracking-widest mb-2 flex items-center gap-2"><Terminal size={11} className="text-brand-teal" /> Project Brief</h4>
+                                            <p className="text-slate-300 text-sm leading-relaxed italic">{selectedMission.description || 'No detailed brief provided.'}</p>
+                                        </section>
+
+                                        {selectedMission.milestones?.length > 0 && (
+                                            <section>
+                                                <div className="flex items-center justify-between mb-3">
+                                                    <h4 className="text-[8px] font-black text-slate-600 uppercase tracking-widest flex items-center gap-2"><CheckCircle2 size={11} className="text-brand-indigo" /> Milestones</h4>
+                                                    <span className="text-[8px] font-black text-brand-teal">{selectedMission.milestones.filter((m) => m.done).length}/{selectedMission.milestones.length} Done</span>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    {selectedMission.milestones.map((m, mi) => (
+                                                        <div key={mi} className={`flex items-center gap-3 p-3 rounded-xl border ${m.done ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-white/[0.02] border-white/5'}`}>
+                                                            {m.done ? <CheckCircle2 size={13} className="text-emerald-400 shrink-0" /> : <Clock size={13} className="text-slate-700 shrink-0" />}
+                                                            <span className={`text-xs font-bold ${m.done ? 'text-slate-600 line-through' : 'text-white'}`}>{m.label}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </section>
+                                        )}
+
+                                        {selectedMission.tags?.length > 0 && (
+                                            <section>
+                                                <h4 className="text-[8px] font-black text-slate-600 uppercase tracking-widest mb-2 flex items-center gap-2"><Cpu size={11} className="text-brand-red" /> Tech Stack</h4>
+                                                <div className="flex flex-wrap gap-1.5">
+                                                    {selectedMission.tags.map((t) => (
+                                                        <span key={t} className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/5 text-[8px] font-black text-white uppercase tracking-widest">{t}</span>
+                                                    ))}
+                                                </div>
+                                            </section>
+                                        )}
+
+                                        {selectedMission.activities?.length > 0 && (
+                                            <section>
+                                                <h4 className="text-[8px] font-black text-slate-600 uppercase tracking-widest mb-3 flex items-center gap-2"><Activity size={11} className="text-brand-indigo" /> Activity Log</h4>
+                                                <div className="space-y-3 border-l border-white/5 ml-1.5 pl-4">
+                                                    {selectedMission.activities.map((log) => (
+                                                        <div key={log.id} className="relative">
+                                                            <div className="absolute -left-[21px] top-1.5 w-1.5 h-1.5 rounded-full bg-brand-teal" />
+                                                            <div className="text-[7px] font-black text-slate-700 uppercase tracking-widest mb-0.5">{log.timestamp ? new Date(log.timestamp).toLocaleString() : 'Recent'}</div>
+                                                            <div className="text-[10px] text-slate-400">{log.action_text}</div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </section>
+                                        )}
+                                    </div>
+
+                                    <div className="space-y-3">
+                                        <div className="p-4 rounded-xl bg-white/5 border border-white/5">
+                                            <div className="text-[7px] font-black text-slate-700 uppercase tracking-widest mb-3">Project Status</div>
+                                            <div className="flex items-center gap-3 mb-4">
+                                                <div className="w-10 h-10 rounded-xl bg-brand-teal/10 flex items-center justify-center text-brand-teal shrink-0"><Zap size={18} /></div>
+                                                <div>
+                                                    <div className="text-xl font-black text-white">{selectedMission.progress}%</div>
+                                                    <div className="text-[8px] font-black text-brand-teal uppercase tracking-widest">{selectedMission.stage}</div>
+                                                </div>
+                                            </div>
+                                            <div className="h-1.5 bg-white/5 rounded-full overflow-hidden mb-3">
+                                                <motion.div initial={{ width: 0 }} animate={{ width: `${selectedMission.progress}%` }} className={`h-full rounded-full ${selectedMission.progress === 100 ? 'bg-emerald-400' : 'bg-brand-teal'}`} />
+                                            </div>
+                                            <div className="space-y-2.5 border-t border-white/5 pt-3">
+                                                {[
+                                                    ['Deadline', selectedMission.deadline || 'Flexible'],
+                                                    ['Investment', selectedMission.value ? `$${Number(selectedMission.value).toLocaleString()}` : '$0.00'],
+                                                    ['Priority', selectedMission.priority],
+                                                ].map(([l, v]) => (
+                                                    <div key={l} className="flex justify-between items-center">
+                                                        <span className="text-[7px] font-black text-slate-700 uppercase tracking-widest">{l}</span>
+                                                        <span className="text-[9px] font-bold text-white uppercase">{v}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+
+                                        {selectedMission.files?.length > 0 && (
+                                            <div className="p-4 rounded-xl bg-white/5 border border-white/5">
+                                                <div className="text-[7px] font-black text-slate-700 uppercase tracking-widest mb-3">Deliverables</div>
+                                                <div className="space-y-2">
+                                                    {selectedMission.files.map((f) => (
+                                                        <div key={f.id} className="flex items-center gap-2 p-2 rounded-lg bg-white/5">
+                                                            <FileText size={11} className="text-brand-teal shrink-0" />
+                                                            <div className="flex-grow min-w-0">
+                                                                <div className="text-[8px] font-bold text-white truncate">{f.name}</div>
+                                                                <div className="text-[7px] text-slate-700">{f.size || 'N/A'}</div>
+                                                            </div>
+                                                            <a href={f.file_url} target="_blank" rel="noopener noreferrer" className="p-1 rounded-md bg-brand-teal/10 text-brand-teal hover:bg-brand-teal hover:text-white transition-all shrink-0">
+                                                                <Download size={10} />
+                                                            </a>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        <button onClick={() => { setSelectedMission(null); }} className="w-full py-3 bg-brand-teal text-text-primary rounded-xl font-black uppercase tracking-widest text-[9px] shadow-glow-teal hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2">
+                                            Secure Channel <MessageSquare size={13} />
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="p-4 bg-white/[0.02] border-t border-white/5 flex items-center justify-center gap-2">
+                                <Shield size={10} className="text-brand-teal" />
+                                <span className="text-[7px] font-black text-slate-700 uppercase tracking-[0.3em]">Protected Engineering Protocol</span>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+                {selectedInvoice && (
+                    <motion.div className="fixed inset-0 z-[210] flex items-center justify-center p-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                        <motion.div onClick={() => setSelectedInvoice(null)} className="absolute inset-0 bg-slate-950/90 backdrop-blur-md" />
+                        <motion.div initial={{ opacity: 0, scale: 0.98, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.98, y: 10 }} className="relative w-full max-w-3xl max-h-[90vh] overflow-hidden border border-white/10 rounded-2xl bg-[#080f1e] shadow-2xl flex flex-col" onClick={(e) => e.stopPropagation()}>
+                            <div className="p-5 border-b border-white/5 flex items-start justify-between bg-white/[0.02]">
+                                <div className="min-w-0">
+                                    <div className="text-[8px] font-black text-brand-teal uppercase tracking-[0.3em] mb-0.5 truncate">{selectedInvoice._projectTitle || 'Project'} • {selectedInvoice.number || `#${selectedInvoice.id}`}</div>
+                                    <h2 className="text-lg font-black text-white uppercase tracking-tight">Invoice</h2>
+                                </div>
+                                <button onClick={() => setSelectedInvoice(null)} className="w-9 h-9 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center text-slate-600 hover:text-white hover:bg-brand-red/20 transition-all shrink-0">
+                                    <X size={16} />
+                                </button>
+                            </div>
+
+                            <div className="flex-grow overflow-y-auto p-6 space-y-6">
+                                <div className="grid md:grid-cols-3 gap-3">
+                                    <div className="p-4 rounded-xl bg-white/5 border border-white/5">
+                                        <div className="text-[7px] font-black text-slate-700 uppercase tracking-widest mb-2">Status</div>
+                                        <div className="text-xs font-black text-white uppercase tracking-widest">{invoicePaymentLabel(selectedInvoice.status)}</div>
+                                    </div>
+                                    <div className="p-4 rounded-xl bg-white/5 border border-white/5">
+                                        <div className="text-[7px] font-black text-slate-700 uppercase tracking-widest mb-2">Issued</div>
+                                        <div className="text-xs font-black text-white uppercase tracking-widest">{selectedInvoice.issued_at ? new Date(selectedInvoice.issued_at).toLocaleDateString() : '—'}</div>
+                                    </div>
+                                    <div className="p-4 rounded-xl bg-white/5 border border-white/5">
+                                        <div className="text-[7px] font-black text-slate-700 uppercase tracking-widest mb-2">Total</div>
+                                        <div className="text-xs font-black text-brand-teal uppercase tracking-widest">{(selectedInvoice.currency || 'usd').toUpperCase()} {centsToMoney(selectedInvoice.amount_total_cents)}</div>
+                                    </div>
+                                </div>
+
+                                {selectedInvoice.notes && (
+                                    <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5">
+                                        <div className="text-[8px] font-black text-slate-600 uppercase tracking-widest mb-2">Notes</div>
+                                        <div className="text-xs text-slate-300 whitespace-pre-wrap">{selectedInvoice.notes}</div>
+                                    </div>
+                                )}
+
+                                <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5">
+                                    <div className="text-[8px] font-black text-slate-600 uppercase tracking-widest mb-3">Items</div>
+                                    {(selectedInvoice.items || []).length === 0 ? (
+                                        <div className="text-xs text-slate-500">No items.</div>
+                                    ) : (
+                                        <div className="space-y-2">
+                                            {(selectedInvoice.items || []).map((it) => (
+                                                <div key={it.id} className="flex items-start justify-between gap-4 p-3 rounded-xl bg-white/5 border border-white/5">
+                                                    <div className="min-w-0">
+                                                        <div className="text-xs font-black text-white">{it.description}</div>
+                                                        <div className="text-[9px] font-black uppercase tracking-widest text-slate-600 mt-1">Qty {it.quantity} • {(selectedInvoice.currency || 'usd').toUpperCase()} {centsToMoney(it.unit_amount_cents)} each</div>
+                                                    </div>
+                                                    <div className="text-xs font-black text-brand-teal shrink-0">{(selectedInvoice.currency || 'usd').toUpperCase()} {centsToMoney(it.amount_cents)}</div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="p-4 bg-white/[0.02] border-t border-white/5 flex items-center justify-end gap-2">
+                                <button type="button" onClick={() => onPrintInvoice(selectedInvoice)} className="px-4 py-2 bg-brand-teal/10 border border-brand-teal/20 text-brand-teal rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-brand-teal/15 transition-all">
+                                    Print
+                                </button>
+                                {canPayInvoice(selectedInvoice.status) && (
+                                    <button type="button" onClick={() => onPayInvoice(selectedInvoice)} className="px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-emerald-500/15 transition-all">
+                                        Pay Now
+                                    </button>
+                                )}
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            <AnimatePresence>
+                {selectedProposal && (
+                    <motion.div className="fixed inset-0 z-[210] flex items-center justify-center p-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+                        <motion.div onClick={() => setSelectedProposal(null)} className="absolute inset-0 bg-slate-950/90 backdrop-blur-md" />
+                        <motion.div initial={{ opacity: 0, scale: 0.98, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.98, y: 10 }} className="relative w-full max-w-3xl max-h-[90vh] overflow-hidden border border-white/10 rounded-2xl bg-[#080f1e] shadow-2xl flex flex-col" onClick={(e) => e.stopPropagation()}>
+                            <div className="p-5 border-b border-white/5 flex items-start justify-between bg-white/[0.02]">
+                                <div className="min-w-0">
+                                    <div className="text-[8px] font-black text-brand-teal uppercase tracking-[0.3em] mb-0.5 truncate">{selectedProposal._projectTitle || 'Project'} • #{selectedProposal.id}</div>
+                                    <h2 className="text-lg font-black text-white uppercase tracking-tight truncate">{selectedProposal.title || 'Proposal'}</h2>
+                                    <div className="text-[9px] font-black uppercase tracking-widest text-slate-600 mt-1">{selectedProposal.status}{selectedProposal.sent_at ? ` • sent ${new Date(selectedProposal.sent_at).toLocaleDateString()}` : ''}</div>
+                                </div>
+                                <button onClick={() => setSelectedProposal(null)} className="w-9 h-9 rounded-xl bg-white/5 border border-white/5 flex items-center justify-center text-slate-600 hover:text-white hover:bg-brand-red/20 transition-all shrink-0">
+                                    <X size={16} />
+                                </button>
+                            </div>
+
+                            <div className="flex-grow overflow-y-auto p-6">
+                                <div className="prose prose-invert max-w-none prose-a:text-brand-teal prose-strong:text-white prose-p:text-slate-300">
+                                    <ReactMarkdown>{selectedProposal.body_md || ''}</ReactMarkdown>
+                                </div>
+                            </div>
+
+                            {proposalActionError && (
+                                <div className="mx-6 p-4 rounded-xl bg-brand-red/10 border border-brand-red/20 text-brand-red text-sm">{proposalActionError}</div>
+                            )}
+
+                            {selectedProposal.status === 'sent' && (
+                                <div className="p-4 bg-white/[0.02] border-t border-white/5 flex items-center justify-end gap-2">
+                                    <button type="button" onClick={() => setShowDeclineConfirm(true)} disabled={proposalActionInProgress !== null} className="px-4 py-2 bg-white/5 border border-white/15 text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-brand-red/10 hover:border-brand-red/30 hover:text-brand-red transition-all disabled:opacity-50">
+                                        Decline
+                                    </button>
+                                    <button type="button" onClick={() => handleProposalRespond(selectedProposal._projectId, selectedProposal.id, 'accept')} disabled={proposalActionInProgress !== null} className="px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-emerald-500/20 transition-all disabled:opacity-50 flex items-center gap-2">
+                                        {proposalActionInProgress?.action === 'accept' ? (<><Loader2 size={12} className="animate-spin" />Accepting…</>) : 'Accept Proposal'}
+                                    </button>
+                                </div>
+                            )}
+
+                            {showDeclineConfirm && (
+                                <div className="p-4 bg-brand-red/10 border-t border-brand-red/20 flex items-center justify-between gap-4">
+                                    <div className="text-sm text-brand-red font-bold">Are you sure you want to decline this proposal?</div>
+                                    <div className="flex gap-2">
+                                        <button type="button" onClick={() => setShowDeclineConfirm(false)} className="px-3 py-1.5 bg-white/5 border border-white/15 text-white rounded-lg font-black uppercase tracking-widest text-[9px] hover:bg-white/10 transition-all">Cancel</button>
+                                        <button type="button" onClick={() => handleProposalRespond(selectedProposal._projectId, selectedProposal.id, 'reject')} disabled={proposalActionInProgress !== null} className="px-3 py-1.5 bg-brand-red/10 border border-brand-red/20 text-brand-red rounded-lg font-black uppercase tracking-widest text-[9px] hover:bg-brand-red/20 transition-all disabled:opacity-50 flex items-center gap-2">
+                                            {proposalActionInProgress?.action === 'reject' ? (<><Loader2 size={12} className="animate-spin" />Declining…</>) : 'Confirm Decline'}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </>
+    );
+}
+
+function canPayInvoice(status) {
+    return status !== 'paid' && status !== 'void';
+}

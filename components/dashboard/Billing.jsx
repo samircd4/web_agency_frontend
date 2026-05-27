@@ -1,38 +1,19 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { AnimatePresence, motion } from 'framer-motion';
-import {
-    ArrowLeft,
-    Bell,
-    Box,
-    CheckCircle2,
-    ChevronRight,
-    Clock,
-    Cpu,
-    CreditCard,
-    Download,
-    FileText,
-    Loader2,
-    LogOut,
-    Menu,
-    MessageSquare,
-    Search,
-    Settings,
-    Shield,
-    Terminal,
-    X,
-    Zap,
-} from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import {
+    LayoutDashboard, Box, MessageSquare, CreditCard, Settings,
+    Bell, Search, User, Zap, Clock, CheckCircle2, AlertCircle,
+    ArrowUpRight, Download, Terminal, ChevronRight, ArrowLeft,
+    Shield, FileText, Send, Lock, Globe, X, Cpu, Activity,
+    Menu, LogOut, Loader2
+} from 'lucide-react';
 import { api } from '@/lib/api';
-import DashboardSidebar from '@/components/dashboard/Sidebar';
-import DashboardTopbar from '@/components/dashboard/Topbar';
-import DashboardTabPanels from '@/components/dashboard/TabPanels';
-import DashboardModals from '@/components/dashboard/Modals';
 
 export default function DashboardView() {
     const router = useRouter();
@@ -61,57 +42,10 @@ export default function DashboardView() {
     const [billingRefreshNonce, setBillingRefreshNonce] = useState(0);
     const syncAttemptedRef = useRef(new Set()); // `${invoiceId}:${sessionId}`
     const pollAttemptedRef = useRef(new Set()); // `${invoiceId}:${sessionId}`
-    const [proposalActionInProgress, setProposalActionInProgress] = useState(null); // { proposalId, action }
-    const [proposalActionError, setProposalActionError] = useState(null);
-    const [showDeclineConfirm, setShowDeclineConfirm] = useState(false);
 
     const handleLogout = async () => {
         await api.logout();
         router.push('/admin/login');
-    };
-
-    const handleProposalRespond = async (projectId, proposalId, action) => {
-        try {
-            setProposalActionInProgress({ proposalId, action });
-            setProposalActionError(null);
-
-            const updatedProposal = await api.respondToProposal(projectId, proposalId, action);
-
-            // Update the proposal in local state
-            setClientProposals(prevProposals =>
-                prevProposals.map(p =>
-                    p.id === proposalId ? updatedProposal : p
-                )
-            );
-
-            // Close the modal
-            setSelectedProposal(null);
-            setShowDeclineConfirm(false);
-
-        } catch (err) {
-            setProposalActionError(err?.message || 'Failed to respond to proposal');
-        } finally {
-            setProposalActionInProgress(null);
-        }
-    };
-
-    const handlePayInvoice = async (invoice) => {
-        setCheckoutInvoiceId(invoice.id);
-        setBillingDocsError(null);
-
-        try {
-            const res = await api.createClientInvoiceCheckout(invoice._projectId, invoice.id);
-            if (!res?.url) throw new Error('Failed to start checkout');
-            window.location.href = res.url;
-        } catch (err) {
-            setBillingDocsError(err?.message || 'Failed to start checkout');
-        } finally {
-            setCheckoutInvoiceId(null);
-        }
-    };
-
-    const handlePrintInvoice = (invoice) => {
-        window.open(`http://localhost:8000/api/client/projects/${invoice._projectId}/invoices/${invoice.id}/print/`, '_blank', 'noopener,noreferrer');
     };
 
     useEffect(() => {
@@ -228,12 +162,11 @@ export default function DashboardView() {
 
     const invoicePaymentLabel = (status) => (status === 'paid' ? 'Paid' : 'Unpaid');
     const canPayInvoice = (status) => status !== 'paid' && status !== 'void';
-    const pendingInvoiceCount = clientInvoices.filter(inv => inv.status !== 'paid' && inv.status !== 'void').length;
-    const pendingProposalCount = clientProposals.filter(prop => prop.status === 'sent').length;
 
     const normalizeList = (res) => (Array.isArray(res) ? res : (res?.results || []));
 
     useEffect(() => {
+        if (activeTab !== 'billing') return;
         if (!missions?.length) {
             setClientInvoices([]);
             setClientProposals([]);
@@ -282,7 +215,7 @@ export default function DashboardView() {
 
         loadBillingDocs();
         return () => { cancelled = true; };
-    }, [missions, billingRefreshNonce]);
+    }, [activeTab, missions, billingRefreshNonce]);
 
     // After returning from Stripe success, re-fetch billing docs (webhook may land slightly after redirect).
     useEffect(() => {
@@ -374,9 +307,9 @@ export default function DashboardView() {
                 </div>
 
                 <nav className="flex-grow space-y-1">
-                    <Link
-                        href="/"
-                        className="
+                <Link
+    href="/"
+    className="
         group flex items-center gap-2
         w-full px-4 py-3
         rounded-xl
@@ -387,27 +320,22 @@ export default function DashboardView() {
         transition-all duration-200
         shadow-sm hover:shadow-md
     "
-                        title="Back to Website"
-                    >
-                        <ArrowLeft
-                            size={16}
-                            className="transition-transform duration-200 group-hover:-translate-x-1"
-                        />
+    title="Back to Website"
+>
+    <ArrowLeft
+        size={16}
+        className="transition-transform duration-200 group-hover:-translate-x-1"
+    />
 
-                        <span className="text-xs font-semibold uppercase tracking-[0.2em]">
-                            Back to Website
-                        </span>
-                    </Link>
+    <span className="text-xs font-semibold uppercase tracking-[0.2em]">
+        Back to Website
+    </span>
+</Link>
                     {[
                         { id: 'missions', name: 'Active Projects', icon: <Zap size={16} /> },
                         { id: 'vault', name: 'Secure Vault', icon: <Box size={16} /> },
                         { id: 'comms', name: 'Communications', icon: <MessageSquare size={16} /> },
-                        {
-                            id: 'billing',
-                            name: 'Billing Ledger',
-                            icon: <CreditCard size={16} />,
-                            notificationDot: pendingProposalCount > 0 || pendingInvoiceCount > 0,
-                        },
+                        { id: 'billing', name: 'Billing Ledger', icon: <CreditCard size={16} /> },
                         { id: 'settings', name: 'System Config', icon: <Settings size={16} /> },
                     ].map((item) => (
                         <button
@@ -416,16 +344,13 @@ export default function DashboardView() {
                                 setActiveTab(item.id);
                                 setIsSidebarOpen(false);
                             }}
-                            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-[11px] font-black uppercase tracking-widest transition-all relative ${activeTab === item.id
-                                ? 'bg-brand-teal/10 text-brand-teal border border-brand-teal/20 shadow-glow-teal/5'
-                                : 'text-slate-500 hover:text-white hover:bg-white/5'
+                            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-[11px] font-black uppercase tracking-widest transition-all ${activeTab === item.id
+                                    ? 'bg-brand-teal/10 text-brand-teal border border-brand-teal/20 shadow-glow-teal/5'
+                                    : 'text-slate-500 hover:text-white hover:bg-white/5'
                                 }`}
                         >
                             {item.icon}
                             {item.name}
-                            {item.notificationDot && (
-                                <span className="absolute right-3 w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-                            )}
                         </button>
                     ))}
 
@@ -508,8 +433,8 @@ export default function DashboardView() {
                 {billingNotice?.kind ? (
                     <div className="mb-6">
                         <div className={`p-4 rounded-xl border ${billingNotice.kind === 'success'
-                            ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-200'
-                            : 'bg-amber-500/10 border-amber-500/20 text-amber-200'
+                                ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-200'
+                                : 'bg-amber-500/10 border-amber-500/20 text-amber-200'
                             }`}>
                             <div className="flex items-start justify-between gap-4">
                                 <div>
@@ -760,32 +685,22 @@ export default function DashboardView() {
                                     <button
                                         type="button"
                                         onClick={() => setBillingView('invoices')}
-                                        className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border flex items-center gap-2 ${billingView === 'invoices'
-                                            ? 'bg-brand-teal/10 border-brand-teal/20 text-brand-teal'
-                                            : 'bg-white/5 border-white/10 text-slate-500 hover:text-white hover:bg-white/10'
+                                        className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border ${billingView === 'invoices'
+                                                ? 'bg-brand-teal/10 border-brand-teal/20 text-brand-teal'
+                                                : 'bg-white/5 border-white/10 text-slate-500 hover:text-white hover:bg-white/10'
                                             }`}
                                     >
                                         Invoices
-                                        {pendingInvoiceCount > 0 && (
-                                            <span className="ml-1 px-1.5 py-0.5 rounded-full text-[8px] font-black bg-brand-teal/20 text-brand-teal border border-brand-teal/30 animate-pulse">
-                                                {pendingInvoiceCount}
-                                            </span>
-                                        )}
                                     </button>
                                     <button
                                         type="button"
                                         onClick={() => setBillingView('proposals')}
-                                        className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border flex items-center gap-2 ${billingView === 'proposals'
-                                            ? 'bg-brand-teal/10 border-brand-teal/20 text-brand-teal'
-                                            : 'bg-white/5 border-white/10 text-slate-500 hover:text-white hover:bg-white/10'
+                                        className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border ${billingView === 'proposals'
+                                                ? 'bg-brand-teal/10 border-brand-teal/20 text-brand-teal'
+                                                : 'bg-white/5 border-white/10 text-slate-500 hover:text-white hover:bg-white/10'
                                             }`}
                                     >
                                         Proposals
-                                        {pendingProposalCount > 0 && (
-                                            <span className="ml-1 px-1.5 py-0.5 rounded-full text-[8px] font-black bg-brand-teal/20 text-brand-teal border border-brand-teal/30">
-                                                {pendingProposalCount}
-                                            </span>
-                                        )}
                                     </button>
                                     {billingDocsLoading && (
                                         <span className="ml-2 text-[10px] font-black uppercase tracking-widest text-slate-600">Loading…</span>
@@ -833,8 +748,8 @@ export default function DashboardView() {
                                                                     </td>
                                                                     <td className="px-6 py-4">
                                                                         <span className={`px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-[0.14em] border ${paymentLabel === 'Paid'
-                                                                            ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20'
-                                                                            : 'bg-white/5 text-slate-200 border-white/10'
+                                                                                ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20'
+                                                                                : 'bg-white/5 text-slate-200 border-white/10'
                                                                             }`}>
                                                                             {paymentLabel}
                                                                         </span>
@@ -888,81 +803,54 @@ export default function DashboardView() {
                                         </div>
                                     </div>
                                 ) : (
-                                    <>
-                                        {(() => {
-                                            const pendingCount = clientProposals.filter(p => p.status === 'sent').length;
-                                            return pendingCount > 0 ? (
-                                                <div className="mb-4 p-4 rounded-xl border bg-amber-500/10 border-amber-500/20 text-amber-200">
-                                                    <div className="flex items-center justify-between gap-4">
-                                                        <div>
-                                                            <div className="font-black uppercase tracking-widest text-[10px] mb-1">
-                                                                Awaiting Your Approval
-                                                            </div>
-                                                            <div className="text-xs">
-                                                                {pendingCount} {pendingCount === 1 ? 'proposal' : 'proposals'} awaiting your response.
-                                                            </div>
-                                                        </div>
-                                                        <span className="px-3 py-1 rounded-lg bg-amber-500 text-amber-950 font-black uppercase tracking-widest text-[9px] whitespace-nowrap">
-                                                            {pendingCount}
-                                                        </span>
-                                                    </div>
-                                                </div>
-                                            ) : null;
-                                        })()}
-                                        <div className="glass border-white/5 rounded-xl overflow-hidden">
-                                            <div className="overflow-x-auto">
-                                                <table className="min-w-[900px] w-full text-left">
-                                                    <thead>
-                                                        <tr className="bg-slate-950/60 text-[10px] font-black uppercase tracking-[0.16em] text-slate-200 border-b border-white/10 sticky top-0 z-10 backdrop-blur">
-                                                            <th className="px-6 py-4">Proposal</th>
-                                                            <th className="px-6 py-4">Project</th>
-                                                            <th className="px-6 py-4">Budget</th>
-                                                            <th className="px-6 py-4">Sent</th>
-                                                            <th className="px-6 py-4">Status</th>
-                                                            <th className="px-6 py-4 text-right">Actions</th>
+                                    <div className="glass border-white/5 rounded-xl overflow-hidden">
+                                        <div className="overflow-x-auto">
+                                            <table className="min-w-[900px] w-full text-left">
+                                                <thead>
+                                                    <tr className="bg-slate-950/60 text-[10px] font-black uppercase tracking-[0.16em] text-slate-200 border-b border-white/10 sticky top-0 z-10 backdrop-blur">
+                                                        <th className="px-6 py-4">Proposal</th>
+                                                        <th className="px-6 py-4">Project</th>
+                                                        <th className="px-6 py-4">Budget</th>
+                                                        <th className="px-6 py-4">Sent</th>
+                                                        <th className="px-6 py-4">Status</th>
+                                                        <th className="px-6 py-4 text-right">Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-white/10">
+                                                    {clientProposals.length === 0 ? (
+                                                        <tr>
+                                                            <td colSpan="6" className="px-6 py-10 text-center text-slate-400 text-sm">
+                                                                No proposals yet.
+                                                            </td>
                                                         </tr>
-                                                    </thead>
-                                                    <tbody className="divide-y divide-white/10">
-                                                        {clientProposals.length === 0 ? (
-                                                            <tr>
-                                                                <td colSpan="6" className="px-6 py-10 text-center text-slate-400 text-sm">
-                                                                    No proposals yet.
+                                                    ) : (
+                                                        clientProposals.map((p, idx) => (
+                                                            <tr key={`${p._projectId}-${p.id}`} className={`${idx % 2 === 0 ? 'bg-white/[0.01]' : ''} hover:bg-white/[0.04] transition-colors`}>
+                                                                <td className="px-6 py-4 font-black text-white text-xs">{p.title || `#${p.id}`}</td>
+                                                                <td className="px-6 py-4 text-slate-200 text-xs uppercase font-bold">{p._projectTitle || p.project}</td>
+                                                                <td className="px-6 py-4 text-slate-200 text-xs font-bold">USD {valueToMoney(p._projectValue)}</td>
+                                                                <td className="px-6 py-4 text-slate-400 text-xs">{p.sent_at ? new Date(p.sent_at).toLocaleDateString() : '—'}</td>
+                                                                <td className="px-6 py-4">
+                                                                    <span className="px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-[0.14em] bg-white/5 text-slate-200 border border-white/10">
+                                                                        {p.status}
+                                                                    </span>
+                                                                </td>
+                                                                <td className="px-6 py-4 text-right">
+                                                                    <button
+                                                                        type="button"
+                                                                        onClick={() => setSelectedProposal(p)}
+                                                                        className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/15 text-xs font-black uppercase tracking-[0.14em] text-white hover:bg-white/10 transition-all"
+                                                                    >
+                                                                        View
+                                                                    </button>
                                                                 </td>
                                                             </tr>
-                                                        ) : (
-                                                            clientProposals.map((p, idx) => (
-                                                                <tr key={`${p._projectId}-${p.id}`} className={`${idx % 2 === 0 ? 'bg-white/[0.01]' : ''} hover:bg-white/[0.04] transition-colors`}>
-                                                                    <td className="px-6 py-4 font-black text-white text-xs">{p.title || `#${p.id}`}</td>
-                                                                    <td className="px-6 py-4 text-slate-200 text-xs uppercase font-bold">{p._projectTitle || p.project}</td>
-                                                                    <td className="px-6 py-4 text-slate-200 text-xs font-bold">USD {valueToMoney(p._projectValue)}</td>
-                                                                    <td className="px-6 py-4 text-slate-400 text-xs">{p.sent_at ? new Date(p.sent_at).toLocaleDateString() : '—'}</td>
-                                                                    <td className="px-6 py-4">
-                                                                        <span className={`px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-[0.14em] border ${p.status === 'draft' ? 'bg-slate-500/10 text-slate-300 border-slate-500/20' :
-                                                                            p.status === 'sent' ? 'bg-amber-500/10 text-amber-300 border-amber-500/20' :
-                                                                                p.status === 'accepted' ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20' :
-                                                                                    p.status === 'rejected' ? 'bg-red-500/10 text-red-300 border-red-500/20' :
-                                                                                        'bg-white/5 text-slate-200 border-white/10'
-                                                                            }`}>
-                                                                            {p.status}
-                                                                        </span>
-                                                                    </td>
-                                                                    <td className="px-6 py-4 text-right">
-                                                                        <button
-                                                                            type="button"
-                                                                            onClick={() => setSelectedProposal(p)}
-                                                                            className="px-3 py-1.5 rounded-lg bg-white/5 border border-white/15 text-xs font-black uppercase tracking-[0.14em] text-white hover:bg-white/10 transition-all"
-                                                                        >
-                                                                            View
-                                                                        </button>
-                                                                    </td>
-                                                                </tr>
-                                                            ))
-                                                        )}
-                                                    </tbody>
-                                                </table>
-                                            </div>
+                                                        ))
+                                                    )}
+                                                </tbody>
+                                            </table>
                                         </div>
-                                    </>
+                                    </div>
                                 )}
                             </motion.div>
                         )}
@@ -1390,72 +1278,6 @@ export default function DashboardView() {
                                     <ReactMarkdown>{selectedProposal.body_md || ''}</ReactMarkdown>
                                 </div>
                             </div>
-
-                            {proposalActionError && (
-                                <div className="mx-6 p-4 rounded-xl bg-brand-red/10 border border-brand-red/20 text-brand-red text-sm">
-                                    {proposalActionError}
-                                </div>
-                            )}
-
-                            {selectedProposal.status === 'sent' && (
-                                <div className="p-4 bg-white/[0.02] border-t border-white/5 flex items-center justify-end gap-2">
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowDeclineConfirm(true)}
-                                        disabled={proposalActionInProgress !== null}
-                                        className="px-4 py-2 bg-white/5 border border-white/15 text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-brand-red/10 hover:border-brand-red/30 hover:text-brand-red transition-all disabled:opacity-50"
-                                    >
-                                        Decline
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => handleProposalRespond(selectedProposal._projectId, selectedProposal.id, 'accept')}
-                                        disabled={proposalActionInProgress !== null}
-                                        className="px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-emerald-500/20 transition-all disabled:opacity-50 flex items-center gap-2"
-                                    >
-                                        {proposalActionInProgress?.action === 'accept' ? (
-                                            <>
-                                                <Loader2 size={12} className="animate-spin" />
-                                                Accepting…
-                                            </>
-                                        ) : (
-                                            'Accept Proposal'
-                                        )}
-                                    </button>
-                                </div>
-                            )}
-
-                            {showDeclineConfirm && (
-                                <div className="p-4 bg-brand-red/10 border-t border-brand-red/20 flex items-center justify-between gap-4">
-                                    <div className="text-sm text-brand-red font-bold">
-                                        Are you sure you want to decline this proposal?
-                                    </div>
-                                    <div className="flex gap-2">
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowDeclineConfirm(false)}
-                                            className="px-3 py-1.5 bg-white/5 border border-white/15 text-white rounded-lg font-black uppercase tracking-widest text-[9px] hover:bg-white/10 transition-all"
-                                        >
-                                            Cancel
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => handleProposalRespond(selectedProposal._projectId, selectedProposal.id, 'reject')}
-                                            disabled={proposalActionInProgress !== null}
-                                            className="px-3 py-1.5 bg-brand-red/10 border border-brand-red/20 text-brand-red rounded-lg font-black uppercase tracking-widest text-[9px] hover:bg-brand-red/20 transition-all disabled:opacity-50 flex items-center gap-2"
-                                        >
-                                            {proposalActionInProgress?.action === 'reject' ? (
-                                                <>
-                                                    <Loader2 size={12} className="animate-spin" />
-                                                    Declining…
-                                                </>
-                                            ) : (
-                                                'Confirm Decline'
-                                            )}
-                                        </button>
-                                    </div>
-                                </div>
-                            )}
                         </motion.div>
                     </motion.div>
                 )}
