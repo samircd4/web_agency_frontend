@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     LayoutDashboard, Users, Briefcase, FolderKanban,
     FileEdit, Bell, Search, Menu, X, LogOut, ChevronRight,
-    Zap, Globe, Shield
+    Zap, Globe, Shield, DollarSign
 } from 'lucide-react';
 
 const NAV_ITEMS = [
@@ -16,6 +16,7 @@ const NAV_ITEMS = [
     { href: '/admin/leads', label: 'Leads', icon: Zap },
     { href: '/admin/projects', label: 'Projects', icon: Briefcase },
     { href: '/admin/clients', label: 'Clients', icon: Users },
+    { href: '/admin/billing', label: 'Billing', icon: DollarSign },
     { href: '/admin/cms', label: 'Content (CMS)', icon: FileEdit },
 ];
 
@@ -54,8 +55,8 @@ export default function AdminLayout({ children }) {
         router.push('/admin/login');
     };
 
-    // Don't render admin shell on login page
-    if (pathname === '/admin/login') return <>{children}</>;
+    // Don't render admin shell on login or register pages
+    if (pathname === '/admin/login' || pathname === '/admin/register') return <>{children}</>;
 
     return (
         <div className="min-h-screen bg-background text-text-secondary overflow-x-hidden">

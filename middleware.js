@@ -3,8 +3,8 @@ import { NextResponse } from 'next/server';
 export function middleware(request) {
     const { pathname } = request.nextUrl;
 
-    // Allow login page to pass through freely
-    if (pathname.startsWith('/admin/login')) {
+    // Allow login and register pages to pass through freely
+    if (pathname.startsWith('/admin/login') || pathname.startsWith('/admin/register')) {
         return NextResponse.next();
     }
 

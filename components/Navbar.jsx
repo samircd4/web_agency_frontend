@@ -1,11 +1,15 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Menu, X, ArrowRight, ChevronRight, Zap, Code2, LayoutDashboard, ShieldCheck } from 'lucide-react';
-import { usePathname } from 'next/navigation';
+import { 
+    Menu, X, ArrowRight, ChevronRight, Zap, Code2, 
+    LayoutDashboard, ShieldCheck, Store, Settings, LogOut, User 
+} from 'lucide-react';
+import { usePathname, useRouter } from 'next/navigation';
+import { api } from '@/lib/api';
 
 const navLinks = [
     { name: 'Services', href: '/services' },
@@ -19,7 +23,12 @@ export default function Navbar() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [scrolled, setScrolled] = useState(false);
     const [mounted, setMounted] = useState(false);
+    const [currentUser, setCurrentUser] = useState(null);
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+
     const pathname = usePathname();
+    const router = useRouter();
+    const dropdownRef = useRef(null);
 
     useEffect(() => {
         setMounted(true);
@@ -27,6 +36,20 @@ export default function Navbar() {
             setScrolled(window.scrollY > 10);
         };
         window.addEventListener('scroll', handleScroll);
+
+        const fetchUser = async () => {
+            const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+            if (token) {
+                try {
+                    const user = await api.getMe();
+                    setCurrentUser(user);
+                } catch (err) {
+                    console.error("Failed to fetch user in Navbar:", err);
+                }
+            }
+        };
+        fetchUser();
+
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
@@ -38,6 +61,37 @@ export default function Navbar() {
         }
         return () => { document.body.style.overflow = 'unset'; };
     }, [isMenuOpen]);
+
+    // Handle outside clicks to close the avatar dropdown
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+                setIsDropdownOpen(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const handleLogout = async () => {
+        await api.logout();
+        setCurrentUser(null);
+        setIsDropdownOpen(false);
+        setIsMenuOpen(false);
+        router.push('/');
+    };
+
+    const userInitials = currentUser
+        ? (currentUser.first_name && currentUser.last_name
+            ? `${currentUser.first_name[0]}${currentUser.last_name[0]}`.toUpperCase()
+            : currentUser.username.slice(0, 2).toUpperCase())
+        : '';
+
+    const userDisplayName = currentUser
+        ? (currentUser.first_name && currentUser.last_name
+            ? `${currentUser.first_name} ${currentUser.last_name}`
+            : currentUser.username)
+        : '';
 
     if (!mounted) return (
         <nav className="fixed top-0 left-0 w-full z-[100] py-0 lg:py-2">
@@ -80,16 +134,88 @@ export default function Navbar() {
                                 </Link>
                             ))}
                         </div>
-                        <div className="flex items-center gap-2 ml-1">
-                            <Link href="/dashboard" title="Client Dashboard" className="p-1.5 bg-white/5 text-slate-400 hover:text-white rounded-full border border-white/5 transition-all group">
-                                <LayoutDashboard size={14} className="group-hover:text-brand-teal transition-colors" />
-                            </Link>
-                            <Link href="/admin" title="Admin" className="p-1.5 bg-white/5 text-slate-400 hover:text-white rounded-full border border-white/5 transition-all group">
-                                <ShieldCheck size={14} className="group-hover:text-brand-red transition-colors" />
-                            </Link>
-                            <Link href="/start-project" className="px-4 py-1.5 bg-brand-teal text-white rounded-full font-black text-[10px] uppercase tracking-widest transition-all shadow-glow-teal hover:bg-brand-teal/90 hover:scale-105 active:scale-95">
-                                Start Project
-                            </Link>
+                        <div className="flex items-center gap-2 ml-1 relative" ref={dropdownRef}>
+                            {currentUser ? (
+                                <>
+                                    {/* Avatar Button */}
+                                    <button
+                                        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                                        className="w-9 h-9 rounded-full bg-brand-teal flex items-center justify-center font-black text-white text-xs border border-white/20 shadow-glow-teal hover:scale-105 transition-transform cursor-pointer"
+                                        title={userDisplayName}
+                                    >
+                                        {userInitials}
+                                    </button>
+
+                                    {/* Dropdown Menu */}
+                                    <AnimatePresence>
+                                        {isDropdownOpen && (
+                                            <motion.div
+                                                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                                transition={{ duration: 0.15 }}
+                                                className="absolute right-0 top-full mt-3 w-64 rounded-xl bg-slate-900/95 backdrop-blur-xl border border-white/10 p-4 shadow-2xl z-50 text-left"
+                                            >
+                                                {/* Profile Name & Role */}
+                                                <div className="px-2 py-1 flex flex-col">
+                                                    <span className="text-sm font-black text-white leading-tight">{userDisplayName}</span>
+                                                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">{currentUser.is_staff ? 'ADMIN' : 'BUYER'}</span>
+                                                </div>
+
+                                                <div className="h-px bg-white/5 my-2.5" />
+
+                                                {/* Options List */}
+                                                <div className="space-y-1">
+                                                    <Link
+                                                        href="/services"
+                                                        onClick={() => setIsDropdownOpen(false)}
+                                                        className="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold text-slate-300 hover:text-white hover:bg-white/5 transition-all group"
+                                                    >
+                                                        <Store size={14} className="text-slate-400 group-hover:text-brand-teal transition-colors" />
+                                                        Marketplace
+                                                    </Link>
+                                                    <Link
+                                                        href={currentUser.is_staff ? "/admin" : "/dashboard?tab=settings"}
+                                                        onClick={() => setIsDropdownOpen(false)}
+                                                        className="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold text-slate-300 hover:text-white hover:bg-white/5 transition-all group"
+                                                    >
+                                                        <Settings size={14} className="text-slate-400 group-hover:text-brand-teal transition-colors" />
+                                                        Settings
+                                                    </Link>
+                                                    <Link
+                                                        href={currentUser.is_staff ? "/admin" : "/dashboard"}
+                                                        onClick={() => setIsDropdownOpen(false)}
+                                                        className="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-black uppercase tracking-wider text-brand-teal hover:text-brand-teal/80 hover:bg-brand-teal/5 transition-all group"
+                                                    >
+                                                        <LayoutDashboard size={14} className="text-brand-teal" />
+                                                        {currentUser.is_staff ? 'Admin Dashboard' : 'Buyer Dashboard'}
+                                                    </Link>
+                                                </div>
+
+                                                <div className="h-px bg-white/5 my-2.5" />
+
+                                                {/* Sign out */}
+                                                <button
+                                                    onClick={handleLogout}
+                                                    className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold text-brand-red hover:bg-brand-red/5 transition-all group cursor-pointer text-left"
+                                                >
+                                                    <LogOut size={14} className="text-brand-red" />
+                                                    Sign out
+                                                </button>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+                                </>
+                            ) : (
+                                <>
+                                    <Link href="/start-project" className="px-4 py-1.5 bg-brand-teal text-white rounded-full font-black text-[10px] uppercase tracking-widest transition-all shadow-glow-teal hover:bg-brand-teal/90 hover:scale-105 active:scale-95">
+                                        Start Project
+                                    </Link>
+                                    <Link href="/admin/login" className="px-4 py-1.5 bg-white/5 hover:bg-white/10 text-white rounded-full font-black text-[10px] uppercase tracking-widest transition-all border border-white/10 hover:scale-105 active:scale-95">
+                                        Sign In
+                                    </Link>
+                                </>
+                            )}
                         </div>
                     </div>
 
@@ -147,17 +273,43 @@ export default function Navbar() {
                                 </motion.div>
                             ))}
 
-                            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="mt-4 flex flex-col gap-2">
-                                <Link href="/dashboard" onClick={() => setIsMenuOpen(false)} className="w-full flex items-center justify-center gap-2 py-4 glass border-white/10 text-white rounded-lg font-black uppercase tracking-widest text-[10px] active:bg-white/10">
-                                    <LayoutDashboard size={14} className="text-brand-teal" /> Client Dashboard
-                                </Link>
-                                <Link href="/admin" onClick={() => setIsMenuOpen(false)} className="w-full flex items-center justify-center gap-2 py-4 glass border-white/10 text-white rounded-lg font-black uppercase tracking-widest text-[10px] active:bg-white/10">
-                                    <ShieldCheck size={14} className="text-brand-red" /> Admin
-                                </Link>
-                                <Link href="/start-project" onClick={() => setIsMenuOpen(false)} className="w-full flex items-center justify-center gap-2 py-4 bg-brand-teal text-white rounded-lg font-black uppercase tracking-widest text-[10px] shadow-glow-teal">
-                                    Start Your Project <Zap size={14} />
-                                </Link>
-                            </motion.div>
+                            {currentUser ? (
+                                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="mt-4 flex flex-col gap-3">
+                                    {/* Mobile User Profile Section */}
+                                    <div className="flex items-center gap-4 p-4 glass rounded-lg border-white/5 text-left">
+                                        <div className="w-10 h-10 rounded-full bg-brand-teal flex items-center justify-center font-black text-white text-sm border border-white/20">
+                                            {userInitials}
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <span className="text-sm font-black text-white leading-none">{userDisplayName}</span>
+                                            <span className="text-[8px] font-bold text-slate-500 uppercase tracking-widest mt-1.5">{currentUser.is_staff ? 'ADMIN' : 'BUYER'}</span>
+                                        </div>
+                                    </div>
+
+                                    {/* Mobile Links */}
+                                    <Link href="/services" onClick={() => setIsMenuOpen(false)} className="w-full flex items-center gap-3 p-4 glass border-white/5 text-white rounded-lg font-black uppercase tracking-widest text-[10px] active:bg-white/10">
+                                        <Store size={14} className="text-brand-teal" /> Marketplace
+                                    </Link>
+                                    <Link href={currentUser.is_staff ? "/admin" : "/dashboard?tab=settings"} onClick={() => setIsMenuOpen(false)} className="w-full flex items-center gap-3 p-4 glass border-white/5 text-white rounded-lg font-black uppercase tracking-widest text-[10px] active:bg-white/10">
+                                        <Settings size={14} className="text-brand-teal" /> Settings
+                                    </Link>
+                                    <Link href={currentUser.is_staff ? "/admin" : "/dashboard"} onClick={() => setIsMenuOpen(false)} className="w-full flex items-center gap-3 p-4 glass border-white/10 text-white rounded-lg font-black uppercase tracking-widest text-[10px] active:bg-white/10">
+                                        <LayoutDashboard size={14} className="text-brand-teal" /> {currentUser.is_staff ? 'Admin Dashboard' : 'Buyer Dashboard'}
+                                    </Link>
+                                    <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 py-4 bg-brand-red/10 border border-brand-red/25 hover:bg-brand-red/20 text-brand-red rounded-lg font-black uppercase tracking-widest text-[10px] cursor-pointer mt-2">
+                                        <LogOut size={14} /> Sign out
+                                    </button>
+                                </motion.div>
+                            ) : (
+                                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="mt-4 flex flex-col gap-2">
+                                    <Link href="/start-project" onClick={() => setIsMenuOpen(false)} className="w-full flex items-center justify-center gap-2 py-4 bg-brand-teal text-white rounded-lg font-black uppercase tracking-widest text-[10px] shadow-glow-teal">
+                                        Start Your Project <Zap size={14} />
+                                    </Link>
+                                    <Link href="/admin/login" onClick={() => setIsMenuOpen(false)} className="w-full flex items-center justify-center gap-2 py-4 glass border-white/10 text-white rounded-lg font-black uppercase tracking-widest text-[10px] active:bg-white/10">
+                                        <User size={14} className="text-brand-teal" /> Sign In
+                                    </Link>
+                                </motion.div>
+                            )}
                         </div>
 
                         {/* Overlay Footer */}
