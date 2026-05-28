@@ -15,6 +15,11 @@ import {
     Loader2,
 } from 'lucide-react';
 import { api } from '@/lib/api';
+import ProjectStatusChart from '@/components/admin/ProjectStatusChart';
+import ClientAcquisitionChart from '@/components/admin/ClientAcquisitionChart';
+
+import { LineChart, Line, CartesianGrid, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
+import ClientMap from '@/components/admin/ClientMap';
 
 const StatusIcon = ({ status }) => {
     if (status === 'new')
@@ -174,7 +179,7 @@ export default function AdminCommandCenter() {
             <div className="grid grid-cols-1 xl:grid-cols-[1fr_360px] gap-6">
                 <motion.div
                     {...fadeIn(0.3)}
-                    className="p-5 rounded-2xl bg-white/[0.02] border border-white/5"
+                    className="p-5 rounded-2xl bg-white/[0.02]"
                 >
                     <div className="flex items-center justify-between mb-6">
                         <h2 className="text-base font-black text-white uppercase tracking-tight flex items-center gap-2">
@@ -185,41 +190,58 @@ export default function AdminCommandCenter() {
                             Last 6 months
                         </span>
                     </div>
-                    <div className="flex items-end gap-3 h-32">
-                        {[45, 72, 58, 90, 68, 100].map((h, i) => (
-                            <motion.div
-                                key={i}
-                                initial={{ height: 0 }}
-                                animate={{ height: `${h}%` }}
-                                transition={{ duration: 0.6, delay: 0.4 + i * 0.08 }}
-                                className="flex-1 bg-gradient-to-t from-brand-teal to-brand-blue rounded-t-lg opacity-70 hover:opacity-100 transition-opacity relative group"
+                    <div className="h-64">
+                        <ResponsiveContainer width="100%" height="100%">
+                            <LineChart
+                                data={[
+                                    { name: 'Dec', revenue: 45000 },
+                                    { name: 'Jan', revenue: 72000 },
+                                    { name: 'Feb', revenue: 58000 },
+                                    { name: 'Mar', revenue: 90000 },
+                                    { name: 'Apr', revenue: 68000 },
+                                    { name: 'May', revenue: 100000 },
+                                ]}
+                                margin={{
+                                    top: 5,
+                                    right: 30,
+                                    left: 20,
+                                    bottom: 5,
+                                }}
                             >
-                                <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-[9px] font-black text-brand-teal opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-                                    {['Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May'][i]}
-                                </div>
-                            </motion.div>
-                        ))}
-                    </div>
-                    <div className="flex justify-between mt-2">
-                        {['Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May'].map((m) => (
-                            <span
-                                key={m}
-                                className="flex-1 text-center text-[9px] font-black text-slate-600 uppercase tracking-widest"
-                            >
-                                {m}
-                            </span>
-                        ))}
+                                <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                                <XAxis dataKey="name" stroke="#94A3B8" />
+                                <YAxis stroke="#94A3B8" />
+                                <Tooltip
+                                    contentStyle={{
+                                        backgroundColor: '#1E293B',
+                                        border: 'none',
+                                        borderRadius: '8px',
+                                        color: '#E2E8F0',
+                                    }}
+                                    itemStyle={{ color: '#E2E8F0' }}
+                                    labelStyle={{ color: '#94A3B8' }}
+                                />
+                                <Line
+                                    type="monotone"
+                                    dataKey="revenue"
+                                    stroke="#22D3EE" // Tailwind cyan-400
+                                    activeDot={{ r: 8 }}
+                                />
+                            </LineChart>
+                        </ResponsiveContainer>
                     </div>
                 </motion.div>
 
                 <motion.div
                     {...fadeIn(0.35)}
-                    className="p-5 rounded-2xl bg-white/[0.02] border border-white/5"
+                    className="p-5 rounded-2xl bg-white/[0.02]"
                 >
-                    <h2 className="text-base font-black text-white uppercase tracking-tight flex items-center gap-2 mb-5">
-                        <Activity size={14} className="text-brand-red" /> Recent Activity
-                    </h2>
-                    <div className="space-y-3">
+                    <div className="flex items-center justify-between mb-6">
+                        <h2 className="text-base font-black text-white uppercase tracking-tight flex items-center gap-2 mb-5">
+                            <Activity size={14} className="text-brand-red" /> Recent Activity
+                        </h2>
+                    </div>
+                    <div className="h-64 overflow-y-auto pr-2">
                         {activity.length === 0 && (
                             <p className="text-xs text-slate-500 italic">
                                 No recent activity yet.
@@ -246,6 +268,13 @@ export default function AdminCommandCenter() {
                     </div>
                 </motion.div>
             </div>
+
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
+                <ProjectStatusChart />
+                <ClientAcquisitionChart />
+            </div>
+
+            <ClientMap />
         </div>
     );
 }

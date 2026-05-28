@@ -3,25 +3,37 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
+import useSettings from './useSettings';
 
 export default function useDashboard() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState('missions');
-  const [selectedMission, setSelectedMission] = useState(null);
+  const [activeTab, setActiveTab] = useState('projects');
+  const [selectedProject, setSelectedProject] = useState(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const [isDesktop, setIsDesktop] = useState(false);
 
   // Live state
   const [currentUser, setCurrentUser] = useState(null);
-  const [missions, setMissions] = useState([]);
+  const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [sysConfigEmail, setSysConfigEmail] = useState('');
-  const [sysConfigName, setSysConfigName] = useState('');
 
   // Billing state
   const [billingView, setBillingView] = useState('invoices');
+  
+  // Settings state
+  const {
+    settingsView,
+    setSettingsView,
+    sysConfigName,
+    setSysConfigName,
+    sysConfigEmail,
+    setSysConfigEmail,
+    isSaving,
+    saveSuccess,
+    handleSaveSettings,
+  } = useSettings(currentUser);
   const [clientInvoices, setClientInvoices] = useState([]);
   const [clientProposals, setClientProposals] = useState([]);
   const [billingDocsLoading, setBillingDocsLoading] = useState(false);
@@ -134,11 +146,6 @@ export default function useDashboard() {
       try {
         const me = await api.getMe();
         setCurrentUser(me);
-        setSysConfigEmail(me.email || '');
-        setSysConfigName(
-          `${me.first_name || ''} ${me.last_name || ''}`.trim() ||
-            me.username
-        );
 
         const compactProjects = await api.getClientProjects();
 
@@ -159,7 +166,7 @@ export default function useDashboard() {
             }
           })
         );
-        setMissions(detailedProjects);
+        setProjects(detailedProjects);
       } catch (err) {
         console.error('Failed to initialize dashboard:', err);
         router.push('/admin/login?from=/dashboard');
@@ -177,7 +184,7 @@ export default function useDashboard() {
     Array.isArray(res) ? res : res?.results || [];
 
   useEffect(() => {
-    if (!missions?.length) {
+    if (!projects?.length) {
       setClientInvoices([]);
       setClientProposals([]);
       return;
@@ -190,7 +197,7 @@ export default function useDashboard() {
         setBillingDocsError(null);
 
         const perProject = await Promise.all(
-          missions.map(async (p) => {
+          projects.map(async (p) => {
             const [invRes, propRes] = await Promise.all([
               api.getClientProjectInvoices(p.id).catch(() => []),
               api.getClientProjectProposals(p.id).catch(() => []),
@@ -239,7 +246,7 @@ export default function useDashboard() {
     return () => {
       cancelled = true;
     };
-  }, [missions, billingRefreshNonce]);
+  }, [projects, billingRefreshNonce]);
 
   useEffect(() => {
     if (activeTab !== 'billing') return;
@@ -250,7 +257,7 @@ export default function useDashboard() {
     const sessionId = billingNotice?.sessionId
       ? String(billingNotice.sessionId)
       : '';
-    if (!invoiceId || !missions?.length) return;
+    if (!invoiceId || !projects?.length) return;
 
     const invoice = clientInvoices.find((i) => Number(i.id) === invoiceId);
     const alreadyPaid = String(invoice?.status || '').toLowerCase() === 'paid';
@@ -277,26 +284,22 @@ export default function useDashboard() {
       setTimeout(() => setBillingRefreshNonce((n) => n + 1), 7000),
     ];
     return () => timeouts.forEach((t) => clearTimeout(t));
-  }, [activeTab, billingNotice, missions, clientInvoices]);
+  }, [activeTab, billingNotice, projects, clientInvoices]);
 
   return {
     activeTab,
     setActiveTab,
-    selectedMission,
-    setSelectedMission,
+    selectedProject,
+    setSelectedProject,
     isSidebarOpen,
     setIsSidebarOpen,
     mounted,
     isDesktop,
     currentUser,
-    missions,
+    projects,
     loading,
     searchQuery,
     setSearchQuery,
-    sysConfigEmail,
-    setSysConfigEmail,
-    sysConfigName,
-    setSysConfigName,
     billingView,
     setBillingView,
     clientInvoices,
@@ -314,6 +317,17 @@ export default function useDashboard() {
     proposalActionError,
     showDeclineConfirm,
     setShowDeclineConfirm,
+    // Settings
+    settingsView,
+    setSettingsView,
+    sysConfigName,
+    setSysConfigName,
+    sysConfigEmail,
+    setSysConfigEmail,
+    isSaving,
+    saveSuccess,
+    handleSaveSettings,
+    // Actions
     handleLogout,
     handleProposalRespond,
     handlePayInvoice,

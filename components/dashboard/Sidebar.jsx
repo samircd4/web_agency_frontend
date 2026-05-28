@@ -12,20 +12,20 @@ export default function DashboardSidebar({
     pendingProposalCount,
 }) {
     const items = [
-        { id: 'missions', name: 'Active Projects', icon: <Zap size={16} /> },
+        { id: 'projects', name: 'Projects', icon: <Zap size={16} /> },
         { id: 'vault', name: 'Secure Vault', icon: <Box size={16} /> },
         { id: 'comms', name: 'Communications', icon: <MessageSquare size={16} /> },
         {
             id: 'billing',
-            name: 'Billing Ledger',
+            name: 'Billing',
             icon: <CreditCard size={16} />,
             notificationDot: pendingProposalCount > 0 || pendingInvoiceCount > 0,
         },
-        { id: 'settings', name: 'System Config', icon: <Settings size={16} /> },
+        { id: 'settings', name: 'Settings', icon: <Settings size={16} /> },
     ];
 
     return (
-        <aside className={`fixed left-4 top-4 bottom-4 w-60 bg-slate-950/80 backdrop-blur-xl border border-white/5 z-[101] flex flex-col p-5 rounded-xl transition-transform duration-300 lg:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-[110%] lg:translate-x-0'} shadow-2xl shadow-black/50`}>
+        <aside className={`fixed left-0 lg:left-4 top-0 lg:top-4 bottom-0 lg:bottom-4 w-64 lg:w-60 bg-slate-950/80 backdrop-blur-xl border border-white/5 lg:border z-[101] flex flex-col p-5 lg:rounded-xl transition-transform duration-300 lg:translate-x-0 ${isSidebarOpen ? 'translate-x-0' : '-translate-x-[110%] lg:translate-x-0'} shadow-2xl shadow-black/50`}>
             <div className="flex items-center justify-between mb-8">
                 <Link href="/" className="flex items-center gap-3 group">
                     <div className="relative w-8 h-8 group-hover:scale-110 transition-transform duration-500">

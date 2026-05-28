@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
 import useDashboard from '@/hooks/useDashboard';
@@ -13,21 +13,26 @@ export default function DashboardView() {
     const {
         activeTab,
         setActiveTab,
-        selectedMission,
-        setSelectedMission,
+        selectedProject,
+        setSelectedProject,
         isSidebarOpen,
         setIsSidebarOpen,
         loading,
         currentUser,
-        missions,
+        projects,
         searchQuery,
         setSearchQuery,
-        sysConfigEmail,
-        setSysConfigEmail,
-        sysConfigName,
-        setSysConfigName,
         billingView,
         setBillingView,
+        settingsView,
+        setSettingsView,
+        sysConfigName,
+        setSysConfigName,
+        sysConfigEmail,
+        setSysConfigEmail,
+        isSaving,
+        saveSuccess,
+        handleSaveSettings,
         clientInvoices,
         clientProposals,
         billingDocsLoading,
@@ -48,6 +53,15 @@ export default function DashboardView() {
         handlePrintInvoice,
     } = useDashboard();
 
+    const [isDesktop, setIsDesktop] = useState(false);
+
+    useEffect(() => {
+        const checkIsDesktop = () => setIsDesktop(window.innerWidth >= 1024);
+        checkIsDesktop();
+        window.addEventListener('resize', checkIsDesktop);
+        return () => window.removeEventListener('resize', checkIsDesktop);
+    }, []);
+
     if (loading || !currentUser) {
         return (
             <div className="min-h-screen bg-[#020617] flex items-center justify-center">
@@ -61,7 +75,7 @@ export default function DashboardView() {
         );
     }
 
-    const vaultFiles = missions.flatMap((m) =>
+    const vaultFiles = projects.flatMap((m) =>
         (m.files || []).map((f) => ({
             ...f,
             projectName: m.title,
@@ -69,16 +83,16 @@ export default function DashboardView() {
         }))
     );
 
-    const filteredMissions = missions.filter((m) =>
+    const filteredProjects = projects.filter((m) =>
         m.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         m.id.toLowerCase().includes(searchQuery.toLowerCase())
     );
 
-    const totalInvestment = missions.reduce(
+    const totalInvestment = projects.reduce(
         (sum, m) => sum + Number(m.value || 0),
         0
     );
-    const activeMissionsCount = missions.filter(
+    const activeProjectsCount = projects.filter(
         (m) => m.stage !== 'Complete'
     ).length;
     const deliverablesCount = vaultFiles.length;
@@ -101,7 +115,7 @@ export default function DashboardView() {
             : currentUser.username;
 
     return (
-        <div className="min-h-screen bg-[#020617] text-slate-300 font-sans overflow-x-hidden">
+        <div className="h-screen bg-[#020617] text-slate-300 font-sans overflow-hidden">
             <AnimatePresence>
                 {isSidebarOpen && (
                     <div
@@ -121,21 +135,23 @@ export default function DashboardView() {
                 pendingProposalCount={pendingProposalCount}
             />
 
-            <main className="lg:pl-[272px] min-h-screen relative p-6 pr-8">
-                <DashboardTopbar
-                    isDesktop={window.innerWidth >= 1024}
-                    setIsSidebarOpen={setIsSidebarOpen}
-                    searchQuery={searchQuery}
-                    setSearchQuery={setSearchQuery}
-                    setActiveTab={setActiveTab}
-                    activeMissionsCount={activeMissionsCount}
-                    userDisplayName={userDisplayName}
-                    userInitials={userInitials}
-                    currentUser={currentUser}
-                />
+            <main className="lg:pl-[272px] h-screen flex flex-col p-0 lg:p-0">
+                <div className="px-4 lg:px-8 pt-4 lg:pt-6">
+                    <DashboardTopbar
+                        isDesktop={isDesktop}
+                        setIsSidebarOpen={setIsSidebarOpen}
+                        searchQuery={searchQuery}
+                        setSearchQuery={setSearchQuery}
+                        setActiveTab={setActiveTab}
+                        activeProjectsCount={activeProjectsCount}
+                        userDisplayName={userDisplayName}
+                        userInitials={userInitials}
+                        currentUser={currentUser}
+                    />
+                </div>
 
-                {billingNotice?.kind ? (
-                    <div className="mb-6">
+                {billingNotice?.kind && (
+                    <div className="px-4 lg:px-8">
                         <div
                             className={`p-4 rounded-xl border ${billingNotice.kind === 'success'
                                 ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-200'
@@ -168,19 +184,19 @@ export default function DashboardView() {
                             </div>
                         </div>
                     </div>
-                ) : null}
+                )}
 
-                <div className="w-full">
+                <div className="flex-grow overflow-hidden px-4 lg:px-8 pb-4 lg:pb-6">
                     <DashboardTabPanels
                         activeTab={activeTab}
-                        filteredMissions={filteredMissions}
-                        setSelectedMission={setSelectedMission}
+                        filteredProjects={filteredProjects}
+                        setSelectedProject={setSelectedProject}
                         totalInvestment={totalInvestment}
-                        activeMissionsCount={activeMissionsCount}
+                        activeProjectsCount={activeProjectsCount}
                         deliverablesCount={deliverablesCount}
                         searchQuery={searchQuery}
                         vaultFiles={vaultFiles}
-                        missions={missions}
+                        projects={projects}
                         billingNotice={billingNotice}
                         billingView={billingView}
                         setBillingView={setBillingView}
@@ -192,18 +208,24 @@ export default function DashboardView() {
                         onPrintInvoice={handlePrintInvoice}
                         onPayInvoice={handlePayInvoice}
                         onViewProposal={setSelectedProposal}
-                        sysConfigName={sysConfigName}
-                        sysConfigEmail={sysConfigEmail}
                         currentUser={currentUser}
+                        userInitials={userInitials}
+                        settingsView={settingsView}
+                        setSettingsView={setSettingsView}
+                        sysConfigName={sysConfigName}
                         setSysConfigName={setSysConfigName}
+                        sysConfigEmail={sysConfigEmail}
                         setSysConfigEmail={setSysConfigEmail}
+                        handleSaveSettings={handleSaveSettings}
+                        isSaving={isSaving}
+                        saveSuccess={saveSuccess}
                     />
                 </div>
             </main>
 
             <DashboardModals
-                selectedMission={selectedMission}
-                setSelectedMission={setSelectedMission}
+                selectedProject={selectedProject}
+                setSelectedProject={setSelectedProject}
                 selectedInvoice={selectedInvoice}
                 setSelectedInvoice={setSelectedInvoice}
                 selectedProposal={selectedProposal}
