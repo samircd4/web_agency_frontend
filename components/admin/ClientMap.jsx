@@ -84,6 +84,16 @@ const clients = [
         projectsCount: 2,
         investedAmount: 5000,
     },
+    {
+        id: "9",
+        name: "Miss India",
+        email: "another@example.com",
+        avatar: "https://randomuser.me/api/portraits/women/2.jpg",
+        country: "India",
+        coordinates: [93.35, 23.68],
+        projectsCount: 8,
+        investedAmount: 1000,
+    },
 ];
 
 const geoUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";

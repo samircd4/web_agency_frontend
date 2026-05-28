@@ -1,9 +1,12 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Users } from 'lucide-react';
+import {
+    BarChart, Bar, XAxis, YAxis, CartesianGrid,
+    Tooltip, ResponsiveContainer, Cell,
+} from 'recharts';
+import { Users, TrendingUp } from 'lucide-react';
 
 const fadeIn = (delay = 0) => ({
     initial: { opacity: 0, y: 5 },
@@ -20,29 +23,159 @@ const data = [
     { name: 'Jun', clients: 55 },
 ];
 
-const ClientAcquisitionChart = () => {
+const total = data.reduce((s, d) => s + d.clients, 0);
+const peak  = Math.max(...data.map(d => d.clients));
+const lastTwo = data.slice(-2);
+const growthPct = Math.round(((lastTwo[1].clients - lastTwo[0].clients) / lastTwo[0].clients) * 100);
+
+const BAR_COLOR         = '#818cf8'; // indigo-400
+const BAR_COLOR_ACTIVE  = '#a5b4fc'; // indigo-300
+const BAR_COLOR_PEAK    = '#6366f1'; // indigo-500 — highlight the max bar
+
+const CustomTooltip = ({ active, payload, label }) => {
+    if (!active || !payload?.length) return null;
     return (
-        <motion.div {...fadeIn(0.45)} className="p-5 rounded-2xl bg-white/[0.02]">
-            <h2 className="text-base font-black text-white uppercase tracking-tight flex items-center gap-2 mb-5">
-                <Users size={14} className="text-brand-indigo" /> Client Acquisition
-            </h2>
-            <div className="h-64">
+        <div style={{
+            background: '#0f172a',
+            border: '1px solid rgba(129,140,248,0.25)',
+            borderRadius: 10,
+            padding: '8px 14px',
+            fontSize: 12,
+        }}>
+            <div style={{ color: '#64748b', marginBottom: 2, letterSpacing: '0.05em' }}>
+                {label}
+            </div>
+            <div style={{ color: BAR_COLOR_ACTIVE, fontWeight: 700, fontSize: 16 }}>
+                {payload[0].value}
+                <span style={{ fontSize: 11, fontWeight: 400, color: '#64748b', marginLeft: 4 }}>clients</span>
+            </div>
+        </div>
+    );
+};
+
+const ClientAcquisitionChart = () => {
+    const [activeIndex, setActiveIndex] = useState(null);
+
+    return (
+        <motion.div
+            {...fadeIn(0.45)}
+            style={{
+                padding: '20px 20px 16px',
+                borderRadius: 16,
+                background: 'rgba(255,255,255,0.02)',
+                display: 'flex',
+                flexDirection: 'column',
+                height: '100%',
+            }}
+        >
+            {/* Header row */}
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                    <div style={{
+                        width: 28, height: 28, borderRadius: 8,
+                        background: 'rgba(99,102,241,0.12)',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    }}>
+                        <Users size={13} color="#818cf8" />
+                    </div>
+                    <span style={{
+                        fontSize: 12, fontWeight: 700, color: '#f1f5f9',
+                        letterSpacing: '0.08em', textTransform: 'uppercase',
+                    }}>
+                        Client Acquisition
+                    </span>
+                </div>
+
+                {/* Growth badge */}
+                <div style={{
+                    display: 'flex', alignItems: 'center', gap: 4,
+                    background: growthPct >= 0 ? 'rgba(45,212,191,0.10)' : 'rgba(248,113,113,0.10)',
+                    border: `1px solid ${growthPct >= 0 ? 'rgba(45,212,191,0.20)' : 'rgba(248,113,113,0.20)'}`,
+                    borderRadius: 20, padding: '3px 9px',
+                }}>
+                    <TrendingUp size={10} color={growthPct >= 0 ? '#2dd4bf' : '#f87171'} />
+                    <span style={{
+                        fontSize: 11, fontWeight: 700,
+                        color: growthPct >= 0 ? '#2dd4bf' : '#f87171',
+                    }}>
+                        {growthPct >= 0 ? '+' : ''}{growthPct}% MoM
+                    </span>
+                </div>
+            </div>
+
+            {/* Stat pills */}
+            <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
+                {[
+                    { label: 'Total H1', value: total },
+                    { label: 'Peak Month', value: peak },
+                    { label: 'Avg / Month', value: Math.round(total / data.length) },
+                ].map(stat => (
+                    <div key={stat.label} style={{
+                        flex: 1, padding: '8px 10px', borderRadius: 10,
+                        background: 'rgba(255,255,255,0.03)',
+                        border: '1px solid rgba(255,255,255,0.05)',
+                    }}>
+                        <div style={{ fontSize: 17, fontWeight: 800, color: '#f1f5f9', lineHeight: 1 }}>
+                            {stat.value}
+                        </div>
+                        <div style={{ fontSize: 10, color: '#475569', marginTop: 3, letterSpacing: '0.04em' }}>
+                            {stat.label.toUpperCase()}
+                        </div>
+                    </div>
+                ))}
+            </div>
+
+            {/* Chart */}
+            <div style={{ flex: 1, minHeight: 0 }}>
                 <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                        <XAxis dataKey="name" stroke="#94A3B8" />
-                        <YAxis stroke="#94A3B8" />
-                        <Tooltip
-                            contentStyle={{
-                                backgroundColor: '#1E293B',
-                                border: 'none',
-                                borderRadius: '8px',
-                                color: '#E2E8F0',
-                            }}
-                            itemStyle={{ color: '#E2E8F0' }}
-                            labelStyle={{ color: '#94A3B8' }}
+                    <BarChart
+                        data={data}
+                        margin={{ top: 4, right: 4, left: -24, bottom: 0 }}
+                        barCategoryGap="35%"
+                        onMouseLeave={() => setActiveIndex(null)}
+                    >
+                        <CartesianGrid
+                            strokeDasharray="2 4"
+                            stroke="rgba(255,255,255,0.04)"
+                            vertical={false}
                         />
-                        <Bar dataKey="clients" fill="#6366F1" /> {/* indigo-500 */}
+                        <XAxis
+                            dataKey="name"
+                            axisLine={false}
+                            tickLine={false}
+                            tick={{ fill: '#475569', fontSize: 11 }}
+                        />
+                        <YAxis
+                            axisLine={false}
+                            tickLine={false}
+                            tick={{ fill: '#475569', fontSize: 11 }}
+                            tickCount={4}
+                            domain={[0, 'auto']}
+                        />
+                        <Tooltip
+                            content={<CustomTooltip />}
+                            cursor={{ fill: 'rgba(255,255,255,0.03)', radius: 6 }}
+                        />
+                        <Bar
+                            dataKey="clients"
+                            radius={[5, 5, 0, 0]}
+                            onMouseEnter={(_, index) => setActiveIndex(index)}
+                        >
+                            {data.map((entry, index) => (
+                                <Cell
+                                    key={`cell-${index}`}
+                                    fill={
+                                        activeIndex === index
+                                            ? BAR_COLOR_ACTIVE
+                                            : entry.clients === peak
+                                                ? BAR_COLOR_PEAK
+                                                : BAR_COLOR
+                                    }
+                                    opacity={activeIndex !== null && activeIndex !== index ? 0.45 : 1}
+                                    style={{ transition: 'opacity 0.2s ease, fill 0.2s ease' }}
+                                />
+                            ))}
+                        </Bar>
                     </BarChart>
                 </ResponsiveContainer>
             </div>
