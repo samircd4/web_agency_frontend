@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { ComposableMap, ZoomableGroup, Geographies, Geography, Marker } from 'react-simple-maps';
 
 const clients = [
@@ -95,6 +95,9 @@ const ClientMap = () => {
     const [hoveredClientId, setHoveredClientId] = useState(null);
     const [position, setPosition] = useState({ coordinates: [0, 0], zoom: 1 });
     const containerRef = useRef(null);
+    // Ref copy of position so filterZoomEvent closure is never stale
+    const positionRef = useRef(position);
+    useEffect(() => { positionRef.current = position; }, [position]);
 
     const clientDataByCountry = clients.reduce((acc, client) => {
         if (!acc[client.country]) acc[client.country] = [];
@@ -124,10 +127,10 @@ const ClientMap = () => {
     return (
         <div
             ref={containerRef}
-            className="w-full bg-[#0b1329] rounded-2xl shadow-2xl p-4 border border-slate-800 flex items-center justify-center overflow-hidden min-h-[400px] md:min-h-[500px] lg:min-h-[580px] relative"
+            className="w-full bg-[#0b1329] rounded-2xl shadow-2xl p-4 border border-slate-800 overflow-hidden relative"
             onMouseMove={handleMouseMove}
         >
-            <div className="w-full h-full flex items-center justify-center">
+            <div className="w-full">
 
                 {/* Zoom hint badge */}
                 <div className="absolute top-4 left-4 bg-slate-950/70 border border-slate-800 backdrop-blur-sm text-[10px] text-slate-400 py-1 px-2.5 rounded pointer-events-none z-10 hidden sm:block select-none">
@@ -143,7 +146,8 @@ const ClientMap = () => {
                     height={440}
                     projection="geoEqualEarth"
                     projectionConfig={{ scale: 165 }}
-                    className="w-full h-full select-none"
+                    className="w-full select-none"
+                    style={{ display: 'block' }}
                 >
                     <defs>
                         <clipPath id="avatar-clip">
@@ -157,7 +161,13 @@ const ClientMap = () => {
                         minZoom={1}
                         maxZoom={6}
                         onMoveEnd={handleMoveEnd}
-                        disablePanning={position.zoom <= 1}
+                        // filterZoomEvent is passed straight to d3-zoom's .filter().
+                        // Blocking 'mousedown' prevents drag (pan) initiation while
+                        // leaving wheel events alone so scroll-to-zoom still works.
+                        filterZoomEvent={(evt) => {
+                            if (evt.type === 'mousedown' && positionRef.current.zoom <= 1) return false;
+                            return !evt.button;
+                        }}
                     >
                         {/* ── LAYER 1: Countries ── */}
                         {/* pointer-events disabled while a client is hovered so the country
