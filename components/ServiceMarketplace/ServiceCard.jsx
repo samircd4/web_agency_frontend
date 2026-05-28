@@ -68,7 +68,9 @@ export default function ServiceCard({ service }) {
                   src={displayImages[activeImageIndex]}
                   alt={title}
                   fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" // 👈 Added to clear your performance warning
                   className="object-cover group-hover/card:scale-110 transition-transform duration-700"
+                  priority={id < 3} // Optimization hint for your top-row cards
                 />
               </motion.div>
             </AnimatePresence>

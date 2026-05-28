@@ -1,10 +1,19 @@
+import { fileURLToPath } from 'url';
+import path from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
     output: 'standalone',
     experimental: {
         serverActions: {
-            allowedOrigins: ["drpythonsolutions.com", "*.drpythonsolutions.com"],
+            allowedOrigins: ["drpythonsolutions.com", "*.drpypythonsolutions.com"],
         },
+    },
+    env: {
+        NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000',
     },
     images: {
         remotePatterns: [
@@ -22,11 +31,11 @@ const nextConfig = {
         return [
             {
                 source: '/api/:path*',
-                destination: 'http://127.0.0.1:8000/api/:path*',
+                destination: `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/:path*`,
             },
             {
                 source: '/docs',
-                destination: 'http://127.0.0.1:8000/docs/',
+                destination: `${process.env.NEXT_PUBLIC_API_BASE_URL}/docs/`,
             },
         ];
     },

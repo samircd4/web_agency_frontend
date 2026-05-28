@@ -228,8 +228,8 @@ Data privacy is our top priority. We ensure that all customer interactions are e
       "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=1200&q=80&fit=crop",
       "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1200&q=80&fit=crop",
       "https://images.unsplash.com/photo-1563986768609-322da13575f3?w=1200&q=80&fit=crop",
-      "https://images.unsplash.com/photo-1558494949-ef010cbdcc51?w=1200&q=80&fit=crop",
-      "https://images.unsplash.com/photo-1510511459019-5dee997ddfdf?w=1200&q=80&fit=crop",
+      "https://images.unsplash.com/photo-1563986768609-322da13575f3?w=1200&q=80&fit=crop",
+      "https://images.unsplash.com/photo-1563986768609-322da13575f3?w=1200&q=80&fit=crop",
       "/images/service-code.png"
     ],
     badges: ["Certified", "Pro"],
