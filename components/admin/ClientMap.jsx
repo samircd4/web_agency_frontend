@@ -143,9 +143,9 @@ const ClientMap = () => {
 
                 <ComposableMap
                     width={800}
-                    height={440}
+                    height={330}
                     projection="geoEqualEarth"
-                    projectionConfig={{ scale: 165 }}
+                    projectionConfig={{ scale: 124 }}
                     className="w-full select-none"
                     style={{ display: 'block' }}
                 >
