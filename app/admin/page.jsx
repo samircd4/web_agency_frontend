@@ -1,21 +1,33 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
-    Zap, Users, Briefcase, TrendingUp, DollarSign,
-    Activity, ArrowUpRight, Clock, CheckCircle2, AlertCircle, Circle, Loader2
+    Zap,
+    Users,
+    Briefcase,
+    TrendingUp,
+    DollarSign,
+    Activity,
+    Clock,
+    CheckCircle2,
+    AlertCircle,
+    Loader2,
 } from 'lucide-react';
 import { api } from '@/lib/api';
 
 const StatusIcon = ({ status }) => {
-    if (status === 'new') return <span className="w-2 h-2 rounded-full bg-admin-accent animate-pulse inline-block" />;
-    if (status === 'done') return <CheckCircle2 size={12} className="text-emerald-400" />;
+    if (status === 'new')
+        return (
+            <span className="w-2 h-2 rounded-full bg-brand-teal animate-pulse inline-block" />
+        );
+    if (status === 'done')
+        return <CheckCircle2 size={12} className="text-emerald-400" />;
     return <Clock size={12} className="text-yellow-400" />;
 };
 
 const fadeIn = (delay = 0) => ({
-    initial: { opacity: 0, y: 10 },
+    initial: { opacity: 0, y: 5 },
     animate: { opacity: 1, y: 0 },
     transition: { duration: 0.4, delay },
 });
@@ -35,15 +47,20 @@ export default function AdminCommandCenter() {
                     api.getAdminActivity(),
                 ]);
                 setStats(statsRes);
-                // Normalize activity — API returns an array of { id, action_text, timestamp }
-                const normalized = (Array.isArray(activityRes) ? activityRes : activityRes.results || []).map(item => ({
+                const normalized = (Array.isArray(activityRes)
+                    ? activityRes
+                    : activityRes.results || []
+                ).map((item) => ({
                     text: item.action_text,
                     time: new Date(item.timestamp).toLocaleString(),
-                    status: item.action_text?.toLowerCase().includes('created') || item.action_text?.toLowerCase().includes('new')
-                        ? 'new'
-                        : item.action_text?.toLowerCase().includes('pending') || item.action_text?.toLowerCase().includes('quote')
-                        ? 'pending'
-                        : 'done',
+                    status:
+                        item.action_text?.toLowerCase().includes('created') ||
+                            item.action_text?.toLowerCase().includes('new')
+                            ? 'new'
+                            : item.action_text?.toLowerCase().includes('pending') ||
+                                item.action_text?.toLowerCase().includes('quote')
+                                ? 'pending'
+                                : 'done',
                 }));
                 setActivity(normalized.slice(0, 8));
             } catch (err) {
@@ -57,8 +74,13 @@ export default function AdminCommandCenter() {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center h-64">
-                <Loader2 size={24} className="animate-spin text-admin-accent" />
+            <div className="min-h-screen bg-[#020617] flex items-center justify-center">
+                <div className="flex flex-col items-center gap-3">
+                    <Loader2 size={32} className="animate-spin text-brand-teal" />
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
+                        Decrypting Command Space...
+                    </span>
+                </div>
             </div>
         );
     }
@@ -67,71 +89,102 @@ export default function AdminCommandCenter() {
         return (
             <div className="flex items-center justify-center h-64">
                 <div className="text-center">
-                    <AlertCircle size={24} className="text-admin-danger mx-auto mb-2" />
-                    <p className="text-text-muted text-sm">{error}</p>
+                    <AlertCircle size={24} className="text-brand-red mx-auto mb-2" />
+                    <p className="text-slate-500 text-sm">{error}</p>
                 </div>
             </div>
         );
     }
 
     const statCards = [
-        { label: 'Monthly Revenue', value: stats?.mrr != null ? `$${Number(stats.mrr).toLocaleString()}` : '$0', change: '', icon: DollarSign, color: 'brand-teal' },
-        { label: 'Active Projects', value: String(stats?.active_projects ?? 0), change: 'Stable', icon: Briefcase, color: 'brand-blue' },
-        { label: 'Open Leads', value: String(stats?.total_leads ?? 0), change: stats?.new_leads ? `+${stats.new_leads} new` : '', icon: Zap, color: 'brand-red' },
-        { label: 'Total Clients', value: String(stats?.total_clients ?? 0), change: '', icon: Users, color: 'brand-indigo' },
+        {
+            label: 'Monthly Revenue',
+            value:
+                stats?.mrr != null
+                    ? `$${Number(stats.mrr).toLocaleString()}`
+                    : '$0',
+            icon: <DollarSign className="text-brand-teal" />,
+            sub: 'MRR',
+        },
+        {
+            label: 'Active Projects',
+            value: String(stats?.active_projects ?? 0),
+            icon: <Briefcase className="text-brand-blue" />,
+            sub: 'Stable',
+        },
+        {
+            label: 'Open Leads',
+            value: String(stats?.total_leads ?? 0),
+            icon: <Zap className="text-brand-red" />,
+            sub: stats?.new_leads ? `+${stats.new_leads} new` : '',
+        },
+        {
+            label: 'Total Clients',
+            value: String(stats?.total_clients ?? 0),
+            icon: <Users className="text-brand-indigo" />,
+            sub: '',
+        },
     ];
 
     return (
         <div className="space-y-6">
-            {/* Page Header */}
-            <motion.div {...fadeIn()} className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+            <motion.div
+                {...fadeIn()}
+                className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4"
+            >
                 <div>
-                    <p className="text-xs font-black text-admin-accent uppercase tracking-[0.3em] mb-1">Admin</p>
-                    <h1 className="text-2xl font-black text-text-primary uppercase tracking-tight">Command Center</h1>
-                    <p className="text-text-muted text-sm mt-1">Agency-wide overview and real-time activity.</p>
+                    <h1 className="text-2xl font-black text-white mb-1 tracking-tight uppercase">
+                        Command Center
+                    </h1>
+                    <p className="text-slate-500 text-xs">
+                        Agency-wide overview and real-time activity.
+                    </p>
                 </div>
-                <div className="flex items-center gap-2 text-[10px] font-black text-text-muted uppercase tracking-widest">
-                    <Activity size={12} className="text-admin-accent" />
+                <div className="flex items-center gap-2 text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                    <Activity size={12} className="text-brand-teal" />
                     Last updated: just now
                 </div>
             </motion.div>
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
-                {statCards.map((s, i) => {
-                    const Icon = s.icon;
-                    return (
-                        <motion.div key={i} {...fadeIn(i * 0.08)}
-                            className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-all group relative overflow-hidden"
-                        >
-                            <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:opacity-10 transition-opacity">
-                                <Icon size={40} />
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+                {statCards.map((stat, i) => (
+                    <motion.div
+                        key={i}
+                        {...fadeIn(i * 0.08)}
+                        className="p-5 rounded-xl glass border border-white/5 relative overflow-hidden group"
+                    >
+                        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                            {React.cloneElement(stat.icon, { size: 24 })}
+                        </div>
+                        <div className="text-[9px] font-black text-slate-500 uppercase tracking-[0.2em] mb-2">
+                            {stat.label}
+                        </div>
+                        <div className="text-2xl font-black text-white mb-0.5">
+                            {stat.value}
+                        </div>
+                        {stat.sub && (
+                            <div className="text-[9px] font-bold text-brand-teal">
+                                {stat.sub}
                             </div>
-                            <div className={`inline-flex items-center justify-center w-9 h-9 rounded-xl bg-${s.color}/10 mb-3`}>
-                                <Icon size={16} className={`text-${s.color}`} />
-                            </div>
-                            <div className="text-[10px] font-black text-text-muted uppercase tracking-[0.2em] mb-1">{s.label}</div>
-                            <div className="flex items-end gap-2">
-                                <div className="text-2xl font-black text-text-primary">{s.value}</div>
-                                {s.change && <div className="text-xs font-bold text-admin-accent mb-0.5">{s.change}</div>}
-                            </div>
-                        </motion.div>
-                    );
-                })}
+                        )}
+                    </motion.div>
+                ))}
             </div>
 
-            {/* Content Row */}
             <div className="grid grid-cols-1 xl:grid-cols-[1fr_360px] gap-6">
-
-                {/* Revenue chart placeholder */}
-                <motion.div {...fadeIn(0.3)} className="p-5 rounded-2xl bg-white/[0.02] border border-white/5">
+                <motion.div
+                    {...fadeIn(0.3)}
+                    className="p-5 rounded-2xl bg-white/[0.02] border border-white/5"
+                >
                     <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-base font-black text-text-primary uppercase tracking-tight flex items-center gap-2">
-                            <TrendingUp size={14} className="text-admin-accent" /> Revenue Overview
+                        <h2 className="text-base font-black text-white uppercase tracking-tight flex items-center gap-2">
+                            <TrendingUp size={14} className="text-brand-teal" /> Revenue
+                            Overview
                         </h2>
-                        <span className="text-[10px] font-black text-text-muted uppercase tracking-widest">Last 6 months</span>
+                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">
+                            Last 6 months
+                        </span>
                     </div>
-                    {/* Simulated bar chart */}
                     <div className="flex items-end gap-3 h-32">
                         {[45, 72, 58, 90, 68, 100].map((h, i) => (
                             <motion.div
@@ -148,29 +201,45 @@ export default function AdminCommandCenter() {
                         ))}
                     </div>
                     <div className="flex justify-between mt-2">
-                        {['Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May'].map(m => (
-                            <span key={m} className="flex-1 text-center text-[9px] font-black text-text-dim uppercase tracking-widest">{m}</span>
+                        {['Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May'].map((m) => (
+                            <span
+                                key={m}
+                                className="flex-1 text-center text-[9px] font-black text-slate-600 uppercase tracking-widest"
+                            >
+                                {m}
+                            </span>
                         ))}
                     </div>
                 </motion.div>
 
-                {/* Recent Activity */}
-                <motion.div {...fadeIn(0.35)} className="p-5 rounded-2xl bg-white/[0.02] border border-white/5">
-                    <h2 className="text-base font-black text-text-primary uppercase tracking-tight flex items-center gap-2 mb-5">
-                        <Activity size={14} className="text-admin-danger" /> Recent Activity
+                <motion.div
+                    {...fadeIn(0.35)}
+                    className="p-5 rounded-2xl bg-white/[0.02] border border-white/5"
+                >
+                    <h2 className="text-base font-black text-white uppercase tracking-tight flex items-center gap-2 mb-5">
+                        <Activity size={14} className="text-brand-red" /> Recent Activity
                     </h2>
                     <div className="space-y-3">
                         {activity.length === 0 && (
-                            <p className="text-xs text-text-dim italic">No recent activity yet.</p>
+                            <p className="text-xs text-slate-500 italic">
+                                No recent activity yet.
+                            </p>
                         )}
                         {activity.map((item, i) => (
-                            <div key={i} className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-white/5 transition-all group">
+                            <div
+                                key={i}
+                                className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-white/5 transition-all group"
+                            >
                                 <div className="mt-0.5 shrink-0">
                                     <StatusIcon status={item.status} />
                                 </div>
                                 <div className="flex-grow min-w-0">
-                                    <p className="text-xs font-bold text-text-secondary group-hover:text-text-primary transition-colors leading-relaxed">{item.text}</p>
-                                    <p className="text-[10px] font-black text-text-dim uppercase tracking-widest mt-0.5">{item.time}</p>
+                                    <p className="text-xs font-bold text-slate-400 group-hover:text-slate-300 transition-colors leading-relaxed">
+                                        {item.text}
+                                    </p>
+                                    <p className="text-[10px] font-black text-slate-600 uppercase tracking-widest mt-0.5">
+                                        {item.time}
+                                    </p>
                                 </div>
                             </div>
                         ))}

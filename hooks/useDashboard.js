@@ -1,0 +1,322 @@
+'use client';
+
+import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
+import { api } from '@/lib/api';
+
+export default function useDashboard() {
+  const router = useRouter();
+  const [activeTab, setActiveTab] = useState('missions');
+  const [selectedMission, setSelectedMission] = useState(null);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  // Live state
+  const [currentUser, setCurrentUser] = useState(null);
+  const [missions, setMissions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sysConfigEmail, setSysConfigEmail] = useState('');
+  const [sysConfigName, setSysConfigName] = useState('');
+
+  // Billing state
+  const [billingView, setBillingView] = useState('invoices');
+  const [clientInvoices, setClientInvoices] = useState([]);
+  const [clientProposals, setClientProposals] = useState([]);
+  const [billingDocsLoading, setBillingDocsLoading] = useState(false);
+  const [billingDocsError, setBillingDocsError] = useState(null);
+  const [selectedInvoice, setSelectedInvoice] = useState(null);
+  const [selectedProposal, setSelectedProposal] = useState(null);
+  const [checkoutInvoiceId, setCheckoutInvoiceId] = useState(null);
+  const [billingNotice, setBillingNotice] = useState(null);
+  const [billingRefreshNonce, setBillingRefreshNonce] = useState(0);
+  const syncAttemptedRef = useRef(new Set());
+  const pollAttemptedRef = useRef(new Set());
+  const [proposalActionInProgress, setProposalActionInProgress] = useState(null);
+  const [proposalActionError, setProposalActionError] = useState(null);
+  const [showDeclineConfirm, setShowDeclineConfirm] = useState(false);
+
+  const handleLogout = async () => {
+    await api.logout();
+    router.push('/admin/login');
+  };
+
+  const handleProposalRespond = async (projectId, proposalId, action) => {
+    try {
+      setProposalActionInProgress({ proposalId, action });
+      setProposalActionError(null);
+
+      const updatedProposal = await api.respondToProposal(projectId, proposalId, action);
+
+      setClientProposals(prevProposals =>
+        prevProposals.map(p =>
+          p.id === proposalId ? updatedProposal : p
+        )
+      );
+
+      setSelectedProposal(null);
+      setShowDeclineConfirm(false);
+    } catch (err) {
+      setProposalActionError(err?.message || 'Failed to respond to proposal');
+    } finally {
+      setProposalActionInProgress(null);
+    }
+  };
+
+  const handlePayInvoice = async (invoice) => {
+    setCheckoutInvoiceId(invoice.id);
+    setBillingDocsError(null);
+
+    try {
+      const res = await api.createClientInvoiceCheckout(invoice._projectId, invoice.id);
+      if (!res?.url) throw new Error('Failed to start checkout');
+      window.location.href = res.url;
+    } catch (err) {
+      setBillingDocsError(err?.message || 'Failed to start checkout');
+    } finally {
+      setCheckoutInvoiceId(null);
+    }
+  };
+
+  const handlePrintInvoice = (invoice) => {
+    window.open(
+      `http://localhost:8000/api/client/projects/${invoice._projectId}/invoices/${invoice.id}/print/`,
+      '_blank',
+      'noopener,noreferrer'
+    );
+  };
+
+  useEffect(() => {
+    setMounted(true);
+    const handleResize = () => setIsDesktop(window.innerWidth >= 1024);
+    handleResize();
+    window.addEventListener('resize', handleResize);
+
+    try {
+      const qs = new URLSearchParams(window.location.search || '');
+      const tab = qs.get('tab');
+      const checkout = qs.get('checkout');
+      const invoiceId = qs.get('invoice');
+      const sessionId = qs.get('session_id');
+      if (tab === 'billing') setActiveTab('billing');
+      if (checkout === 'success') {
+        setActiveTab('billing');
+        setBillingNotice({ kind: 'success', invoiceId, sessionId });
+        setBillingView('invoices');
+      }
+      if (checkout === 'cancel') {
+        setActiveTab('billing');
+        setBillingNotice({ kind: 'cancel', invoiceId, sessionId });
+        setBillingView('invoices');
+      }
+
+      if (checkout) {
+        if (typeof window !== 'undefined') {
+          const cleanUrl = window.location.pathname + '?tab=billing';
+          window.history.replaceState({}, '', cleanUrl);
+        }
+      }
+    } catch (err) {
+      // ignore
+    }
+
+    const initDashboard = async () => {
+      const token =
+        typeof window !== 'undefined'
+          ? localStorage.getItem('access_token')
+          : null;
+      if (!token) {
+        router.push('/admin/login?from=/dashboard');
+        return;
+      }
+
+      try {
+        const me = await api.getMe();
+        setCurrentUser(me);
+        setSysConfigEmail(me.email || '');
+        setSysConfigName(
+          `${me.first_name || ''} ${me.last_name || ''}`.trim() ||
+            me.username
+        );
+
+        const compactProjects = await api.getClientProjects();
+
+        const detailedProjects = await Promise.all(
+          compactProjects.map(async (p) => {
+            try {
+              return await api.getClientProjectDetail(p.id);
+            } catch (err) {
+              console.error(`Failed to fetch project detail for ${p.id}`, err);
+              return {
+                ...p,
+                description: 'Brief details retrieved from directory.',
+                tags: [],
+                milestones: [],
+                files: [],
+                activities: [],
+              };
+            }
+          })
+        );
+        setMissions(detailedProjects);
+      } catch (err) {
+        console.error('Failed to initialize dashboard:', err);
+        router.push('/admin/login?from=/dashboard');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initDashboard();
+
+    return () => window.removeEventListener('resize', handleResize);
+  }, [router]);
+
+  const normalizeList = (res) =>
+    Array.isArray(res) ? res : res?.results || [];
+
+  useEffect(() => {
+    if (!missions?.length) {
+      setClientInvoices([]);
+      setClientProposals([]);
+      return;
+    }
+
+    let cancelled = false;
+    const loadBillingDocs = async () => {
+      try {
+        setBillingDocsLoading(true);
+        setBillingDocsError(null);
+
+        const perProject = await Promise.all(
+          missions.map(async (p) => {
+            const [invRes, propRes] = await Promise.all([
+              api.getClientProjectInvoices(p.id).catch(() => []),
+              api.getClientProjectProposals(p.id).catch(() => []),
+            ]);
+            return {
+              projectId: p.id,
+              projectTitle: p.title,
+              projectValue: p.value,
+              invoices: normalizeList(invRes),
+              proposals: normalizeList(propRes),
+            };
+          })
+        );
+
+        const mergedInvoices = perProject.flatMap(
+          ({ projectId, projectTitle, projectValue, invoices }) =>
+            invoices.map((inv) => ({
+              ...inv,
+              _projectId: projectId,
+              _projectTitle: projectTitle,
+              _projectValue: projectValue,
+            }))
+        );
+        const mergedProposals = perProject.flatMap(
+          ({ projectId, projectTitle, projectValue, proposals }) =>
+            proposals.map((prop) => ({
+              ...prop,
+              _projectId: projectId,
+              _projectTitle: projectTitle,
+              _projectValue: projectValue,
+            }))
+        );
+
+        if (cancelled) return;
+        setClientInvoices(mergedInvoices);
+        setClientProposals(mergedProposals);
+      } catch (err) {
+        if (cancelled) return;
+        setBillingDocsError(err?.message || 'Failed to load billing documents');
+      } finally {
+        if (!cancelled) setBillingDocsLoading(false);
+      }
+    };
+
+    loadBillingDocs();
+    return () => {
+      cancelled = true;
+    };
+  }, [missions, billingRefreshNonce]);
+
+  useEffect(() => {
+    if (activeTab !== 'billing') return;
+    if (billingNotice?.kind !== 'success') return;
+    const invoiceId = billingNotice?.invoiceId
+      ? Number(billingNotice.invoiceId)
+      : null;
+    const sessionId = billingNotice?.sessionId
+      ? String(billingNotice.sessionId)
+      : '';
+    if (!invoiceId || !missions?.length) return;
+
+    const invoice = clientInvoices.find((i) => Number(i.id) === invoiceId);
+    const alreadyPaid = String(invoice?.status || '').toLowerCase() === 'paid';
+    if (alreadyPaid) return;
+
+    const syncKey = `${invoiceId}:${sessionId}`;
+    const pollKey = `${invoiceId}:${sessionId}`;
+
+    if (invoice?._projectId && !syncAttemptedRef.current.has(syncKey)) {
+      syncAttemptedRef.current.add(syncKey);
+      api
+        .syncClientInvoiceStripe(invoice._projectId, invoiceId)
+        .then(() => setBillingRefreshNonce((n) => n + 1))
+        .catch((err) =>
+          setBillingDocsError(err?.message || 'Failed to sync payment status')
+        );
+    }
+
+    if (pollAttemptedRef.current.has(pollKey)) return;
+    pollAttemptedRef.current.add(pollKey);
+    const timeouts = [
+      setTimeout(() => setBillingRefreshNonce((n) => n + 1), 1500),
+      setTimeout(() => setBillingRefreshNonce((n) => n + 1), 3500),
+      setTimeout(() => setBillingRefreshNonce((n) => n + 1), 7000),
+    ];
+    return () => timeouts.forEach((t) => clearTimeout(t));
+  }, [activeTab, billingNotice, missions, clientInvoices]);
+
+  return {
+    activeTab,
+    setActiveTab,
+    selectedMission,
+    setSelectedMission,
+    isSidebarOpen,
+    setIsSidebarOpen,
+    mounted,
+    isDesktop,
+    currentUser,
+    missions,
+    loading,
+    searchQuery,
+    setSearchQuery,
+    sysConfigEmail,
+    setSysConfigEmail,
+    sysConfigName,
+    setSysConfigName,
+    billingView,
+    setBillingView,
+    clientInvoices,
+    clientProposals,
+    billingDocsLoading,
+    billingDocsError,
+    selectedInvoice,
+    setSelectedInvoice,
+    selectedProposal,
+    setSelectedProposal,
+    checkoutInvoiceId,
+    billingNotice,
+    setBillingNotice,
+    proposalActionInProgress,
+    proposalActionError,
+    showDeclineConfirm,
+    setShowDeclineConfirm,
+    handleLogout,
+    handleProposalRespond,
+    handlePayInvoice,
+    handlePrintInvoice,
+  };
+}
