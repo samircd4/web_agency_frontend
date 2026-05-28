@@ -10,8 +10,8 @@ FROM node:20-alpine AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-COPY package.json package-lock.json ./
-RUN npm ci
+COPY package.json package-lock.json* ./
+RUN npm install --frozen-lockfile || npm install
 
 # Stage 2: Builder
 FROM node:20-alpine AS builder
