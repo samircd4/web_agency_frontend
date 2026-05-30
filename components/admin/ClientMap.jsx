@@ -2,8 +2,9 @@
 
 import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { ComposableMap, ZoomableGroup, Geographies, Geography, Marker } from 'react-simple-maps';
+import { getFullAvatarUrl } from '@/lib/api';
 
-const clients = [
+const clientsMock = [
     {
         id: "1",
         name: "John Doe",
@@ -128,7 +129,7 @@ const clients = [
 
 const geoUrl = "https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json";
 
-const ClientMap = () => {
+const ClientMap = ({ data: dataProp }) => {
     const [tooltipData, setTooltipData] = useState(null);
     // mousePos is relative to the outer container div
     const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
@@ -138,6 +139,8 @@ const ClientMap = () => {
     // Ref copy of position so filterZoomEvent closure is never stale
     const positionRef = useRef(position);
     useEffect(() => { positionRef.current = position; }, [position]);
+
+    const clients = dataProp || clientsMock;
 
     const clientDataByCountry = clients.reduce((acc, client) => {
         if (!acc[client.country]) acc[client.country] = [];
@@ -275,10 +278,10 @@ const ClientMap = () => {
                             {clients.map((client) => (
                                 <Marker key={client.id} coordinates={client.coordinates}>
                                     {/*
-                                     * FIX 2 — counter-scale the inner group by 1/zoom.
-                                     * ZoomableGroup applies a CSS/SVG scale of `zoom` to everything
-                                     * inside it; multiplying by the inverse keeps visual size constant.
-                                     */}
+                     * FIX 2 — counter-scale the inner group by 1/zoom.
+                     * ZoomableGroup applies a CSS/SVG scale of `zoom` to everything
+                     * inside it; multiplying by the inverse keeps visual size constant.
+                     */}
                                     <g
                                         transform={`scale(${markerScale})`}
                                         className="cursor-pointer"
@@ -299,7 +302,7 @@ const ClientMap = () => {
                                         <circle r={7} className="fill-teal-400 stroke-slate-950 stroke-[1] pointer-events-none" />
                                         {/* Avatar image */}
                                         <image
-                                            href={client.avatar}
+                                            href={getFullAvatarUrl(client.avatar)}
                                             x="-6" y="-6"
                                             height="12" width="12"
                                             clipPath="url(#avatar-clip)"
@@ -351,7 +354,7 @@ const ClientMap = () => {
                         {tooltipData.type === 'client' && (
                             <div className="p-3.5 bg-slate-950 text-white rounded-xl border-2 border-teal-500 flex flex-col items-center shadow-2xl min-w-[190px]">
                                 <img
-                                    src={tooltipData.client.avatar}
+                                    src={getFullAvatarUrl(tooltipData.client.avatar)}
                                     className="w-12 h-12 rounded-full border-2 border-teal-400 object-cover shadow-md mb-2"
                                     alt=""
                                 />

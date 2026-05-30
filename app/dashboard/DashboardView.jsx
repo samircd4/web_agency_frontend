@@ -33,6 +33,7 @@ export default function DashboardView() {
         isSaving,
         saveSuccess,
         handleSaveSettings,
+        handleAvatarChange,
         clientInvoices,
         clientProposals,
         billingDocsLoading,
@@ -219,6 +220,7 @@ export default function DashboardView() {
                         handleSaveSettings={handleSaveSettings}
                         isSaving={isSaving}
                         saveSuccess={saveSuccess}
+                        handleAvatarChange={handleAvatarChange}
                     />
                 </div>
             </main>

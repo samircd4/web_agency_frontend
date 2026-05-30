@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { Menu, Search, MessageSquare, Bell } from 'lucide-react';
+import { getFullAvatarUrl } from '@/lib/api';
 
 export default function DashboardTopbar({
     isDesktop,
@@ -19,7 +20,7 @@ export default function DashboardTopbar({
                 <button onClick={() => setIsSidebarOpen(true)} className="lg:hidden p-2 -ml-1 text-slate-400 hover:text-white">
                     <Menu size={18} />
                 </button>
-                
+
                 {/* Logo & Brand Name on Mobile */}
                 <Link href="/" className="lg:hidden flex items-center gap-2 group">
                     <div className="relative w-7 h-7 group-hover:scale-110 transition-transform duration-500">
@@ -76,7 +77,7 @@ export default function DashboardTopbar({
                     {currentUser?.avatar ? (
                         <div className="w-8 h-8 rounded-lg overflow-hidden border border-white/10">
                             <img
-                                src={currentUser.avatar}
+                                src={getFullAvatarUrl(currentUser.avatar)}
                                 alt={userDisplayName}
                                 className="w-full h-full object-cover"
                             />

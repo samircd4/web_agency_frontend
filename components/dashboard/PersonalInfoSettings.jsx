@@ -13,11 +13,17 @@ export default function PersonalInfoSettings({
     handleSaveSettings,
     isSaving,
     saveSuccess,
+    handleAvatarChange,
 }) {
     return (
         <div className="max-w-2xl glass border-white/5 rounded-xl p-6">
             <div className="space-y-6">
-                <AvatarUpload currentUser={currentUser} userInitials={userInitials} />
+                <AvatarUpload 
+                    currentUser={currentUser} 
+                    userInitials={userInitials}
+                    onAvatarChange={handleAvatarChange}
+                    isLoading={isSaving}
+                />
 
                 <div className="grid md:grid-cols-2 gap-4">
                     <div className="space-y-1.5">

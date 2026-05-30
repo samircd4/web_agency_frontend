@@ -22,6 +22,10 @@ export default function useDashboard() {
   // Billing state
   const [billingView, setBillingView] = useState('invoices');
   
+  const handleUserUpdate = (updatedUser) => {
+    setCurrentUser(updatedUser);
+  };
+
   // Settings state
   const {
     settingsView,
@@ -33,7 +37,8 @@ export default function useDashboard() {
     isSaving,
     saveSuccess,
     handleSaveSettings,
-  } = useSettings(currentUser);
+    handleAvatarChange,
+  } = useSettings(currentUser, handleUserUpdate);
   const [clientInvoices, setClientInvoices] = useState([]);
   const [clientProposals, setClientProposals] = useState([]);
   const [billingDocsLoading, setBillingDocsLoading] = useState(false);
@@ -327,6 +332,7 @@ export default function useDashboard() {
     isSaving,
     saveSuccess,
     handleSaveSettings,
+    handleAvatarChange,
     // Actions
     handleLogout,
     handleProposalRespond,

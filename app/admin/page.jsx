@@ -193,14 +193,7 @@ export default function AdminCommandCenter() {
                     <div className="h-64">
                         <ResponsiveContainer width="100%" height="100%">
                             <LineChart
-                                data={[
-                                    { name: 'Dec', revenue: 45000 },
-                                    { name: 'Jan', revenue: 72000 },
-                                    { name: 'Feb', revenue: 58000 },
-                                    { name: 'Mar', revenue: 90000 },
-                                    { name: 'Apr', revenue: 68000 },
-                                    { name: 'May', revenue: 100000 },
-                                ]}
+                                data={stats?.revenue_overview || []}
                                 margin={{
                                     top: 5,
                                     right: 30,
@@ -231,7 +224,7 @@ export default function AdminCommandCenter() {
                         </ResponsiveContainer>
                     </div>
                 </motion.div>
-
+ 
                 <motion.div
                     {...fadeIn(0.35)}
                     className="p-5 rounded-2xl bg-white/[0.02]"
@@ -268,13 +261,13 @@ export default function AdminCommandCenter() {
                     </div>
                 </motion.div>
             </div>
-
+ 
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-6">
-                <ProjectStatusChart />
-                <ClientAcquisitionChart />
+                <ProjectStatusChart data={stats?.project_status} />
+                <ClientAcquisitionChart data={stats?.client_acquisition} />
             </div>
-
-            <ClientMap />
+ 
+            <ClientMap data={stats?.map_data} />
         </div>
     );
 }

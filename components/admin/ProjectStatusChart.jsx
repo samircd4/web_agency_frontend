@@ -11,18 +11,23 @@ const fadeIn = (delay = 0) => ({
     transition: { duration: 0.4, delay },
 });
 
-const data = [
-    { name: 'Completed',  value: 30, color: '#2dd4bf', bg: 'rgba(45,212,191,0.10)' },
-    { name: 'In Progress', value: 50, color: '#60a5fa', bg: 'rgba(96,165,250,0.10)' },
-    { name: 'Pending',    value: 20, color: '#fbbf24', bg: 'rgba(251,191,36,0.10)'  },
-    { name: 'Cancelled',  value: 5,  color: '#f87171', bg: 'rgba(248,113,113,0.10)' },
-];
+const colorMapping = {
+    'Completed': { color: '#2dd4bf', bg: 'rgba(45,212,191,0.10)' },
+    'In Progress': { color: '#60a5fa', bg: 'rgba(96,165,250,0.10)' },
+    'Pending': { color: '#fbbf24', bg: 'rgba(251,191,36,0.10)'  },
+    'Cancelled': { color: '#f87171', bg: 'rgba(248,113,113,0.10)' },
+};
 
-const total = data.reduce((s, d) => s + d.value, 0);
+const dataMock = [
+    { name: 'Completed',  count: 3 },
+    { name: 'In Progress', count: 5 },
+    { name: 'Pending',    count: 2 },
+    { name: 'Cancelled',  count: 1 },
+];
 
 const CustomTooltip = ({ active, payload }) => {
     if (!active || !payload?.length) return null;
-    const { name, value, color } = payload[0].payload;
+    const { name, value, count, color } = payload[0].payload;
     return (
         <div style={{
             background: '#0f172a',
@@ -32,15 +37,30 @@ const CustomTooltip = ({ active, payload }) => {
             fontSize: 12,
         }}>
             <span style={{ color, fontWeight: 700 }}>{name}</span>
-            <span style={{ color: '#94a3b8', marginLeft: 8 }}>{value}%</span>
+            <span style={{ color: '#f1f5f9', marginLeft: 8 }}>{count} ({value}%)</span>
         </div>
     );
 };
 
-const ProjectStatusChart = () => {
+const ProjectStatusChart = ({ data: dataProp }) => {
     const [activeIndex, setActiveIndex] = useState(null);
 
-    const activeItem = activeIndex !== null ? data[activeIndex] : null;
+    const rawData = dataProp || dataMock;
+    const totalProjects = rawData.reduce((s, d) => s + (d.count ?? d.value ?? 0), 0);
+
+    const chartData = rawData.map(item => {
+        const mapping = colorMapping[item.name] || { color: '#94a3b8', bg: 'rgba(148,163,184,0.10)' };
+        const count = item.count ?? item.value ?? 0;
+        const valuePct = totalProjects > 0 ? Math.round((count / totalProjects) * 100) : 0;
+        return {
+            ...item,
+            ...mapping,
+            count,
+            value: valuePct
+        };
+    });
+
+    const activeItem = activeIndex !== null ? chartData[activeIndex] : null;
 
     return (
         <motion.div
@@ -70,7 +90,7 @@ const ProjectStatusChart = () => {
                 <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                         <Pie
-                            data={data}
+                            data={chartData}
                             cx="50%"
                             cy="50%"
                             innerRadius={62}
@@ -83,7 +103,7 @@ const ProjectStatusChart = () => {
                             onMouseLeave={() => setActiveIndex(null)}
                             stroke="none"
                         >
-                            {data.map((entry, index) => (
+                            {chartData.map((entry, index) => (
                                 <Cell
                                     key={`cell-${index}`}
                                     fill={entry.color}
@@ -110,16 +130,16 @@ const ProjectStatusChart = () => {
                                 {activeItem.value}%
                             </span>
                             <span style={{ fontSize: 10, color: '#64748b', marginTop: 4, letterSpacing: '0.05em' }}>
-                                {activeItem.name.toUpperCase()}
+                                {activeItem.name.toUpperCase()} ({activeItem.count})
                             </span>
                         </>
                     ) : (
                         <>
                             <span style={{ fontSize: 22, fontWeight: 800, color: '#f1f5f9', lineHeight: 1 }}>
-                                {total}
+                                {totalProjects}
                             </span>
                             <span style={{ fontSize: 10, color: '#64748b', marginTop: 4, letterSpacing: '0.05em' }}>
-                                TOTAL
+                                TOTAL PROJECTS
                             </span>
                         </>
                     )}
@@ -128,7 +148,7 @@ const ProjectStatusChart = () => {
 
             {/* Legend rows */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: 6, marginTop: 16 }}>
-                {data.map((entry, index) => (
+                {chartData.map((entry, index) => (
                     <div
                         key={entry.name}
                         onMouseEnter={() => setActiveIndex(index)}
@@ -173,10 +193,10 @@ const ProjectStatusChart = () => {
                         <span style={{
                             fontSize: 12, fontWeight: 700,
                             color: activeIndex === index ? entry.color : '#64748b',
-                            minWidth: 30, textAlign: 'right',
+                            minWidth: 70, textAlign: 'right',
                             transition: 'color 0.2s ease',
                         }}>
-                            {entry.value}%
+                            {entry.value}% ({entry.count})
                         </span>
                     </div>
                 ))}

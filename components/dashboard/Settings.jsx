@@ -17,6 +17,7 @@ export default function Settings({
     handleSaveSettings,
     isSaving,
     saveSuccess,
+    handleAvatarChange,
 }) {
     return (
         <motion.div key="settings" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }}>
@@ -32,7 +33,7 @@ export default function Settings({
                     className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border flex items-center gap-2 ${settingsView === 'personal'
                         ? 'bg-brand-teal/10 border-brand-teal/20 text-brand-teal'
                         : 'bg-white/5 border-white/10 text-muted hover:text-white hover:bg-white/10'}
-          `}
+        `}
                 >
                     Personal Info
                 </button>
@@ -42,7 +43,7 @@ export default function Settings({
                     className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border flex items-center gap-2 ${settingsView === 'security'
                         ? 'bg-brand-teal/10 border-brand-teal/20 text-brand-teal'
                         : 'bg-white/5 border-white/10 text-muted hover:text-white hover:bg-white/10'}
-          `}
+        `}
                 >
                     Security
                 </button>
@@ -61,6 +62,7 @@ export default function Settings({
                         handleSaveSettings={handleSaveSettings}
                         isSaving={isSaving}
                         saveSuccess={saveSuccess}
+                        handleAvatarChange={handleAvatarChange}
                     />
                 )}
                 {settingsView === 'security' && (

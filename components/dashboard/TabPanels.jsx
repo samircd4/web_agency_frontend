@@ -445,6 +445,7 @@ export default function DashboardTabPanels(props) {
                         handleSaveSettings={props.handleSaveSettings}
                         isSaving={props.isSaving}
                         saveSuccess={props.saveSuccess}
+                        handleAvatarChange={props.handleAvatarChange}
                     />
                 </div>
             )}

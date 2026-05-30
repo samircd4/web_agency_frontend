@@ -14,7 +14,11 @@ const fadeIn = (delay = 0) => ({
     transition: { duration: 0.4, delay },
 });
 
-const data = [
+const BAR_COLOR         = '#818cf8'; // indigo-400
+const BAR_COLOR_ACTIVE  = '#a5b4fc'; // indigo-300
+const BAR_COLOR_PEAK    = '#6366f1'; // indigo-500 — highlight the max bar
+
+const dataMock = [
     { name: 'Jan', clients: 40 },
     { name: 'Feb', clients: 30 },
     { name: 'Mar', clients: 50 },
@@ -22,15 +26,6 @@ const data = [
     { name: 'May', clients: 60 },
     { name: 'Jun', clients: 55 },
 ];
-
-const total = data.reduce((s, d) => s + d.clients, 0);
-const peak  = Math.max(...data.map(d => d.clients));
-const lastTwo = data.slice(-2);
-const growthPct = Math.round(((lastTwo[1].clients - lastTwo[0].clients) / lastTwo[0].clients) * 100);
-
-const BAR_COLOR         = '#818cf8'; // indigo-400
-const BAR_COLOR_ACTIVE  = '#a5b4fc'; // indigo-300
-const BAR_COLOR_PEAK    = '#6366f1'; // indigo-500 — highlight the max bar
 
 const CustomTooltip = ({ active, payload, label }) => {
     if (!active || !payload?.length) return null;
@@ -53,8 +48,17 @@ const CustomTooltip = ({ active, payload, label }) => {
     );
 };
 
-const ClientAcquisitionChart = () => {
+const ClientAcquisitionChart = ({ data: dataProp }) => {
     const [activeIndex, setActiveIndex] = useState(null);
+
+    const chartData = dataProp || dataMock;
+    const total = chartData.reduce((s, d) => s + d.clients, 0);
+    const peak  = Math.max(...chartData.map(d => d.clients), 0);
+    const lastTwo = chartData.slice(-2);
+    const growthPct = lastTwo.length >= 2 && lastTwo[0].clients > 0
+        ? Math.round(((lastTwo[1].clients - lastTwo[0].clients) / lastTwo[0].clients) * 100)
+        : 0;
+    const avgClients = chartData.length > 0 ? Math.round(total / chartData.length) : 0;
 
     return (
         <motion.div
@@ -106,9 +110,9 @@ const ClientAcquisitionChart = () => {
             {/* Stat pills */}
             <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
                 {[
-                    { label: 'Total H1', value: total },
+                    { label: 'Total Clients', value: total },
                     { label: 'Peak Month', value: peak },
-                    { label: 'Avg / Month', value: Math.round(total / data.length) },
+                    { label: 'Avg / Month', value: avgClients },
                 ].map(stat => (
                     <div key={stat.label} style={{
                         flex: 1, padding: '8px 10px', borderRadius: 10,
@@ -129,7 +133,7 @@ const ClientAcquisitionChart = () => {
             <div style={{ flex: 1, minHeight: 0 }}>
                 <ResponsiveContainer width="100%" height="100%">
                     <BarChart
-                        data={data}
+                        data={chartData}
                         margin={{ top: 4, right: 4, left: -24, bottom: 0 }}
                         barCategoryGap="35%"
                         onMouseLeave={() => setActiveIndex(null)}
@@ -161,7 +165,7 @@ const ClientAcquisitionChart = () => {
                             radius={[5, 5, 0, 0]}
                             onMouseEnter={(_, index) => setActiveIndex(index)}
                         >
-                            {data.map((entry, index) => (
+                            {chartData.map((entry, index) => (
                                 <Cell
                                     key={`cell-${index}`}
                                     fill={
