@@ -33,9 +33,13 @@ function LoginForm() {
     // Form state
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
+    const [otp, setOtp] = useState('');
     const [showPassword, setShowPassword] = useState(false);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
+
+    // 2FA state
+    const [requires2FA, setRequires2FA] = useState(false);
 
     // Already logged in state
     const [checkingSession, setCheckingSession] = useState(true);
@@ -58,7 +62,9 @@ function LoginForm() {
                     const user = await api.getMe();
                     setExistingUser(user);
                 } catch {
-                    // Token expired or invalid — show login
+                    // Token expired or invalid — clear everything
+                    setExistingUser(null);
+                    clearTokens();
                 }
             }
             setCheckingSession(false);
@@ -72,15 +78,28 @@ function LoginForm() {
         setError('');
 
         try {
-            await api.login(username, password);
+            // Try to login with or without OTP
+            await api.login(username, password, requires2FA ? otp : undefined);
             const user = await api.getMe();
+            setRequires2FA(false);
             if (user.is_staff) {
                 router.push(from.startsWith('/admin') ? from : '/admin');
             } else {
                 router.push('/dashboard');
             }
         } catch (err) {
-            setError(err.message || 'Invalid credentials. Access denied.');
+            console.log("=== handleLogin error ===");
+            console.log("err:", err);
+            console.log("err.data:", err.data);
+            console.log("err.status:", err.status);
+            if (err.data?.requires_otp) {
+                setRequires2FA(true);
+                setError('');
+            } else if (err.data?.otp) {
+                setError(err.data.otp[0] || 'Invalid OTP code');
+            } else {
+                setError(err.message || 'Invalid credentials. Access denied.');
+            }
             setLoading(false);
         }
     };
@@ -106,6 +125,15 @@ function LoginForm() {
     const handleSwitchAccount = async () => {
         await api.logout();
         setExistingUser(null);
+    };
+
+    // Helper to clear tokens locally
+    const clearTokens = () => {
+        if (typeof window !== 'undefined') {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            document.cookie = 'admin_session=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+        }
     };
 
     const handleGoToDashboard = () => {
@@ -230,9 +258,9 @@ function LoginForm() {
                             </div>
                         </motion.div>
 
-                    /* ═══════════════════════════════════════════════════════════════ */
-                    /* Forgot Password View                                          */
-                    /* ═══════════════════════════════════════════════════════════════ */
+                        /* ═══════════════════════════════════════════════════════════════ */
+                        /* Forgot Password View                                          */
+                        /* ═══════════════════════════════════════════════════════════════ */
                     ) : activeView === 'forgot' ? (
                         <motion.div
                             key="forgot-password"
@@ -299,9 +327,9 @@ function LoginForm() {
                             </div>
                         </motion.div>
 
-                    /* ═══════════════════════════════════════════════════════════════ */
-                    /* Forgot Password Success View                                  */
-                    /* ═══════════════════════════════════════════════════════════════ */
+                        /* ═══════════════════════════════════════════════════════════════ */
+                        /* Forgot Password Success View                                  */
+                        /* ═══════════════════════════════════════════════════════════════ */
                     ) : activeView === 'forgot_success' ? (
                         <motion.div
                             key="forgot-success"
@@ -346,9 +374,9 @@ function LoginForm() {
                             </div>
                         </motion.div>
 
-                    /* ═══════════════════════════════════════════════════════════════ */
-                    /* Standard Login View                                           */
-                    /* ═══════════════════════════════════════════════════════════════ */
+                        /* ═══════════════════════════════════════════════════════════════ */
+                        /* Standard Login View                                           */
+                        /* ═══════════════════════════════════════════════════════════════ */
                     ) : (
                         <motion.div
                             key="login-form"
@@ -372,7 +400,8 @@ function LoginForm() {
                                         placeholder="Enter your username"
                                         required
                                         autoComplete="username"
-                                        className="w-full bg-white/5 border border-border-light rounded-xl px-4 py-3 text-sm text-text-primary placeholder:text-text-dim focus:outline-none focus:border-brand-teal/50 focus:bg-brand-teal/5 transition-all"
+                                        disabled={requires2FA}
+                                        className="w-full bg-white/5 border border-border-light rounded-xl px-4 py-3 text-sm text-text-primary placeholder:text-text-dim focus:outline-none focus:border-brand-teal/50 focus:bg-brand-teal/5 transition-all disabled:opacity-50"
                                     />
                                 </div>
 
@@ -399,7 +428,8 @@ function LoginForm() {
                                             placeholder="Enter your password"
                                             required
                                             autoComplete="current-password"
-                                            className="w-full bg-white/5 border border-border-light rounded-xl px-4 py-3 pr-12 text-sm text-text-primary placeholder:text-text-dim focus:outline-none focus:border-brand-teal/50 focus:bg-brand-teal/5 transition-all"
+                                            disabled={requires2FA}
+                                            className="w-full bg-white/5 border border-border-light rounded-xl px-4 py-3 pr-12 text-sm text-text-primary placeholder:text-text-dim focus:outline-none focus:border-brand-teal/50 focus:bg-brand-teal/5 transition-all disabled:opacity-50"
                                         />
                                         <button
                                             type="button"
@@ -410,6 +440,34 @@ function LoginForm() {
                                         </button>
                                     </div>
                                 </div>
+
+                                {/* OTP */}
+                                <AnimatePresence>
+                                    {requires2FA && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: -10, height: 0 }}
+                                            animate={{ opacity: 1, y: 0, height: 'auto' }}
+                                            className="overflow-hidden"
+                                        >
+                                            <div className="space-y-1.5">
+                                                <label className="text-[10px] font-black uppercase tracking-[0.2em] text-text-muted flex items-center gap-1.5 ml-1">
+                                                    <Shield size={10} /> Two-Factor Code
+                                                </label>
+                                                <input
+                                                    id="admin-otp"
+                                                    type="text"
+                                                    value={otp}
+                                                    onChange={(e) => setOtp(e.target.value)}
+                                                    placeholder="Enter 6-digit code"
+                                                    required
+                                                    autoComplete="one-time-code"
+                                                    maxLength={6}
+                                                    className="w-full bg-white/5 border border-border-light rounded-xl px-4 py-3 text-sm text-text-primary placeholder:text-text-dim focus:outline-none focus:border-brand-teal/50 focus:bg-brand-teal/5 transition-all font-mono tracking-widest text-center"
+                                                />
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
 
                                 {/* Error */}
                                 <AnimatePresence>
@@ -436,14 +494,31 @@ function LoginForm() {
                                     {loading ? (
                                         <>
                                             <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                            Authenticating...
+                                            {requires2FA ? 'Verifying...' : 'Authenticating...'}
                                         </>
                                     ) : (
                                         <>
-                                            <Shield size={14} /> Sign In
+                                            <Shield size={14} />
+                                            {requires2FA ? 'Verify & Sign In' : 'Sign In'}
                                         </>
                                     )}
                                 </button>
+
+                                {/* Back button for 2FA */}
+                                {requires2FA && (
+                                    <button
+                                        type="button"
+                                        onClick={() => {
+                                            setRequires2FA(false);
+                                            setOtp('');
+                                            setError('');
+                                        }}
+                                        className="w-full py-2 text-text-muted text-xs font-black uppercase tracking-widest hover:text-text-primary transition-all flex items-center justify-center gap-2"
+                                    >
+                                        <ArrowLeft size={12} />
+                                        Back to Login
+                                    </button>
+                                )}
                             </form>
 
                             {/* Divider */}

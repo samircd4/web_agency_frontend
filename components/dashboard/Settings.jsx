@@ -10,14 +10,20 @@ export default function Settings({
     userInitials,
     settingsView,
     setSettingsView,
-    sysConfigName,
-    setSysConfigName,
-    sysConfigEmail,
-    setSysConfigEmail,
+    firstName,
+    setFirstName,
+    lastName,
+    setLastName,
+    username,
+    setUsername,
+    email,
+    setEmail,
     handleSaveSettings,
     isSaving,
     saveSuccess,
     handleAvatarChange,
+    usernameStatus,
+    usernameCheckLoading,
 }) {
     return (
         <motion.div key="settings" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }}>
@@ -55,18 +61,24 @@ export default function Settings({
                         key="personal"
                         currentUser={currentUser}
                         userInitials={userInitials}
-                        sysConfigName={sysConfigName}
-                        setSysConfigName={setSysConfigName}
-                        sysConfigEmail={sysConfigEmail}
-                        setSysConfigEmail={setSysConfigEmail}
+                        firstName={firstName}
+                        setFirstName={setFirstName}
+                        lastName={lastName}
+                        setLastName={setLastName}
+                        username={username}
+                        setUsername={setUsername}
+                        email={email}
+                        setEmail={setEmail}
                         handleSaveSettings={handleSaveSettings}
                         isSaving={isSaving}
                         saveSuccess={saveSuccess}
                         handleAvatarChange={handleAvatarChange}
+                        usernameStatus={usernameStatus}
+                        usernameCheckLoading={usernameCheckLoading}
                     />
                 )}
                 {settingsView === 'security' && (
-                    <SecuritySettings key="security" />
+                    <SecuritySettings key="security" currentUser={currentUser} />
                 )}
             </AnimatePresence>
         </motion.div>

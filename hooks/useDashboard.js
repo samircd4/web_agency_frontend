@@ -30,14 +30,20 @@ export default function useDashboard() {
   const {
     settingsView,
     setSettingsView,
-    sysConfigName,
-    setSysConfigName,
-    sysConfigEmail,
-    setSysConfigEmail,
+    firstName,
+    setFirstName,
+    lastName,
+    setLastName,
+    username,
+    setUsername,
+    email,
+    setEmail,
     isSaving,
     saveSuccess,
     handleSaveSettings,
     handleAvatarChange,
+    usernameStatus,
+    usernameCheckLoading,
   } = useSettings(currentUser, handleUserUpdate);
   const [clientInvoices, setClientInvoices] = useState([]);
   const [clientProposals, setClientProposals] = useState([]);
@@ -55,7 +61,11 @@ export default function useDashboard() {
   const [showDeclineConfirm, setShowDeclineConfirm] = useState(false);
 
   const handleLogout = async () => {
-    await api.logout();
+    try {
+      await api.logout();
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
     router.push('/admin/login');
   };
 
@@ -325,14 +335,20 @@ export default function useDashboard() {
     // Settings
     settingsView,
     setSettingsView,
-    sysConfigName,
-    setSysConfigName,
-    sysConfigEmail,
-    setSysConfigEmail,
+    firstName,
+    setFirstName,
+    lastName,
+    setLastName,
+    username,
+    setUsername,
+    email,
+    setEmail,
     isSaving,
     saveSuccess,
     handleSaveSettings,
     handleAvatarChange,
+    usernameStatus,
+    usernameCheckLoading,
     // Actions
     handleLogout,
     handleProposalRespond,

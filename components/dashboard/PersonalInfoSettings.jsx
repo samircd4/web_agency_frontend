@@ -6,20 +6,26 @@ import AvatarUpload from './AvatarUpload';
 export default function PersonalInfoSettings({
     currentUser,
     userInitials,
-    sysConfigName,
-    setSysConfigName,
-    sysConfigEmail,
-    setSysConfigEmail,
+    firstName,
+    setFirstName,
+    lastName,
+    setLastName,
+    username,
+    setUsername,
+    email,
+    setEmail,
     handleSaveSettings,
     isSaving,
     saveSuccess,
     handleAvatarChange,
+    usernameStatus,
+    usernameCheckLoading,
 }) {
     return (
         <div className="max-w-2xl glass border-white/5 rounded-xl p-6">
             <div className="space-y-6">
-                <AvatarUpload 
-                    currentUser={currentUser} 
+                <AvatarUpload
+                    currentUser={currentUser}
                     userInitials={userInitials}
                     onAvatarChange={handleAvatarChange}
                     isLoading={isSaving}
@@ -30,18 +36,18 @@ export default function PersonalInfoSettings({
                         <label className="text-[8px] font-black uppercase tracking-widest text-muted ml-2">First Name</label>
                         <input
                             type="text"
-                            value={currentUser?.first_name || ''}
+                            value={firstName}
+                            onChange={(e) => setFirstName(e.target.value)}
                             className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-xs text-white focus:outline-none focus:border-brand-teal/50"
-                            disabled
                         />
                     </div>
                     <div className="space-y-1.5">
                         <label className="text-[8px] font-black uppercase tracking-widest text-muted ml-2">Last Name</label>
                         <input
                             type="text"
-                            value={currentUser?.last_name || ''}
+                            value={lastName}
+                            onChange={(e) => setLastName(e.target.value)}
                             className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-xs text-white focus:outline-none focus:border-brand-teal/50"
-                            disabled
                         />
                     </div>
                 </div>
@@ -50,28 +56,31 @@ export default function PersonalInfoSettings({
                     <label className="text-[8px] font-black uppercase tracking-widest text-muted ml-2">Username</label>
                     <input
                         type="text"
-                        value={currentUser?.username || ''}
-                        className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-xs text-white focus:outline-none focus:border-brand-teal/50"
-                        disabled
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        className={`w-full bg-white/5 border rounded-lg px-4 py-2 text-xs text-white focus:outline-none ${usernameCheckLoading ? 'border-brand-teal/30' :
+                                usernameStatus?.available ? 'border-emerald-500/30' :
+                                    usernameStatus ? 'border-red-500/30' :
+                                        'border-white/10 focus:border-brand-teal/50'
+                            }`}
                     />
-                </div>
-
-                <div className="space-y-1.5">
-                    <label className="text-[8px] font-black uppercase tracking-widest text-muted ml-2">Display Name</label>
-                    <input
-                        type="text"
-                        value={sysConfigName}
-                        onChange={(e) => setSysConfigName(e.target.value)}
-                        className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-xs text-white focus:outline-none focus:border-brand-teal/50"
-                    />
+                    {usernameCheckLoading && (
+                        <p className="text-[8px] text-brand-teal font-black uppercase tracking-widest ml-2">Checking availability...</p>
+                    )}
+                    {!usernameCheckLoading && usernameStatus && (
+                        <p className={`text-[8px] font-black uppercase tracking-widest ml-2 ${usernameStatus.available ? 'text-emerald-300' : 'text-brand-red'
+                            }`}>
+                            {usernameStatus.message}
+                        </p>
+                    )}
                 </div>
 
                 <div className="space-y-1.5">
                     <label className="text-[8px] font-black uppercase tracking-widest text-muted ml-2">Email Address</label>
                     <input
                         type="email"
-                        value={sysConfigEmail}
-                        onChange={(e) => setSysConfigEmail(e.target.value)}
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
                         className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-xs text-white focus:outline-none focus:border-brand-teal/50"
                     />
                 </div>

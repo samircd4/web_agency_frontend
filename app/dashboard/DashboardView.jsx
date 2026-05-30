@@ -26,14 +26,20 @@ export default function DashboardView() {
         setBillingView,
         settingsView,
         setSettingsView,
-        sysConfigName,
-        setSysConfigName,
-        sysConfigEmail,
-        setSysConfigEmail,
+        firstName,
+        setFirstName,
+        lastName,
+        setLastName,
+        username,
+        setUsername,
+        email,
+        setEmail,
         isSaving,
         saveSuccess,
         handleSaveSettings,
         handleAvatarChange,
+        usernameStatus,
+        usernameCheckLoading,
         clientInvoices,
         clientProposals,
         billingDocsLoading,
@@ -213,14 +219,20 @@ export default function DashboardView() {
                         userInitials={userInitials}
                         settingsView={settingsView}
                         setSettingsView={setSettingsView}
-                        sysConfigName={sysConfigName}
-                        setSysConfigName={setSysConfigName}
-                        sysConfigEmail={sysConfigEmail}
-                        setSysConfigEmail={setSysConfigEmail}
+                        firstName={firstName}
+                        setFirstName={setFirstName}
+                        lastName={lastName}
+                        setLastName={setLastName}
+                        username={username}
+                        setUsername={setUsername}
+                        email={email}
+                        setEmail={setEmail}
                         handleSaveSettings={handleSaveSettings}
                         isSaving={isSaving}
                         saveSuccess={saveSuccess}
                         handleAvatarChange={handleAvatarChange}
+                        usernameStatus={usernameStatus}
+                        usernameCheckLoading={usernameCheckLoading}
                     />
                 </div>
             </main>

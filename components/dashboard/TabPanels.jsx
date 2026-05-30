@@ -438,14 +438,20 @@ export default function DashboardTabPanels(props) {
                         userInitials={props.userInitials}
                         settingsView={props.settingsView}
                         setSettingsView={props.setSettingsView}
-                        sysConfigName={props.sysConfigName}
-                        setSysConfigName={props.setSysConfigName}
-                        sysConfigEmail={props.sysConfigEmail}
-                        setSysConfigEmail={props.setSysConfigEmail}
+                        firstName={props.firstName}
+                        setFirstName={props.setFirstName}
+                        lastName={props.lastName}
+                        setLastName={props.setLastName}
+                        username={props.username}
+                        setUsername={props.setUsername}
+                        email={props.email}
+                        setEmail={props.setEmail}
                         handleSaveSettings={props.handleSaveSettings}
                         isSaving={props.isSaving}
                         saveSuccess={props.saveSuccess}
                         handleAvatarChange={props.handleAvatarChange}
+                        usernameStatus={props.usernameStatus}
+                        usernameCheckLoading={props.usernameCheckLoading}
                     />
                 </div>
             )}

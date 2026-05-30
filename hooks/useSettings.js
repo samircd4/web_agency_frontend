@@ -1,26 +1,77 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { api } from '@/lib/api';
 
 export default function useSettings(currentUser, onUserUpdate) {
   const [settingsView, setSettingsView] = useState('personal');
-  const [sysConfigName, setSysConfigName] = useState('');
-  const [sysConfigEmail, setSysConfigEmail] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
   const [pendingAvatar, setPendingAvatar] = useState(null);
+  const [usernameStatus, setUsernameStatus] = useState(null);
+  const [usernameCheckLoading, setUsernameCheckLoading] = useState(false);
+  const debounceTimeoutRef = useRef(null);
 
   // Initialize settings when currentUser loads
   useEffect(() => {
     if (currentUser) {
-      setSysConfigEmail(currentUser.email || '');
-      setSysConfigName(
-        `${currentUser.first_name || ''} ${currentUser.last_name || ''}`.trim() ||
-          currentUser.username
-      );
+      setFirstName(currentUser.first_name || '');
+      setLastName(currentUser.last_name || '');
+      setUsername(currentUser.username || '');
+      setEmail(currentUser.email || '');
+      setUsernameStatus(null);
     }
   }, [currentUser]);
+
+  // Check username availability with debounce
+  const checkUsernameAvailability = useCallback(async (value) => {
+    if (!value) {
+      setUsernameStatus(null);
+      return;
+    }
+
+    // If it's the current user's username, it's available
+    if (value === currentUser?.username) {
+      setUsernameStatus({ available: true, message: 'Username is available.' });
+      return;
+    }
+
+    try {
+      setUsernameCheckLoading(true);
+      const result = await api.checkUsername(value);
+      setUsernameStatus(result);
+    } catch (error) {
+      console.error('Error checking username:', error);
+      setUsernameStatus({ available: false, message: 'Error checking username.' });
+    } finally {
+      setUsernameCheckLoading(false);
+    }
+  }, [currentUser]);
+
+  // Debounced username check
+  useEffect(() => {
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
+
+    if (username && username !== currentUser?.username) {
+      debounceTimeoutRef.current = setTimeout(() => {
+        checkUsernameAvailability(username);
+      }, 300);
+    } else {
+      setUsernameStatus(null);
+    }
+
+    return () => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+    };
+  }, [username, checkUsernameAvailability, currentUser]);
 
   const handleAvatarChange = (file) => {
     setPendingAvatar(file);
@@ -33,14 +84,22 @@ export default function useSettings(currentUser, onUserUpdate) {
     try {
       const updateData = {};
       
-      // Update name parts
-      const nameParts = sysConfigName.split(' ');
-      updateData.first_name = nameParts[0] || '';
-      updateData.last_name = nameParts.slice(1).join(' ') || '';
+      // Update first name, last name
+      if (firstName !== currentUser?.first_name) {
+        updateData.first_name = firstName;
+      }
+      if (lastName !== currentUser?.last_name) {
+        updateData.last_name = lastName;
+      }
+      
+      // Update username
+      if (username !== currentUser?.username) {
+        updateData.username = username;
+      }
       
       // Update email
-      if (sysConfigEmail !== currentUser?.email) {
-        updateData.email = sysConfigEmail;
+      if (email !== currentUser?.email) {
+        updateData.email = email;
       }
       
       // Update avatar if pending
@@ -68,13 +127,19 @@ export default function useSettings(currentUser, onUserUpdate) {
   return {
     settingsView,
     setSettingsView,
-    sysConfigName,
-    setSysConfigName,
-    sysConfigEmail,
-    setSysConfigEmail,
+    firstName,
+    setFirstName,
+    lastName,
+    setLastName,
+    username,
+    setUsername,
+    email,
+    setEmail,
     isSaving,
     saveSuccess,
     handleSaveSettings,
     handleAvatarChange,
+    usernameStatus,
+    usernameCheckLoading,
   };
 }
