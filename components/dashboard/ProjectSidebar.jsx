@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Zap, FileText, Download, MessageSquare, DollarSign } from "lucide-react";
+import { Zap, FileText, Download, MessageSquare, DollarSign, Clock } from "lucide-react";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 
@@ -132,6 +132,42 @@ function ProjectStatusCard({ project }) {
                     <span className="text-xs font-bold text-white uppercase tracking-wide">
                         {project.priority || 'Standard'}
                     </span>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function TimeInfoCard({ isAdmin, clientTimezone }) {
+    const [currentTime, setCurrentTime] = useState(new Date());
+
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setCurrentTime(new Date());
+        }, 1000);
+        return () => clearInterval(timer);
+    }, []);
+
+    return (
+        <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5 space-y-3">
+            <div>
+                <div className="text-xs font-black text-muted uppercase tracking-widest mb-1.5">
+                    {isAdmin ? "Client Timezone" : "System Time"}
+                </div>
+                <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-xl bg-brand-teal/10 flex items-center justify-center text-brand-teal shrink-0">
+                        <Clock size={16} />
+                    </div>
+                    <div>
+                        <div className="text-xl font-black text-white tracking-tight">
+                            {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                        </div>
+                        {isAdmin && (
+                            <div className="text-xs font-black text-brand-teal uppercase tracking-widest">
+                                {clientTimezone || "Unknown"}
+                            </div>
+                        )}
+                    </div>
                 </div>
             </div>
         </div>
@@ -276,12 +312,13 @@ function SecureChannelCTA() {
     );
 }
 
-export default function ProjectSidebar({ project, clientInvoices, clientProposals, files }) {
+export default function ProjectSidebar({ project, clientInvoices, clientProposals, files, isAdmin = false }) {
     return (
         <div className="space-y-3">
             <ProjectStatusCard project={project} />
             <PaymentStatusCard project={project} clientInvoices={clientInvoices} clientProposals={clientProposals} />
             <DeliverablesCard files={files} />
+            <TimeInfoCard isAdmin={isAdmin} clientTimezone={project?.client?.timezone} />
             <SecureChannelCTA />
         </div>
     );

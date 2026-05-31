@@ -120,12 +120,13 @@ export default function AdminProjectDetail() {
                 </motion.div>
 
                 {/* Sidebar (Sticky on desktop, stacks on top on mobile) */}
-                <div className="space-y-4 md:sticky md:top-[96px] z-20 order-1 md:order-2">
+                <div className="space-y-4 md:sticky md:top-0 z-20 order-1 md:order-2">
                     <ProjectSidebar
                         project={project}
                         clientInvoices={clientInvoices}
                         clientProposals={clientProposals}
                         files={files}
+                        isAdmin={true}
                     />
                 </div>
 

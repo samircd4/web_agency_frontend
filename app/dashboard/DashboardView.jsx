@@ -203,9 +203,9 @@ export default function DashboardView() {
             </div>
 
             {/* Main Content with Padding for Fixed Topbar */}
-            <main className="lg:pl-[256px] min-h-screen flex flex-col p-0 lg:p-0 pt-[120px]">
+            <main className="lg:pl-[256px] min-h-screen flex flex-col p-0 lg:p-0 mt-[100px]">
                 {billingNotice?.kind && (
-                    <div className="px-3 lg:px-6">
+                    <div className="px-3 lg:px-6 pb-4">
                         <div
                             className={`p-4 rounded-xl border ${billingNotice.kind === 'success'
                                 ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-200'
