@@ -28,7 +28,7 @@ export default function AdminLayout({ children }) {
     }
 
     return (
-        <div className="min-h-screen bg-[#020617] text-slate-300 font-sans overflow-hidden">
+        <div className="min-h-screen bg-[#020617] text-slate-300 font-sans">
             <AnimatePresence>
                 {sidebarOpen && (
                     <div
@@ -55,7 +55,7 @@ export default function AdminLayout({ children }) {
             </div>
 
             {/* Main Content with Padding for Fixed Topbar */}
-            <main className="lg:pl-[256px] min-h-screen flex flex-col p-0 lg:p-0 pt-[120px]">
+            <main className="lg:pl-[256px] min-h-screen flex flex-col p-0 lg:p-0 pt-[88px] lg:pt-[96px]">
                 <div className="flex-grow px-3 lg:px-6 pb-3 lg:pb-6">
                     {children}
                 </div>

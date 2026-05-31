@@ -82,17 +82,14 @@ export default function AdminProjectDetail() {
     const activities = project.activities || [];
 
     return (
-        <div className="w-full mt-[80px]">
-            {/* FIX 1: Removed `items-start` from this grid. 
-              This allows the right-side grid column track to stretch all the way down to match the height of the left content card.
-            */}
-            <div className="grid md:grid-cols-[1fr_320px] xl:grid-cols-[1fr_360px] gap-6">
+        <div className="w-full">
+            <div className="grid md:grid-cols-[1fr_320px] xl:grid-cols-[1fr_360px] gap-6 items-start">
 
                 {/* Left Main Content Card */}
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="glass border border-white/10 rounded-2xl overflow-hidden w-full h-fit"
+                    className="glass border border-white/10 rounded-2xl overflow-hidden w-full h-fit order-2 md:order-1"
                 >
                     {/* Header Layout */}
                     <div className="p-2 lg:p-4 border-b border-white/5 bg-white/[0.02]">
@@ -122,22 +119,8 @@ export default function AdminProjectDetail() {
                     <ProjectProtocolFooter />
                 </motion.div>
 
-                {/* FIX 2: Sticky Right Sidebar Wrap 
-                  - We target desktop screens using `md:`.
-                  - `h-fit` forces the *inner* content block to remain compact while it glides down the open grid track.
-                  - Changed top offset to `md:top-[110px]` to leave space for your navigation header.
-                */}
-                <aside className="hidden md:block md:sticky md:top-0 h-fit space-y-4">
-                    <ProjectSidebar
-                        project={project}
-                        clientInvoices={clientInvoices}
-                        clientProposals={clientProposals}
-                        files={files}
-                    />
-                </aside>
-
-                {/* Mobile version fallback (renders below content stack normally) */}
-                <div className="block md:hidden space-y-4">
+                {/* Sidebar (Sticky on desktop, stacks on top on mobile) */}
+                <div className="space-y-4 md:sticky md:top-[96px] z-20 order-1 md:order-2">
                     <ProjectSidebar
                         project={project}
                         clientInvoices={clientInvoices}

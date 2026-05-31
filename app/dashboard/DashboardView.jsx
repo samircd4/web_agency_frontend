@@ -174,7 +174,7 @@ export default function DashboardView() {
             : currentUser.username;
 
     return (
-        <div className="min-h-screen bg-[#020617] text-slate-300 font-sans overflow-hidden">
+        <div className="min-h-screen bg-[#020617] text-slate-300 font-sans">
             <AnimatePresence>
                 {isSidebarOpen && (
                     <div

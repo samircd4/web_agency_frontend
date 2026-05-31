@@ -83,7 +83,7 @@ export default function ClientProjectDetail() {
                 />
 
                 {/* Fixed Topbar */}
-                <div className="fixed top-0 right-0 left-0 lg:left-[256px] z-30 bg-[#020617] px-3 lg:px-6 py-3 mt-[80px]">
+                <div className="fixed top-0 right-0 left-0 lg:left-[256px] z-30 bg-[#020617] px-3 lg:px-6 py-3">
                     <DashboardTopbar
                         setIsSidebarOpen={setIsSidebarOpen}
                         searchQuery={searchQuery}
@@ -93,7 +93,7 @@ export default function ClientProjectDetail() {
                 </div>
 
                 {/* Main Content with Padding for Fixed Topbar */}
-                <main className="lg:pl-[256px] min-h-screen flex flex-col p-0 lg:p-0 pt-[120px]">
+                <main className="lg:pl-[256px] min-h-screen flex flex-col p-0 lg:p-0 pt-[88px] lg:pt-[96px]">
                     <div className="flex-grow flex items-center justify-center px-3 lg:px-6 pb-3 lg:pb-6">
                         <div className="flex flex-col items-center gap-3">
                             <div className="w-8 h-8 border-2 border-brand-teal border-t-transparent rounded-full animate-spin" />
@@ -145,7 +145,7 @@ export default function ClientProjectDetail() {
                 </div>
 
                 {/* Main Content with Padding for Fixed Topbar */}
-                <main className="lg:pl-[256px] min-h-screen flex flex-col p-0 lg:p-0 pt-[120px]">
+                <main className="lg:pl-[256px] min-h-screen flex flex-col p-0 lg:p-0 pt-[88px] lg:pt-[96px]">
                     <div className="flex-grow flex items-center justify-center px-3 lg:px-6 pb-3 lg:pb-6">
                         <div className="flex flex-col items-center gap-3">
                             <div className="w-8 h-8 border-2 border-brand-teal border-t-transparent rounded-full animate-spin" />
@@ -190,7 +190,7 @@ export default function ClientProjectDetail() {
                 </div>
 
                 {/* Main Content with Padding for Fixed Topbar */}
-                <main className="lg:pl-[256px] min-h-screen flex flex-col p-0 lg:p-0 pt-[120px]">
+                <main className="lg:pl-[256px] min-h-screen flex flex-col p-0 lg:p-0 pt-[88px] lg:pt-[96px]">
                     <div className="flex-grow flex items-center justify-center px-3 lg:px-6 pb-3 lg:pb-6">
                         <div className="text-center max-w-md px-4">
                             <div className="text-tiny font-black uppercase tracking-[0.2em] text-muted mb-2">
@@ -219,7 +219,7 @@ export default function ClientProjectDetail() {
     const completedCount = milestones.filter(m => m.done).length;
 
     return (
-        <div className="min-h-screen bg-[#020617] text-slate-300 font-sans overflow-hidden mt-[80px]">
+        <div className="min-h-screen bg-[#020617] text-slate-300 font-sans">
             <AnimatePresence>
                 {isSidebarOpen && (
                     <div
@@ -248,7 +248,7 @@ export default function ClientProjectDetail() {
             </div>
 
             {/* Main Content with Padding for Fixed Topbar */}
-            <main className="lg:pl-[256px] min-h-screen flex flex-col p-0 lg:p-0 pt-[120px]">
+            <main className="lg:pl-[256px] min-h-screen flex flex-col p-0 lg:p-0 pt-[88px] lg:pt-[96px]">
                 <div className="flex-grow px-3 lg:px-6 pb-3 lg:pb-6">
                     <div className="w-full">
                         <div className="grid md:grid-cols-[1fr_320px] xl:grid-cols-[1fr_360px] gap-6 items-start">
@@ -256,7 +256,7 @@ export default function ClientProjectDetail() {
                             <motion.div
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
-                                className="glass border border-white/10 rounded-2xl overflow-hidden w-full"
+                                className="glass border border-white/10 rounded-2xl overflow-hidden w-full order-2 md:order-1"
                             >
                                 {/* Header Layout */}
                                 <div className="p-2 lg:p-4 border-b border-white/5 bg-white/[0.02]">
@@ -403,7 +403,7 @@ export default function ClientProjectDetail() {
                             </motion.div>
 
                             {/* Right Sidebar (Sticky - Wider) */}
-                            <div className="space-y-4 sticky top-0 z-20">
+                            <div className="space-y-4 md:sticky md:top-[96px] z-20 order-1 md:order-2">
                                 <ProjectSidebar
                                     project={project}
                                     clientInvoices={clientInvoices}

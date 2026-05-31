@@ -100,12 +100,12 @@ function ProjectStatusCard({ project }) {
                                         <span className="text-[13px] font-black text-white">{String(timeLeft.hours).padStart(2, '0')}</span>
                                         <span className="text-[10px] font-bold text-muted uppercase tracking-widest">Hrs</span>
                                     </div>
-                                    <span className="text-[11px] font-black text-muted">:</span>
+                                    <span className="text-[11px] font-black text-muted -translate-y-[6px]">:</span>
                                     <div className="flex flex-col items-center min-w-[28px]">
                                         <span className="text-[13px] font-black text-white">{String(timeLeft.minutes).padStart(2, '0')}</span>
                                         <span className="text-[10px] font-bold text-muted uppercase tracking-widest">Min</span>
                                     </div>
-                                    <span className="text-[11px] font-black text-muted">:</span>
+                                    <span className="text-[11px] font-black text-muted -translate-y-[6px]">:</span>
                                     <div className="flex flex-col items-center min-w-[28px]">
                                         <span className="text-[13px] font-black text-white">{String(timeLeft.seconds).padStart(2, '0')}</span>
                                         <span className="text-[10px] font-bold text-muted uppercase tracking-widest">Sec</span>
