@@ -6,12 +6,11 @@ import { api } from '@/lib/api';
 import useSettings from './useSettings';
 
 export default function useDashboard() {
-  const router = useRouter();
-  const [activeTab, setActiveTab] = useState('projects');
-  const [selectedProject, setSelectedProject] = useState(null);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
-  const [isDesktop, setIsDesktop] = useState(false);
+    const router = useRouter();
+    const [activeTab, setActiveTab] = useState('projects');
+    const [selectedProject, setSelectedProject] = useState(null);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+    const [isDesktop, setIsDesktop] = useState(false);
 
   // Live state
   const [currentUser, setCurrentUser] = useState(null);
@@ -115,18 +114,15 @@ export default function useDashboard() {
   };
 
   useEffect(() => {
-    setMounted(true);
     const handleResize = () => setIsDesktop(window.innerWidth >= 1024);
     handleResize();
     window.addEventListener('resize', handleResize);
 
     try {
       const qs = new URLSearchParams(window.location.search || '');
-      const tab = qs.get('tab');
       const checkout = qs.get('checkout');
       const invoiceId = qs.get('invoice');
-      const sessionId = qs.get('session_id');
-      if (tab === 'billing') setActiveTab('billing');
+      const sessionId = qs.get('sessionId');
       if (checkout === 'success') {
         setActiveTab('billing');
         setBillingNotice({ kind: 'success', invoiceId, sessionId });
@@ -264,7 +260,6 @@ export default function useDashboard() {
   }, [projects, billingRefreshNonce]);
 
   useEffect(() => {
-    if (activeTab !== 'billing') return;
     if (billingNotice?.kind !== 'success') return;
     const invoiceId = billingNotice?.invoiceId
       ? Number(billingNotice.invoiceId)
@@ -299,7 +294,7 @@ export default function useDashboard() {
       setTimeout(() => setBillingRefreshNonce((n) => n + 1), 7000),
     ];
     return () => timeouts.forEach((t) => clearTimeout(t));
-  }, [activeTab, billingNotice, projects, clientInvoices]);
+  }, [billingNotice, projects, clientInvoices]);
 
   return {
     activeTab,
@@ -308,7 +303,6 @@ export default function useDashboard() {
     setSelectedProject,
     isSidebarOpen,
     setIsSidebarOpen,
-    mounted,
     isDesktop,
     currentUser,
     projects,

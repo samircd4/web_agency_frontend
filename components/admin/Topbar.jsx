@@ -20,7 +20,7 @@ export default function AdminTopbar({
             : currentUser?.username || 'Samir';
 
     return (
-        <header className="h-14 bg-slate-950/50 backdrop-blur-md border border-white/10 rounded-xl flex items-center justify-between px-5 mb-8 sticky top-6 z-40 shadow-xl shadow-black/20">
+        <header className="h-14 bg-slate-950/50 backdrop-blur-md border border-white/10 rounded-xl flex items-center justify-between px-4 shadow-xl shadow-black/20">
             <div className="flex items-center gap-3">
                 <button onClick={() => setSidebarOpen(true)} className="lg:hidden p-2 -ml-1 text-slate-400 hover:text-white">
                     <Menu size={18} />

@@ -225,7 +225,7 @@ function BillingTab({
                 >
                     Invoices
                     {clientInvoices.filter((inv) => inv.status !== 'paid' && inv.status !== 'void').length > 0 && (
-                        <span className="ml-1 px-1.5 py-0.5 rounded-full text-[8px] font-black bg-brand-teal/20 text-brand-teal border border-brand-teal/30 animate-pulse">
+                        <span className="ml-1 px-1.5 py-0.5 rounded-full text-[8px] font-black bg-brand-red/20 text-brand-red border border-brand-red/30 animate-pulse">
                             {clientInvoices.filter((inv) => inv.status !== 'paid' && inv.status !== 'void').length}
                         </span>
                     )}
@@ -240,7 +240,7 @@ function BillingTab({
                 >
                     Proposals
                     {pendingCount > 0 && (
-                        <span className="ml-1 px-1.5 py-0.5 rounded-full text-[8px] font-black bg-brand-teal/20 text-brand-teal border border-brand-teal/30 animate-pulse">
+                        <span className="ml-1 px-1.5 py-0.5 rounded-full text-[8px] font-black bg-brand-red/20 text-brand-red border border-brand-red/30 animate-pulse">
                             {pendingCount}
                         </span>
                     )}
@@ -328,13 +328,13 @@ function BillingTab({
             ) : (
                 <>
                     {pendingCount > 0 && (
-                        <div className="mb-4 p-4 rounded-xl border bg-amber-500/10 border-amber-500/20 text-amber-200">
+                        <div className="mb-4 p-4 rounded-xl border bg-brand-red/10 border-brand-red/20 text-brand-red">
                             <div className="flex items-center justify-between gap-4">
                                 <div>
                                     <div className="font-black uppercase tracking-widest text-[10px] mb-1">Awaiting Your Approval</div>
                                     <div className="text-xs">{pendingCount} {pendingCount === 1 ? 'proposal' : 'proposals'} awaiting your response.</div>
                                 </div>
-                                <span className="px-3 py-1 rounded-lg bg-amber-500 text-amber-950 font-black uppercase tracking-widest text-[9px] whitespace-nowrap">{pendingCount}</span>
+                                <span className="px-3 py-1 rounded-lg bg-brand-red text-primary font-black uppercase tracking-widest text-[9px] whitespace-nowrap">{pendingCount}</span>
                             </div>
                         </div>
                     )}
@@ -396,64 +396,56 @@ export default function DashboardTabPanels(props) {
     return (
         <AnimatePresence mode="wait">
             {props.activeTab === 'projects' && (
-                <div className="h-full overflow-y-auto">
-                    <ProjectsTab
-                        filteredProjects={props.filteredProjects}
-                        totalInvestment={props.totalInvestment}
-                        activeProjectsCount={props.activeProjectsCount}
-                        deliverablesCount={props.deliverablesCount}
-                        searchQuery={props.searchQuery}
-                    />
-                </div>
+                <ProjectsTab
+                    filteredProjects={props.filteredProjects}
+                    totalInvestment={props.totalInvestment}
+                    activeProjectsCount={props.activeProjectsCount}
+                    deliverablesCount={props.deliverablesCount}
+                    searchQuery={props.searchQuery}
+                />
             )}
             {props.activeTab === 'vault' && (
-                <div className="h-full overflow-y-auto">
-                    <VaultTab vaultFiles={props.vaultFiles} />
-                </div>
+                <VaultTab vaultFiles={props.vaultFiles} />
             )}
             {props.activeTab === 'comms' && (
                 <Communications missions={props.projects} />
             )}
             {props.activeTab === 'billing' && (
-                <div className="h-full overflow-y-auto">
-                    <BillingTab
-                        billingNotice={props.billingNotice}
-                        billingView={props.billingView}
-                        setBillingView={props.setBillingView}
-                        clientInvoices={props.clientInvoices}
-                        clientProposals={props.clientProposals}
-                        billingDocsLoading={props.billingDocsLoading}
-                        billingDocsError={props.billingDocsError}
-                        onViewInvoice={props.onViewInvoice}
-                        onPrintInvoice={props.onPrintInvoice}
-                        onPayInvoice={props.onPayInvoice}
-                        onViewProposal={props.onViewProposal}
-                    />
-                </div>
+                <BillingTab
+                    billingNotice={props.billingNotice}
+                    billingView={props.billingView}
+                    setBillingView={props.setBillingView}
+                    clientInvoices={props.clientInvoices}
+                    clientProposals={props.clientProposals}
+                    billingDocsLoading={props.billingDocsLoading}
+                    billingDocsError={props.billingDocsError}
+                    onViewInvoice={props.onViewInvoice}
+                    onPrintInvoice={props.onPrintInvoice}
+                    onPayInvoice={props.onPayInvoice}
+                    onViewProposal={props.onViewProposal}
+                />
             )}
             {props.activeTab === 'settings' && (
-                <div className="h-full overflow-y-auto">
-                    <Settings
-                        currentUser={props.currentUser}
-                        userInitials={props.userInitials}
-                        settingsView={props.settingsView}
-                        setSettingsView={props.setSettingsView}
-                        firstName={props.firstName}
-                        setFirstName={props.setFirstName}
-                        lastName={props.lastName}
-                        setLastName={props.setLastName}
-                        username={props.username}
-                        setUsername={props.setUsername}
-                        email={props.email}
-                        setEmail={props.setEmail}
-                        handleSaveSettings={props.handleSaveSettings}
-                        isSaving={props.isSaving}
-                        saveSuccess={props.saveSuccess}
-                        handleAvatarChange={props.handleAvatarChange}
-                        usernameStatus={props.usernameStatus}
-                        usernameCheckLoading={props.usernameCheckLoading}
-                    />
-                </div>
+                <Settings
+                    currentUser={props.currentUser}
+                    userInitials={props.userInitials}
+                    settingsView={props.settingsView}
+                    setSettingsView={props.setSettingsView}
+                    firstName={props.firstName}
+                    setFirstName={props.setFirstName}
+                    lastName={props.lastName}
+                    setLastName={props.setLastName}
+                    username={props.username}
+                    setUsername={props.setUsername}
+                    email={props.email}
+                    setEmail={props.setEmail}
+                    handleSaveSettings={props.handleSaveSettings}
+                    isSaving={props.isSaving}
+                    saveSuccess={props.saveSuccess}
+                    handleAvatarChange={props.handleAvatarChange}
+                    usernameStatus={props.usernameStatus}
+                    usernameCheckLoading={props.usernameCheckLoading}
+                />
             )}
         </AnimatePresence>
     );

@@ -2,64 +2,44 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
+import { usePathname } from 'next/navigation';
 import {
     LayoutDashboard,
     Users,
     Briefcase,
-    FolderKanban,
-    FileEdit,
-    LogOut,
-    X,
-    ChevronRight,
     Zap,
-    Globe,
-    Shield,
+    FileEdit,
     DollarSign,
     Settings,
     MessageSquare,
+    LogOut,
+    X,
+    ArrowLeft,
 } from 'lucide-react';
 
-const NAV_ITEMS = [
-    { href: '/admin', label: 'Dashboard', icon: LayoutDashboard, exact: true },
-    { href: '/admin/leads', label: 'Leads', icon: Zap },
-    { href: '/admin/projects', label: 'Projects', icon: Briefcase },
-    { href: '/admin/clients', label: 'Clients', icon: Users },
-    { href: '/admin/billing', label: 'Billing', icon: DollarSign },
-    { href: '/admin/cms', label: 'Content (CMS)', icon: FileEdit },
-    { href: '/admin/communications', label: 'Communications', icon: MessageSquare },
-    { href: '/admin/settings', label: 'Settings', icon: Settings },
-];
-
-function NavItem({ item, active, onClick }) {
-    const Icon = item.icon;
-    return (
-        <Link
-            href={item.href}
-            onClick={onClick}
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-[11px] font-black uppercase tracking-widest transition-all relative ${active
-                ? 'bg-brand-teal/10 text-brand-teal border border-brand-teal/20 shadow-glow-teal/5'
-                : 'text-slate-500 hover:text-white hover:bg-white/5'
-                }`}
-        >
-            <Icon size={16} />
-            {item.label}
-            {active && <ChevronRight size={12} className="ml-auto" />}
-        </Link>
-    );
-}
-
 export default function AdminSidebar({
-    pathname,
     sidebarOpen,
     setSidebarOpen,
     handleLogout,
 }) {
-    const isActive = (item) =>
-        item.exact ? pathname === item.href : pathname.startsWith(item.href);
+    const pathname = usePathname();
+
+    const items = [
+        { id: 'dashboard', href: '/admin', label: 'Dashboard', icon: <LayoutDashboard size={16} /> },
+        { id: 'leads', href: '/admin/leads', label: 'Leads', icon: <Zap size={16} /> },
+        { id: 'projects', href: '/admin/projects', label: 'Projects', icon: <Briefcase size={16} /> },
+        { id: 'clients', href: '/admin/clients', label: 'Clients', icon: <Users size={16} /> },
+        { id: 'billing', href: '/admin/billing', label: 'Billing', icon: <DollarSign size={16} /> },
+        { id: 'cms', href: '/admin/cms', label: 'Content (CMS)', icon: <FileEdit size={16} /> },
+        { id: 'communications', href: '/admin/communications', label: 'Communications', icon: <MessageSquare size={16} /> },
+        { id: 'settings', href: '/admin/settings', label: 'Settings', icon: <Settings size={16} /> },
+    ];
+
+    const isActive = (href) => pathname === href || pathname.startsWith(href + '/');
 
     return (
-        <aside className={`fixed left-4 top-4 bottom-4 w-60 bg-slate-950/80 backdrop-blur-xl border border-white/5 z-[101] flex flex-col p-5 rounded-xl transition-transform duration-300 lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-[110%] lg:translate-x-0'} shadow-2xl shadow-black/50`}>
-            <div className="flex items-center justify-between mb-8">
+        <aside className={`fixed left-0 top-0 bottom-0 w-64 bg-slate-950/80 backdrop-blur-xl border border-white/5 z-[101] flex flex-col p-4 transition-transform duration-300 lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-[110%] lg:translate-x-0'} shadow-2xl shadow-black/50`}>
+            <div className="flex items-center justify-between mb-6">
                 <Link href="/" className="flex items-center gap-3 group">
                     <div className="relative w-8 h-8 group-hover:scale-110 transition-transform duration-500">
                         <div className="absolute inset-0 bg-brand-teal/20 rounded-lg blur-xl opacity-0 group-hover:opacity-100 transition-opacity" />
@@ -84,50 +64,55 @@ export default function AdminSidebar({
                 </button>
             </div>
 
-            <nav className="flex-grow space-y-1 overflow-y-auto pr-1">
-                {NAV_ITEMS.map((item) => (
-                    <NavItem
-                        key={item.href}
-                        item={item}
-                        active={isActive(item)}
-                        onClick={() => setSidebarOpen(false)}
-                    />
-                ))}
-            </nav>
-
-            <div className="mt-auto space-y-2">
-                <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5">
-                    <div className="flex items-center justify-between mb-3">
-                        <span className="text-[8px] font-black uppercase tracking-widest text-slate-500">System</span>
-                        <span className="flex h-1.5 w-1.5 rounded-full bg-brand-teal animate-pulse" />
-                    </div>
-                    <div className="space-y-2">
-                        <div className="flex items-center justify-between text-[9px] font-bold">
-                            <span>Uptime</span>
-                            <span className="text-white">99.9%</span>
-                        </div>
-                        <div className="flex items-center justify-between text-[9px] font-bold">
-                            <span>Ping</span>
-                            <span className="text-white">14ms</span>
-                        </div>
-                    </div>
-                </div>
-
+            <nav className="flex-grow space-y-1">
                 <Link
                     href="/"
-                    className="flex items-center gap-2 w-full px-4 py-2.5 rounded-lg text-[11px] font-black uppercase tracking-widest text-slate-500 hover:text-white hover:bg-white/5 transition-all"
+                    className="group flex items-center gap-2 w-full px-3 py-2.5 rounded-lg border border-white/10 bg-white/[0.02] text-slate-400 hover:text-white hover:bg-white/5 hover:border-white/20 transition-all duration-200 shadow-sm hover:shadow-md"
+                    title="Back to Website"
                 >
-                    <Globe size={16} />
-                    View Site
+                    <ArrowLeft size={16} className="transition-transform duration-200 group-hover:-translate-x-1" />
+                    <span className="text-xs font-semibold uppercase tracking-[0.2em]">Back to Website</span>
                 </Link>
+
+                {items.map((item) => (
+                    <Link
+                        key={item.id}
+                        href={item.href}
+                        onClick={() => setSidebarOpen(false)}
+                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[11px] font-black uppercase tracking-widest transition-all relative ${isActive(item.href)
+                            ? 'text-brand-teal bg-brand-teal/5 border border-brand-teal/20'
+                            : 'text-slate-500 hover:text-white hover:bg-white/5'
+                            }`}
+                    >
+                        {item.icon}
+                        {item.label}
+                    </Link>
+                ))}
 
                 <button
                     onClick={handleLogout}
-                    className="w-full flex items-center gap-3 px-4 py-2.5 rounded-lg text-[11px] font-black uppercase tracking-widest text-slate-500 hover:text-brand-red hover:bg-brand-red/5 border border-transparent hover:border-brand-red/20 transition-all"
+                    className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[11px] font-black uppercase tracking-widest text-slate-500 hover:text-brand-red hover:bg-brand-red/5 border border-transparent hover:border-brand-red/20 transition-all"
                 >
                     <LogOut size={16} />
-                    Logout Node
+                    Logout
                 </button>
+            </nav>
+
+            <div className="mt-auto p-3 rounded-lg bg-white/[0.02] border border-white/5">
+                <div className="flex items-center justify-between mb-2">
+                    <span className="text-[8px] font-black uppercase tracking-widest text-slate-50">System</span>
+                    <span className="flex h-1.5 w-1.5 rounded-full bg-brand-teal animate-pulse" />
+                </div>
+                <div className="space-y-1.5">
+                    <div className="flex items-center justify-between text-[9px] font-bold">
+                        <span>Uptime</span>
+                        <span className="text-white">99.9%</span>
+                    </div>
+                    <div className="flex items-center justify-between text-[9px] font-bold">
+                        <span>Ping</span>
+                        <span className="text-white">14ms</span>
+                    </div>
+                </div>
             </div>
         </aside>
     );

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Search, X, Edit3, Calendar, User, Loader2, AlertCircle,
@@ -13,12 +14,12 @@ import ConfirmDangerModal from '@/components/ConfirmDangerModal';
 const STAGES = ['Analysis', 'Architecture', 'Dev', 'QA', 'Staging', 'Complete'];
 
 const STAGE_META = {
-    'Analysis':      { color: 'text-yellow-400',  bg: 'bg-yellow-400/10',  border: 'border-yellow-400/20' },
-    'Architecture':  { color: 'text-brand-indigo', bg: 'bg-brand-indigo/10', border: 'border-brand-indigo/20' },
-    'Dev':           { color: 'text-brand-teal',   bg: 'bg-brand-teal/10',  border: 'border-brand-teal/20' },
-    'QA':            { color: 'text-orange-400',   bg: 'bg-orange-400/10',  border: 'border-orange-400/20' },
-    'Staging':       { color: 'text-brand-blue',   bg: 'bg-brand-blue/10',  border: 'border-brand-blue/20' },
-    'Complete':      { color: 'text-emerald-400',  bg: 'bg-emerald-400/10', border: 'border-emerald-400/20' },
+    'Analysis': { color: 'text-yellow-400', bg: 'bg-yellow-400/10', border: 'border-yellow-400/20' },
+    'Architecture': { color: 'text-brand-indigo', bg: 'bg-brand-indigo/10', border: 'border-brand-indigo/20' },
+    'Dev': { color: 'text-brand-teal', bg: 'bg-brand-teal/10', border: 'border-brand-teal/20' },
+    'QA': { color: 'text-orange-400', bg: 'bg-orange-400/10', border: 'border-orange-400/20' },
+    'Staging': { color: 'text-brand-blue', bg: 'bg-brand-blue/10', border: 'border-brand-blue/20' },
+    'Complete': { color: 'text-emerald-400', bg: 'bg-emerald-400/10', border: 'border-emerald-400/20' },
 };
 
 const PRIORITY_DOT = { Critical: 'bg-brand-red', High: 'bg-orange-400', Medium: 'bg-yellow-400', Low: 'bg-slate-600' };
@@ -61,7 +62,7 @@ function formatBytes(bytes) {
 }
 
 // ─── Kanban Column ───────────────────────────────────────────────────────────
-function KanbanColumn({ stage, projects, onSelect }) {
+function KanbanColumn({ stage, projects }) {
     const meta = STAGE_META[stage] || { color: 'text-text-muted', bg: 'bg-white/5', border: 'border-white/5' };
     return (
         <div className="w-full min-w-0 sm:min-w-[240px] sm:flex-1">
@@ -71,8 +72,8 @@ function KanbanColumn({ stage, projects, onSelect }) {
             </div>
             <div className="space-y-2">
                 {projects.map(p => (
-                    <div key={p.id} onClick={() => onSelect(p)}
-                        className="p-3 rounded-xl bg-white/[0.02] border border-white/5 hover:border-white/15 cursor-pointer group transition-all">
+                    <Link key={p.id} href={`/admin/projects/${p.id}`}
+                        className="p-3 rounded-xl bg-white/[0.02] border border-white/5 hover:border-white/15 cursor-pointer group transition-all block">
                         <div className="flex items-center justify-between gap-2 mb-2">
                             <div className="flex items-center gap-1.5 min-w-0">
                                 <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${PRIORITY_DOT[p.priority] || 'bg-slate-600'}`} />
@@ -93,7 +94,7 @@ function KanbanColumn({ stage, projects, onSelect }) {
                             <span className="text-[9px] font-black text-text-dim">{p.progress || 0}%</span>
                             <span className="text-[9px] font-black text-brand-teal">${Number(p.value || 0).toLocaleString()}</span>
                         </div>
-                    </div>
+                    </Link>
                 ))}
                 {projects.length === 0 && (
                     <div className="flex items-center justify-center h-16 rounded-xl border border-dashed border-white/5 text-[10px] text-text-dim font-black uppercase tracking-widest">
@@ -106,107 +107,109 @@ function KanbanColumn({ stage, projects, onSelect }) {
 }
 
 // ─── List Row ────────────────────────────────────────────────────────────────
-function MobileProjectCard({ p, i, onSelect }) {
+function MobileProjectCard({ p, i }) {
     const meta = STAGE_META[p.stage] || { color: 'text-text-muted', bg: 'bg-white/5', border: 'border-white/5' };
     return (
-        <motion.div
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.04 }}
-            onClick={() => onSelect(p)}
-            className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-all cursor-pointer"
-        >
-            <div className="flex items-start justify-between gap-3 mb-2">
-                <div className="min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                        <span className={`w-1.5 h-1.5 rounded-full ${PRIORITY_DOT[p.priority] || 'bg-slate-600'}`} />
-                        <span className="text-[10px] font-black text-text-muted uppercase tracking-widest">{p.priority || 'Medium'}</span>
+        <Link href={`/admin/projects/${p.id}`}>
+            <motion.div
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.04 }}
+                className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-all cursor-pointer block"
+            >
+                <div className="flex items-start justify-between gap-3 mb-2">
+                    <div className="min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                            <span className={`w-1.5 h-1.5 rounded-full ${PRIORITY_DOT[p.priority] || 'bg-slate-600'}`} />
+                            <span className="text-[10px] font-black text-text-muted uppercase tracking-widest">{p.priority || 'Medium'}</span>
+                        </div>
+                        <div className="text-sm font-black text-text-primary leading-tight truncate">{p.title}</div>
+                        <div className="text-[10px] text-text-muted font-bold truncate mt-0.5">{p.client_name || '—'}</div>
                     </div>
-                    <div className="text-sm font-black text-text-primary leading-tight truncate">{p.title}</div>
-                    <div className="text-[10px] text-text-muted font-bold truncate mt-0.5">{p.client_name || '—'}</div>
+                    <div className="shrink-0 flex flex-col items-end gap-1">
+                        <div className="text-[10px] font-black text-brand-teal uppercase tracking-widest">{p.id}</div>
+                        <div className={`px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest border ${meta.bg} ${meta.color} ${meta.border}`}>
+                            {p.stage}
+                        </div>
+                        <div className="px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest border bg-white/5 text-text-muted border-white/5">
+                            {p.priority || 'Medium'}
+                        </div>
+                    </div>
                 </div>
-                <div className="shrink-0 flex flex-col items-end gap-1">
-                    <div className="text-[10px] font-black text-brand-teal uppercase tracking-widest">{p.id}</div>
-                    <div className={`px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest border ${meta.bg} ${meta.color} ${meta.border}`}>
-                        {p.stage}
-                    </div>
-                    <div className="px-2 py-0.5 rounded-lg text-[9px] font-black uppercase tracking-widest border bg-white/5 text-text-muted border-white/5">
-                        {p.priority || 'Medium'}
-                    </div>
-                </div>
-            </div>
 
-            <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
-                <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${p.progress || 0}%` }}
-                    transition={{ duration: 0.8, delay: i * 0.05 }}
-                    className={`h-full rounded-full ${(p.progress || 0) === 100 ? 'bg-emerald-400' : 'bg-brand-teal'}`}
-                />
-            </div>
-            <div className="flex justify-between mt-1.5">
-                <span className="text-[10px] font-black text-text-dim uppercase">{p.progress || 0}%</span>
-                <span className="text-[10px] font-black text-brand-teal">${Number(p.value || 0).toLocaleString()}</span>
-            </div>
-        </motion.div>
+                <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                    <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${p.progress || 0}%` }}
+                        transition={{ duration: 0.8, delay: i * 0.05 }}
+                        className={`h-full rounded-full ${(p.progress || 0) === 100 ? 'bg-emerald-400' : 'bg-brand-teal'}`}
+                    />
+                </div>
+                <div className="flex justify-between mt-1.5">
+                    <span className="text-[10px] font-black text-text-dim uppercase">{p.progress || 0}%</span>
+                    <span className="text-[10px] font-black text-brand-teal">${Number(p.value || 0).toLocaleString()}</span>
+                </div>
+            </motion.div>
+        </Link>
     );
 }
 
-function ListRow({ p, i, onSelect }) {
+function ListRow({ p, i }) {
     const meta = STAGE_META[p.stage] || { color: 'text-text-muted', bg: 'bg-white/5', border: 'border-white/5' };
     const stageIndex = STAGES.indexOf(p.stage);
     return (
-        <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
-            className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-all group">
-            <div className="flex flex-col lg:flex-row lg:items-center gap-4">
-                <div className="lg:w-[35%]">
-                    <div className="flex items-center gap-2 mb-1">
-                        <span className={`w-1.5 h-1.5 rounded-full ${PRIORITY_DOT[p.priority] || 'bg-slate-600'}`} />
-                        <span className="text-[10px] font-black text-brand-teal uppercase tracking-widest">{p.id}</span>
-                    </div>
-                    <h3 className="text-base font-black text-text-primary group-hover:text-brand-teal transition-colors uppercase leading-tight mb-1.5">{p.title}</h3>
-                    <div className="flex gap-1.5">
-                        <span className="px-2 py-0.5 rounded-md bg-white/5 text-[9px] font-black text-text-muted uppercase">{p.stage}</span>
-                        <span className="px-2 py-0.5 rounded-md bg-white/5 text-[9px] font-black text-text-muted uppercase">{p.priority || 'Medium'}</span>
-                        <span className="px-2 py-0.5 rounded-md bg-white/5 text-[9px] font-black text-text-muted uppercase">{p.client_name || '—'}</span>
-                    </div>
-                </div>
-
-                {/* Stage pipeline */}
-                <div className="flex-grow">
-                    <div className="hidden md:flex items-center mb-2">
-                        {STAGES.map((s, si) => (
-                            <div key={s} className="flex items-center flex-1 min-w-0">
-                                <div className={`shrink-0 w-2.5 h-2.5 rounded-full border-2 ${si < stageIndex ? 'bg-brand-teal border-brand-teal' : si === stageIndex ? 'bg-brand-teal/30 border-brand-teal animate-pulse' : 'bg-white/5 border-white/10'}`} />
-                                {si < STAGES.length - 1 && <div className={`flex-1 h-px ${si < stageIndex ? 'bg-brand-teal' : 'bg-white/10'}`} />}
-                            </div>
-                        ))}
-                    </div>
-                    <div className="flex justify-between mb-1.5">
-                        <span className={`text-[10px] font-black uppercase tracking-widest ${meta.color}`}>{p.stage}</span>
-                        <span className="text-[10px] font-black text-text-primary">{p.progress || 0}%</span>
-                    </div>
-                    <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
-                        <motion.div initial={{ width: 0 }} animate={{ width: `${p.progress || 0}%` }} transition={{ duration: 0.8, delay: i * 0.05 }}
-                            className={`h-full rounded-full ${(p.progress || 0) === 100 ? 'bg-emerald-400' : 'bg-brand-teal'}`} />
-                    </div>
-                </div>
-
-                <div className="lg:w-44 flex flex-row lg:flex-col items-center lg:items-end justify-between lg:justify-center gap-3">
-                    <div className="text-right">
-                        <div className="text-sm font-black text-brand-teal">${Number(p.value || 0).toLocaleString()}</div>
-                        <div className="flex items-center gap-1 justify-end mt-0.5">
-                            <Calendar size={10} className="text-text-dim" />
-                            <div className="text-[10px] font-black text-text-dim uppercase">{p.deadline || '—'}</div>
+        <Link href={`/admin/projects/${p.id}`} className="block">
+            <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
+                className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-white/10 transition-all group">
+                <div className="flex flex-col lg:flex-row lg:items-center gap-4">
+                    <div className="lg:w-[35%]">
+                        <div className="flex items-center gap-2 mb-1">
+                            <span className={`w-1.5 h-1.5 rounded-full ${PRIORITY_DOT[p.priority] || 'bg-slate-600'}`} />
+                            <span className="text-[10px] font-black text-brand-teal uppercase tracking-widest">{p.id}</span>
+                        </div>
+                        <h3 className="text-base font-black text-text-primary group-hover:text-brand-teal transition-colors uppercase leading-tight mb-1.5">{p.title}</h3>
+                        <div className="flex gap-1.5">
+                            <span className="px-2 py-0.5 rounded-md bg-white/5 text-[9px] font-black text-text-muted uppercase">{p.stage}</span>
+                            <span className="px-2 py-0.5 rounded-md bg-white/5 text-[9px] font-black text-text-muted uppercase">{p.priority || 'Medium'}</span>
+                            <span className="px-2 py-0.5 rounded-md bg-white/5 text-[9px] font-black text-text-muted uppercase">{p.client_name || '—'}</span>
                         </div>
                     </div>
-                    <button onClick={() => onSelect(p)}
-                        className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-brand-teal/10 hover:bg-brand-teal text-brand-teal hover:text-text-primary text-[10px] font-black uppercase tracking-widest transition-all">
-                        Manage <ChevronRight size={10} />
-                    </button>
+
+                    {/* Stage pipeline */}
+                    <div className="flex-grow">
+                        <div className="hidden md:flex items-center mb-2">
+                            {STAGES.map((s, si) => (
+                                <div key={s} className="flex items-center flex-1 min-w-0">
+                                    <div className={`shrink-0 w-2.5 h-2.5 rounded-full border-2 ${si < stageIndex ? 'bg-brand-teal border-brand-teal' : si === stageIndex ? 'bg-brand-teal/30 border-brand-teal animate-pulse' : 'bg-white/5 border-white/10'}`} />
+                                    {si < STAGES.length - 1 && <div className={`flex-1 h-px ${si < stageIndex ? 'bg-brand-teal' : 'bg-white/10'}`} />}
+                                </div>
+                            ))}
+                        </div>
+                        <div className="flex justify-between mb-1.5">
+                            <span className={`text-[10px] font-black uppercase tracking-widest ${meta.color}`}>{p.stage}</span>
+                            <span className="text-[10px] font-black text-text-primary">{p.progress || 0}%</span>
+                        </div>
+                        <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+                            <motion.div initial={{ width: 0 }} animate={{ width: `${p.progress || 0}%` }} transition={{ duration: 0.8, delay: i * 0.05 }}
+                                className={`h-full rounded-full ${(p.progress || 0) === 100 ? 'bg-emerald-400' : 'bg-brand-teal'}`} />
+                        </div>
+                    </div>
+
+                    <div className="lg:w-44 flex flex-row lg:flex-col items-center lg:items-end justify-between lg:justify-center gap-3">
+                        <div className="text-right">
+                            <div className="text-sm font-black text-brand-teal">${Number(p.value || 0).toLocaleString()}</div>
+                            <div className="flex items-center gap-1 justify-end mt-0.5">
+                                <Calendar size={10} className="text-text-dim" />
+                                <div className="text-[10px] font-black text-text-dim uppercase">{p.deadline || '—'}</div>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-brand-teal/10 hover:bg-brand-teal text-brand-teal hover:text-text-primary text-[10px] font-black uppercase tracking-widest transition-all">
+                            View <ChevronRight size={10} />
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </motion.div>
+            </motion.div>
+        </Link>
     );
 }
 
@@ -328,7 +331,7 @@ function ProjectDrawer({ project, onClose, onToggleMilestone, onDeleteMilestone,
         stage: project.stage || 'Dev',
         tagsStr: (project.tags || []).join(', ')
     });
-    
+
     const handleAddNewMilestone = (e) => {
         e.preventDefault();
         if (!newMilestoneLabel.trim()) return;
@@ -448,11 +451,10 @@ function ProjectDrawer({ project, onClose, onToggleMilestone, onDeleteMilestone,
                             </button>
                             <button
                                 onClick={() => setIsAddingNote(v => !v)}
-                                className={`py-2.5 border text-text-primary rounded-xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 transition-all ${
-                                    isAddingNote
-                                        ? 'bg-brand-indigo/20 border-brand-indigo/30 text-brand-indigo'
-                                        : 'bg-white/5 border-white/5 hover:bg-white/10'
-                                }`}
+                                className={`py-2.5 border text-text-primary rounded-xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 transition-all ${isAddingNote
+                                    ? 'bg-brand-indigo/20 border-brand-indigo/30 text-brand-indigo'
+                                    : 'bg-white/5 border-white/5 hover:bg-white/10'
+                                    }`}
                             >
                                 <Plus size={12} /> Add Note
                             </button>
@@ -496,8 +498,8 @@ function ProjectDrawer({ project, onClose, onToggleMilestone, onDeleteMilestone,
                         <form onSubmit={handleSaveEdit} className="space-y-4">
                             <div className="space-y-1.5">
                                 <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 ml-1">Title</label>
-                                <input 
-                                    type="text" 
+                                <input
+                                    type="text"
                                     value={editForm.title}
                                     onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
                                     className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-text-primary focus:outline-none focus:border-brand-teal/50 font-bold"
@@ -507,7 +509,7 @@ function ProjectDrawer({ project, onClose, onToggleMilestone, onDeleteMilestone,
 
                             <div className="space-y-1.5">
                                 <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 ml-1">Project Brief</label>
-                                <textarea 
+                                <textarea
                                     value={editForm.description}
                                     onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
                                     rows="4"
@@ -518,8 +520,8 @@ function ProjectDrawer({ project, onClose, onToggleMilestone, onDeleteMilestone,
                             <div className="grid grid-cols-2 gap-3">
                                 <div className="space-y-1.5">
                                     <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 ml-1">Investment Value ($)</label>
-                                    <input 
-                                        type="number" 
+                                    <input
+                                        type="number"
                                         value={editForm.value}
                                         onChange={(e) => setEditForm({ ...editForm, value: e.target.value })}
                                         className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-text-primary focus:outline-none focus:border-brand-teal/50 font-bold"
@@ -528,8 +530,8 @@ function ProjectDrawer({ project, onClose, onToggleMilestone, onDeleteMilestone,
                                 </div>
                                 <div className="space-y-1.5">
                                     <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 ml-1">Deadline Date</label>
-                                    <input 
-                                        type="date" 
+                                    <input
+                                        type="date"
                                         value={editForm.deadline}
                                         onChange={(e) => setEditForm({ ...editForm, deadline: e.target.value })}
                                         className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-text-primary focus:outline-none focus:border-brand-teal/50 font-mono font-bold"
@@ -540,7 +542,7 @@ function ProjectDrawer({ project, onClose, onToggleMilestone, onDeleteMilestone,
                             <div className="grid grid-cols-2 gap-3">
                                 <div className="space-y-1.5">
                                     <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 ml-1">Priority</label>
-                                    <select 
+                                    <select
                                         value={editForm.priority}
                                         onChange={(e) => setEditForm({ ...editForm, priority: e.target.value })}
                                         className="w-full bg-surface-900 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-text-primary focus:outline-none focus:border-brand-teal/50 font-bold"
@@ -552,7 +554,7 @@ function ProjectDrawer({ project, onClose, onToggleMilestone, onDeleteMilestone,
                                 </div>
                                 <div className="space-y-1.5">
                                     <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 ml-1">Project Stage</label>
-                                    <select 
+                                    <select
                                         value={editForm.stage}
                                         onChange={(e) => setEditForm({ ...editForm, stage: e.target.value })}
                                         className="w-full bg-surface-900 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-text-primary focus:outline-none focus:border-brand-teal/50 font-bold"
@@ -568,8 +570,8 @@ function ProjectDrawer({ project, onClose, onToggleMilestone, onDeleteMilestone,
                                 <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 ml-1 flex items-center gap-1.5">
                                     <Tag size={10} /> Tech Tags (comma-separated)
                                 </label>
-                                <input 
-                                    type="text" 
+                                <input
+                                    type="text"
                                     value={editForm.tagsStr}
                                     onChange={(e) => setEditForm({ ...editForm, tagsStr: e.target.value })}
                                     placeholder="Python, Django, PostgreSQL..."
@@ -623,7 +625,7 @@ function ProjectDrawer({ project, onClose, onToggleMilestone, onDeleteMilestone,
                                     <div className="space-y-2">
                                         {milestones.map((m, mi) => (
                                             <div key={m.id || mi} className={`flex items-center gap-3 p-2.5 rounded-xl border transition-all ${m.done ? 'bg-emerald-500/5 border-emerald-500/10' : 'bg-white/5 border-white/5 hover:border-white/10'}`}>
-                                                <button 
+                                                <button
                                                     onClick={() => onToggleMilestone(project.id, m.id, m.done)}
                                                     className={`shrink-0 p-0.5 rounded-lg hover:bg-white/5 transition-all text-left ${m.done ? 'text-emerald-400' : 'text-text-dim hover:text-text-primary'}`}
                                                     title={m.done ? "Mark as Pending" : "Mark as Done"}
@@ -647,14 +649,14 @@ function ProjectDrawer({ project, onClose, onToggleMilestone, onDeleteMilestone,
 
                                 {/* Add Milestone Form */}
                                 <form onSubmit={handleAddNewMilestone} className="flex gap-2 pt-2 border-t border-white/5">
-                                    <input 
+                                    <input
                                         type="text"
                                         value={newMilestoneLabel}
                                         onChange={(e) => setNewMilestoneLabel(e.target.value)}
                                         placeholder="Establish new milestone label..."
                                         className="flex-grow bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-text-primary placeholder:text-text-dim focus:outline-none focus:border-brand-teal/50"
                                     />
-                                    <button 
+                                    <button
                                         type="submit"
                                         className="px-3.5 py-2 bg-brand-teal text-text-primary rounded-xl font-black uppercase tracking-widest text-[10px] hover:-translate-y-0.5 transition-all shadow-glow-teal shrink-0"
                                     >
@@ -744,18 +746,16 @@ function ProjectDrawer({ project, onClose, onToggleMilestone, onDeleteMilestone,
                                             <button
                                                 type="button"
                                                 onClick={() => setBillingTab('invoices')}
-                                                className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${
-                                                    billingTab === 'invoices' ? 'bg-brand-teal/20 text-brand-teal' : 'text-text-muted hover:text-text-primary'
-                                                }`}
+                                                className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${billingTab === 'invoices' ? 'bg-brand-teal/20 text-brand-teal' : 'text-text-muted hover:text-text-primary'
+                                                    }`}
                                             >
                                                 Invoices
                                             </button>
                                             <button
                                                 type="button"
                                                 onClick={() => setBillingTab('proposals')}
-                                                className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${
-                                                    billingTab === 'proposals' ? 'bg-brand-teal/20 text-brand-teal' : 'text-text-muted hover:text-text-primary'
-                                                }`}
+                                                className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${billingTab === 'proposals' ? 'bg-brand-teal/20 text-brand-teal' : 'text-text-muted hover:text-text-primary'
+                                                    }`}
                                             >
                                                 Proposals
                                             </button>
@@ -812,11 +812,10 @@ function ProjectDrawer({ project, onClose, onToggleMilestone, onDeleteMilestone,
                                                         <button
                                                             type="button"
                                                             onClick={() => setBillingConfirm({ open: true, kind: 'toggle_paid', invoice: inv })}
-                                                            className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${
-                                                                inv.status === 'paid'
-                                                                    ? 'bg-brand-red/10 border border-brand-red/20 text-brand-red hover:bg-brand-red/15'
-                                                                    : 'bg-brand-teal/10 border border-brand-teal/20 text-brand-teal hover:bg-brand-teal/15'
-                                                            }`}
+                                                            className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${inv.status === 'paid'
+                                                                ? 'bg-brand-red/10 border border-brand-red/20 text-brand-red hover:bg-brand-red/15'
+                                                                : 'bg-brand-teal/10 border border-brand-teal/20 text-brand-teal hover:bg-brand-teal/15'
+                                                                }`}
                                                             title={inv.status === 'paid' ? 'Mark as unpaid' : 'Mark as paid'}
                                                         >
                                                             {inv.status === 'paid' ? 'Unpaid' : 'Paid'}
@@ -920,13 +919,12 @@ function ProjectDrawer({ project, onClose, onToggleMilestone, onDeleteMilestone,
                                                     setBillingActionLoading(false);
                                                 }
                                             }}
-                                            className={`px-3.5 py-2 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all flex items-center gap-2 disabled:opacity-60 ${
-                                                billingConfirm.kind === 'send_invoice'
-                                                    ? 'bg-brand-teal text-text-primary hover:-translate-y-0.5 shadow-glow-teal'
-                                                    : (billingConfirm.invoice?.status === 'paid'
-                                                        ? 'bg-brand-red/15 border border-brand-red/30 text-brand-red hover:bg-brand-red/25'
-                                                        : 'bg-brand-teal text-text-primary hover:-translate-y-0.5 shadow-glow-teal')
-                                            }`}
+                                            className={`px-3.5 py-2 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all flex items-center gap-2 disabled:opacity-60 ${billingConfirm.kind === 'send_invoice'
+                                                ? 'bg-brand-teal text-text-primary hover:-translate-y-0.5 shadow-glow-teal'
+                                                : (billingConfirm.invoice?.status === 'paid'
+                                                    ? 'bg-brand-red/15 border border-brand-red/30 text-brand-red hover:bg-brand-red/25'
+                                                    : 'bg-brand-teal text-text-primary hover:-translate-y-0.5 shadow-glow-teal')
+                                                }`}
                                         >
                                             {billingActionLoading ? <Loader2 size={14} className="animate-spin" /> : null}
                                             {billingConfirm.kind === 'send_invoice'
@@ -1227,14 +1225,14 @@ export default function AdminProjectsPage() {
         } finally {
             if (!silent) setLoading(false);
         }
-	    }, [stageFilter, priorityFilter]);
-	
-	    useEffect(() => {
-	        const t = setTimeout(() => {
-	            fetchProjects();
-	        }, 0);
-	        return () => clearTimeout(t);
-	    }, [fetchProjects]);
+    }, [stageFilter, priorityFilter]);
+
+    useEffect(() => {
+        const t = setTimeout(() => {
+            fetchProjects();
+        }, 0);
+        return () => clearTimeout(t);
+    }, [fetchProjects]);
 
     async function handleSelectForDetail(project) {
         try {
@@ -1324,7 +1322,7 @@ export default function AdminProjectsPage() {
             };
 
             await api.updateAdminProject(projectId, payload);
-            
+
             // Refresh detailed view & main projects list (silently — keep drawer open)
             const detail = await api.getAdminProjectDetail(projectId);
             setSelected(detail);
@@ -1581,11 +1579,10 @@ export default function AdminProjectsPage() {
                         initial={{ opacity: 0, y: 50, scale: 0.9 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 20, scale: 0.9 }}
-                        className={`fixed bottom-6 right-6 z-[300] px-4 py-3 rounded-xl border flex items-center gap-2 shadow-2xl backdrop-blur-md ${
-                            toast.type === 'error'
-                                ? 'bg-brand-red/10 border-brand-red/20 text-brand-red font-bold'
-                                : 'bg-brand-teal/10 border-brand-teal/20 text-brand-teal font-bold'
-                        }`}
+                        className={`fixed bottom-6 right-6 z-[300] px-4 py-3 rounded-xl border flex items-center gap-2 shadow-2xl backdrop-blur-md ${toast.type === 'error'
+                            ? 'bg-brand-red/10 border-brand-red/20 text-brand-red font-bold'
+                            : 'bg-brand-teal/10 border-brand-teal/20 text-brand-teal font-bold'
+                            }`}
                     >
                         {toast.type === 'error' ? <AlertCircle size={16} /> : <CheckCircle2 size={16} />}
                         <span className="text-xs font-black uppercase tracking-widest">{toast.message}</span>

@@ -79,7 +79,7 @@ export default function AdminCommandCenter() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-[#020617] flex items-center justify-center">
+            <div className="flex items-center justify-center min-h-[60vh]">
                 <div className="flex flex-col items-center gap-3">
                     <Loader2 size={32} className="animate-spin text-brand-teal" />
                     <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">

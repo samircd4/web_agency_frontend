@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useSearchParams, usePathname } from 'next/navigation';
 import { AnimatePresence } from 'framer-motion';
 import { Loader2 } from 'lucide-react';
 import useDashboard from '@/hooks/useDashboard';
@@ -60,6 +61,17 @@ export default function DashboardView() {
         handlePrintInvoice,
     } = useDashboard();
 
+    const searchParams = useSearchParams();
+    const pathname = usePathname();
+
+    // Update activeTab when URL search params change
+    useEffect(() => {
+        const tabFromUrl = searchParams.get('tab');
+        if (tabFromUrl && ['projects', 'vault', 'comms', 'billing', 'settings'].includes(tabFromUrl)) {
+            setActiveTab(tabFromUrl);
+        }
+    }, [searchParams, setActiveTab]);
+
     const [isDesktop, setIsDesktop] = useState(false);
 
     useEffect(() => {
@@ -69,15 +81,55 @@ export default function DashboardView() {
         return () => window.removeEventListener('resize', checkIsDesktop);
     }, []);
 
+    // Update URL when activeTab changes
+    useEffect(() => {
+        if (typeof window !== 'undefined') {
+            const newUrl = `/dashboard?tab=${activeTab}`;
+            window.history.replaceState({}, '', newUrl);
+        }
+    }, [activeTab]);
+
     if (loading || !currentUser) {
         return (
-            <div className="min-h-screen bg-[#020617] flex items-center justify-center">
-                <div className="flex flex-col items-center gap-3">
-                    <Loader2 size={32} className="animate-spin text-brand-teal" />
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
-                        Decrypting Command Space...
-                    </span>
+            <div className="min-h-screen bg-[#020617] text-slate-300 font-sans overflow-hidden">
+                <AnimatePresence>
+                    {isSidebarOpen && (
+                        <div
+                            className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[100] lg:hidden"
+                            onClick={() => setIsSidebarOpen(false)}
+                        />
+                    )}
+                </AnimatePresence>
+
+                <DashboardSidebar
+                    isSidebarOpen={isSidebarOpen}
+                    setIsSidebarOpen={setIsSidebarOpen}
+                    handleLogout={handleLogout}
+                    pendingInvoiceCount={0}
+                    pendingProposalCount={0}
+                />
+
+                {/* Fixed Topbar */}
+                <div className="fixed top-0 right-0 left-0 lg:left-[256px] z-30 bg-[#020617] px-3 lg:px-6 py-3">
+                    <DashboardTopbar
+                        setIsSidebarOpen={setIsSidebarOpen}
+                        searchQuery={searchQuery}
+                        setSearchQuery={setSearchQuery}
+                        currentUser={null}
+                    />
                 </div>
+
+                {/* Main Content with Padding for Fixed Topbar */}
+                <main className="lg:pl-[256px] min-h-screen flex flex-col p-0 lg:p-0 pt-[120px]">
+                    <div className="flex-grow flex items-center justify-center px-3 lg:px-6 pb-3 lg:pb-6">
+                        <div className="flex flex-col items-center gap-3">
+                            <Loader2 size={32} className="animate-spin text-brand-teal" />
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
+                                Decrypting Command Space...
+                            </span>
+                        </div>
+                    </div>
+                </main>
             </div>
         );
     }
@@ -122,7 +174,7 @@ export default function DashboardView() {
             : currentUser.username;
 
     return (
-        <div className="h-screen bg-[#020617] text-slate-300 font-sans overflow-hidden">
+        <div className="min-h-screen bg-[#020617] text-slate-300 font-sans overflow-hidden">
             <AnimatePresence>
                 {isSidebarOpen && (
                     <div
@@ -133,8 +185,6 @@ export default function DashboardView() {
             </AnimatePresence>
 
             <DashboardSidebar
-                activeTab={activeTab}
-                setActiveTab={setActiveTab}
                 isSidebarOpen={isSidebarOpen}
                 setIsSidebarOpen={setIsSidebarOpen}
                 handleLogout={handleLogout}
@@ -142,23 +192,20 @@ export default function DashboardView() {
                 pendingProposalCount={pendingProposalCount}
             />
 
-            <main className="lg:pl-[272px] h-screen flex flex-col p-0 lg:p-0">
-                <div className="px-4 lg:px-8 pt-4 lg:pt-6">
-                    <DashboardTopbar
-                        isDesktop={isDesktop}
-                        setIsSidebarOpen={setIsSidebarOpen}
-                        searchQuery={searchQuery}
-                        setSearchQuery={setSearchQuery}
-                        setActiveTab={setActiveTab}
-                        activeProjectsCount={activeProjectsCount}
-                        userDisplayName={userDisplayName}
-                        userInitials={userInitials}
-                        currentUser={currentUser}
-                    />
-                </div>
+            {/* Fixed Topbar */}
+            <div className="fixed top-0 right-0 left-0 lg:left-[256px] z-30 bg-[#020617] px-3 lg:px-6 py-3">
+                <DashboardTopbar
+                    setIsSidebarOpen={setIsSidebarOpen}
+                    searchQuery={searchQuery}
+                    setSearchQuery={setSearchQuery}
+                    currentUser={currentUser}
+                />
+            </div>
 
+            {/* Main Content with Padding for Fixed Topbar */}
+            <main className="lg:pl-[256px] min-h-screen flex flex-col p-0 lg:p-0 pt-[120px]">
                 {billingNotice?.kind && (
-                    <div className="px-4 lg:px-8">
+                    <div className="px-3 lg:px-6">
                         <div
                             className={`p-4 rounded-xl border ${billingNotice.kind === 'success'
                                 ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-200'
@@ -193,7 +240,7 @@ export default function DashboardView() {
                     </div>
                 )}
 
-                <div className="flex-grow overflow-hidden px-4 lg:px-8 pb-4 lg:pb-6">
+                <div className="flex-grow px-3 lg:px-6 pb-3 lg:pb-6">
                     <DashboardTabPanels
                         activeTab={activeTab}
                         filteredProjects={filteredProjects}

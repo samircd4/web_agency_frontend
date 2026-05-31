@@ -33,13 +33,13 @@
 
     /* Secondary Font Color (supporting text, company names, country info) */
     /* Slightly warmer slate to complement brand-teal */
-    --color-text-secondary: #8fa8c8;
+    --color-text-secondary: #9BB8D6;
 
     /* Muted Font Color (labels, timelines, inactive pills, minor metadata) */
-    --color-text-muted: #6b809c;
+    --color-text-muted: #B8C7D9;
 
     /* Dim Font Color (ID tags, background descriptions, placeholders) */
-    --color-text-dim: #374f6b;
+    --color-text-dim: #5A7494;
 
     /* Landing Page Accent Colors */
     --color-landing-accent: #2A9D8F;
