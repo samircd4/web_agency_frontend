@@ -55,8 +55,8 @@ export default function SecuritySettings({ currentUser }) {
             setNewPassword('');
             setConfirmPassword('');
         } catch (error) {
-            if (error.response?.data) {
-                setPasswordErrors(error.response.data);
+            if (error.data) {
+                setPasswordErrors(error.data);
             } else {
                 setPasswordErrors({ general: 'An error occurred. Please try again.' });
             }
@@ -90,7 +90,7 @@ export default function SecuritySettings({ currentUser }) {
             // Refresh user
             window.location.reload();
         } catch (error) {
-            setOtpError(error.response?.data?.otp?.[0] || 'Invalid OTP');
+            setOtpError(error.data?.otp?.[0] || 'Invalid OTP');
         } finally {
             setOtpLoading(false);
         }
@@ -106,7 +106,7 @@ export default function SecuritySettings({ currentUser }) {
             // Refresh user
             window.location.reload();
         } catch (error) {
-            setOtpError(error.response?.data?.otp?.[0] || 'Invalid OTP');
+            setOtpError(error.data?.otp?.[0] || 'Invalid OTP');
         } finally {
             setOtpLoading(false);
         }
