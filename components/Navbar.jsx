@@ -4,12 +4,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-    Menu, X, ArrowRight, ChevronRight, Zap, Code2, 
-    LayoutDashboard, ShieldCheck, Store, Settings, LogOut, User 
+import {
+    Menu, X, ArrowRight, ChevronRight, Zap, Code2,
+    LayoutDashboard, ShieldCheck, Store, Settings, LogOut, User
 } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
-import { api } from '@/lib/api';
+import { api, getFullAvatarUrl } from '@/lib/api';
+import UserAvatarDropdown from './UserAvatarDropdown';
 
 const navLinks = [
     { name: 'Services', href: '/services' },
@@ -24,11 +25,8 @@ export default function Navbar() {
     const [scrolled, setScrolled] = useState(false);
     const [mounted, setMounted] = useState(false);
     const [currentUser, setCurrentUser] = useState(null);
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-
     const pathname = usePathname();
     const router = useRouter();
-    const dropdownRef = useRef(null);
 
     useEffect(() => {
         setMounted(true);
@@ -62,21 +60,11 @@ export default function Navbar() {
         return () => { document.body.style.overflow = 'unset'; };
     }, [isMenuOpen]);
 
-    // Handle outside clicks to close the avatar dropdown
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-                setIsDropdownOpen(false);
-            }
-        };
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => document.removeEventListener('mousedown', handleClickOutside);
-    }, []);
+
 
     const handleLogout = async () => {
         await api.logout();
         setCurrentUser(null);
-        setIsDropdownOpen(false);
         setIsMenuOpen(false);
         router.push('/');
     };
@@ -134,89 +122,24 @@ export default function Navbar() {
                                 </Link>
                             ))}
                         </div>
-                        <div className="flex items-center gap-2 ml-1 relative" ref={dropdownRef}>
-                            {currentUser ? (
-                                <>
-                                    {/* Avatar Button */}
-                                    <button
-                                        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                                        className="w-9 h-9 rounded-full bg-brand-teal flex items-center justify-center font-black text-white text-xs border border-white/20 shadow-glow-teal hover:scale-105 transition-transform cursor-pointer"
-                                        title={userDisplayName}
-                                    >
-                                        {userInitials}
-                                    </button>
-
-                                    {/* Dropdown Menu */}
-                                    <AnimatePresence>
-                                        {isDropdownOpen && (
-                                            <motion.div
-                                                initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                                                animate={{ opacity: 1, y: 0, scale: 1 }}
-                                                exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                                                transition={{ duration: 0.15 }}
-                                                className="absolute right-0 top-full mt-3 w-64 rounded-xl bg-slate-900/95 backdrop-blur-xl border border-white/10 p-4 shadow-2xl z-50 text-left"
-                                            >
-                                                {/* Profile Name & Role */}
-                                                <div className="px-2 py-1 flex flex-col">
-                                                    <span className="text-sm font-black text-white leading-tight">{userDisplayName}</span>
-                                                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">{currentUser.is_staff ? 'ADMIN' : 'BUYER'}</span>
-                                                </div>
-
-                                                <div className="h-px bg-white/5 my-2.5" />
-
-                                                {/* Options List */}
-                                                <div className="space-y-1">
-                                                    <Link
-                                                        href="/services"
-                                                        onClick={() => setIsDropdownOpen(false)}
-                                                        className="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold text-slate-300 hover:text-white hover:bg-white/5 transition-all group"
-                                                    >
-                                                        <Store size={14} className="text-slate-400 group-hover:text-brand-teal transition-colors" />
-                                                        Marketplace
-                                                    </Link>
-                                                    <Link
-                                                        href={currentUser.is_staff ? "/admin" : "/dashboard?tab=settings"}
-                                                        onClick={() => setIsDropdownOpen(false)}
-                                                        className="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold text-slate-300 hover:text-white hover:bg-white/5 transition-all group"
-                                                    >
-                                                        <Settings size={14} className="text-slate-400 group-hover:text-brand-teal transition-colors" />
-                                                        Settings
-                                                    </Link>
-                                                    <Link
-                                                        href={currentUser.is_staff ? "/admin" : "/dashboard"}
-                                                        onClick={() => setIsDropdownOpen(false)}
-                                                        className="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-black uppercase tracking-wider text-brand-teal hover:text-brand-teal/80 hover:bg-brand-teal/5 transition-all group"
-                                                    >
-                                                        <LayoutDashboard size={14} className="text-brand-teal" />
-                                                        {currentUser.is_staff ? 'Admin Dashboard' : 'Buyer Dashboard'}
-                                                    </Link>
-                                                </div>
-
-                                                <div className="h-px bg-white/5 my-2.5" />
-
-                                                {/* Sign out */}
-                                                <button
-                                                    onClick={handleLogout}
-                                                    className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold text-brand-red hover:bg-brand-red/5 transition-all group cursor-pointer text-left"
-                                                >
-                                                    <LogOut size={14} className="text-brand-red" />
-                                                    Sign out
-                                                </button>
-                                            </motion.div>
-                                        )}
-                                    </AnimatePresence>
-                                </>
-                            ) : (
-                                <>
-                                    <Link href="/start-project" className="px-4 py-1.5 bg-brand-teal text-white rounded-full font-black text-[10px] uppercase tracking-widest transition-all shadow-glow-teal hover:bg-brand-teal/90 hover:scale-105 active:scale-95">
-                                        Start Project
-                                    </Link>
-                                    <Link href="/admin/login" className="px-4 py-1.5 bg-white/5 hover:bg-white/10 text-white rounded-full font-black text-[10px] uppercase tracking-widest transition-all border border-white/10 hover:scale-105 active:scale-95">
-                                        Sign In
-                                    </Link>
-                                </>
-                            )}
-                        </div>
+                        {currentUser ? (
+                            <UserAvatarDropdown
+                                currentUser={currentUser}
+                                userDisplayName={userDisplayName}
+                                userInitials={userInitials}
+                                handleLogout={handleLogout}
+                                router={router}
+                            />
+                        ) : (
+                            <div className="flex items-center gap-2 ml-1 relative">
+                                <Link href="/start-project" className="px-4 py-1.5 bg-brand-teal text-white rounded-full font-black text-[10px] uppercase tracking-widest transition-all shadow-glow-teal hover:bg-brand-teal/90 hover:scale-105 active:scale-95">
+                                    Start Project
+                                </Link>
+                                <Link href="/admin/login" className="px-4 py-1.5 bg-white/5 hover:bg-white/10 text-white rounded-full font-black text-[10px] uppercase tracking-widest transition-all border border-white/10 hover:scale-105 active:scale-95">
+                                    Sign In
+                                </Link>
+                            </div>
+                        )}
                     </div>
 
                     {/* Mobile Menu Toggle */}
@@ -244,10 +167,10 @@ export default function Navbar() {
                         <div className="flex items-center justify-between px-6 py-4 border-b border-white/5 bg-slate-950/50">
                             <div className="flex items-center gap-2">
                                 <div className="relative w-10 h-10">
-                                    <Image 
-                                        src="/images/logo/logo.png" 
-                                        alt="Dr. Python Solutions" 
-                                        fill 
+                                    <Image
+                                        src="/images/logo/logo.png"
+                                        alt="Dr. Python Solutions"
+                                        fill
                                         sizes="48px"
                                         className="object-contain"
                                     />
@@ -278,7 +201,11 @@ export default function Navbar() {
                                     {/* Mobile User Profile Section */}
                                     <div className="flex items-center gap-4 p-4 glass rounded-lg border-white/5 text-left">
                                         <div className="w-10 h-10 rounded-full bg-brand-teal flex items-center justify-center font-black text-white text-sm border border-white/20">
-                                            {userInitials}
+                                            {currentUser.avatar ? (
+                                                <img src={getFullAvatarUrl(currentUser.avatar)} alt="User Avatar" width={40} height={40} className="rounded-full object-cover" />
+                                            ) : (
+                                                userInitials
+                                            )}
                                         </div>
                                         <div className="flex flex-col">
                                             <span className="text-sm font-black text-white leading-none">{userDisplayName}</span>

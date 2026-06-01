@@ -51,6 +51,7 @@ export default function AdminLayout({ children }) {
                     searchQuery={searchQuery}
                     setSearchQuery={setSearchQuery}
                     currentUser={currentUser}
+                    handleLogout={handleLogout}
                 />
             </div>
 

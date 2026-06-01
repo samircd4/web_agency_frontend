@@ -1,7 +1,10 @@
 'use client';
 
 import { Menu, Search, MessageSquare, Bell } from 'lucide-react';
-import { getFullAvatarUrl } from '@/lib/api';
+import { getFullAvatarUrl, api } from '@/lib/api';
+import NotificationDropdown from '@/components/NotificationDropdown';
+import { useRouter } from 'next/navigation';
+import UserAvatarDropdown from '@/components/UserAvatarDropdown';
 
 export default function DashboardTopbar({
     setIsSidebarOpen,
@@ -9,6 +12,14 @@ export default function DashboardTopbar({
     setSearchQuery,
     currentUser,
 }) {
+    const router = useRouter();
+
+    const handleLogout = async () => {
+        await api.logout();
+        // setCurrentUser is not available directly in Topbar, so we rely on the parent (DashboardView) to re-fetch or clear user.
+        // For now, we'll just redirect.
+        router.push('/');
+    };
     const userInitials =
         currentUser?.first_name && currentUser?.last_name
             ? `${currentUser.first_name[0]}${currentUser.last_name[0]}`.toUpperCase()
@@ -42,29 +53,20 @@ export default function DashboardTopbar({
                     <MessageSquare size={14} />
                     <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-brand-teal rounded-full border border-slate-950" />
                 </button>
-                <button className="relative p-2 rounded-lg bg-white/5 text-slate-400 hover:text-white transition-all border border-white/5">
-                    <Bell size={14} />
-                    <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-brand-red rounded-full border border-slate-950" />
-                </button>
+                <NotificationDropdown />
                 <div className="h-4 w-px bg-white/10 mx-1" />
                 <div className="flex items-center gap-3 ml-1">
                     <div className="text-right hidden sm:block">
                         <div className="text-[10px] font-black text-white uppercase tracking-tight">{userDisplayName}</div>
                         <div className="text-[7px] font-bold text-brand-teal uppercase tracking-widest">Client Node</div>
                     </div>
-                    {currentUser?.avatar ? (
-                        <div className="w-8 h-8 rounded-lg overflow-hidden border border-white/10">
-                            <img
-                                src={getFullAvatarUrl(currentUser.avatar)}
-                                alt={userDisplayName}
-                                className="w-full h-full object-cover"
-                            />
-                        </div>
-                    ) : (
-                        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-teal to-brand-blue flex items-center justify-center font-black text-white text-[10px] border border-white/10">
-                            {userInitials}
-                        </div>
-                    )}
+                    <UserAvatarDropdown
+                        currentUser={currentUser}
+                        userDisplayName={userDisplayName}
+                        userInitials={userInitials}
+                        handleLogout={handleLogout}
+                        router={router}
+                    />
                 </div>
             </div>
         </header>
