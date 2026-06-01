@@ -1,12 +1,11 @@
-'use client';
-
 import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { api } from '@/lib/api';
 import useSettings from './useSettings';
 
 export default function useDashboard() {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const [activeTab, setActiveTab] = useState('projects');
     const [selectedProject, setSelectedProject] = useState(null);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -114,9 +113,6 @@ export default function useDashboard() {
   };
 
   useEffect(() => {
-    const handleResize = () => setIsDesktop(window.innerWidth >= 1024);
-    handleResize();
-    window.addEventListener('resize', handleResize);
 
     try {
       const qs = new URLSearchParams(window.location.search || '');
@@ -188,7 +184,7 @@ export default function useDashboard() {
 
     initDashboard();
 
-    return () => window.removeEventListener('resize', handleResize);
+
   }, [router]);
 
   const normalizeList = (res) =>

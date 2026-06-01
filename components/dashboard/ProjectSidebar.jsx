@@ -1,25 +1,188 @@
 import Link from "next/link";
-import { Zap, FileText, Download, MessageSquare, DollarSign, Clock } from "lucide-react";
+import { Zap, Download, MessageSquare, DollarSign, Clock, Upload, Trash2, Plus, User, CheckCircle } from "lucide-react"; // Fixed: Added User import and CheckCircle
 import { motion } from "framer-motion";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useMemo, useCallback } from "react";
 
-function ProjectStatusCard({ project }) {
-    const [timeLeft, setTimeLeft] = useState(null);
+// --- HELPERS ---
+function formatBytes(bytes) {
+    const n = Number(bytes);
+    if (!Number.isFinite(n) || n <= 0) return '—';
+    if (n < 1024) return `${n} B`;
+    if (n < 1024 * 1024) return `${(n / 1024).toFixed(0)} KB`;
+    return `${(n / (1024 * 1024)).toFixed(2)} MB`;
+}
+
+// --- SUB-COMPONENTS ---
+function ClientInformation({ project, isAdmin }) {
+    const client = project?.client;
+
+    const [currentTime, setCurrentTime] = useState(() => new Date());
 
     useEffect(() => {
-        if (!project.deadline) {
+        const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+        return () => clearInterval(timer);
+    }, []);
+
+    const timeString = useMemo(() => {
+        const options = { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true };
+        if (isAdmin && client?.timezone) {
+            try { return currentTime.toLocaleTimeString([], { ...options, timeZone: client.timezone }); }
+            catch (e) { console.error("Invalid timezone layout string provided:", client.timezone); }
+        }
+        return currentTime.toLocaleTimeString([], options);
+    }, [currentTime, isAdmin, client?.timezone]);
+
+    if (!client) return null;
+
+    return (
+        <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5 space-y-3">
+            <div>
+                <div className="text-xs font-black text-muted uppercase tracking-widest mb-1.5">
+                    Client Details
+                </div>
+                <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-xl bg-brand-teal/10 flex items-center justify-center text-brand-teal shrink-0 relative overflow-hidden">
+                        {client?.avatar ? (
+                            <img src={client.avatar} alt="Client Avatar" className="w-full h-full object-cover" />
+                        ) : (
+                            <User size={16} />
+                        )}
+                    </div>
+                    <div className="min-w-0">
+                        <div className="text-sm font-black text-white tracking-tight truncate">
+                            {client?.name || 'Anonymous Client'}
+                        </div>
+                        <div className="text-[11px] font-black text-brand-teal uppercase tracking-widest truncate">
+                            {client?.country || 'Global'}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Current Time Display */}
+            <div className="pt-2.5 border-t border-white/5">
+                <div className="flex items-center justify-between gap-2">
+                    <div className="text-xs font-black text-muted uppercase tracking-widest">Current Time</div>
+                    <div className="flex items-center gap-1.5">
+                        <Clock size={12} className="text-brand-teal" />
+                        <span className="text-xs font-bold text-white tabular-nums">{timeString}</span>
+                    </div>
+                </div>
+                {isAdmin && client?.timezone && (
+                    <div className="text-[11px] font-black text-right text-brand-teal uppercase tracking-widest truncate max-w-[180px]">{client.timezone}</div>
+                )}
+            </div>
+        </div>
+    );
+}
+
+
+function ProjectStatusCard({ project }) {
+    return (
+        <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/5 flex flex-col justify-between h-[105px]">
+            <div className="space-y-1">
+                <div className="text-[10px] font-black text-muted uppercase tracking-widest">
+                    Project Status
+                </div>
+                <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-lg bg-brand-teal/10 flex items-center justify-center text-brand-teal shrink-0">
+                        <Zap size={14} />
+                    </div>
+                    <div className="min-w-0">
+                        <div className="text-base font-black text-white tracking-tight leading-none">
+                            {project?.progress || 0}%
+                        </div>
+                        <div className="text-[10px] font-black text-brand-teal uppercase tracking-widest truncate mt-0.5">
+                            {project?.stage || 'Discovery'}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div className="space-y-1.5">
+                <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                    <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${project?.progress || 0}%` }}
+                        className={`h-full rounded-full ${(project?.progress || 0) === 100 ? 'bg-emerald-400' : 'bg-brand-teal'}`}
+                    />
+                </div>
+                <div className="flex justify-between text-[9px] font-bold text-muted uppercase tracking-wider">
+                    <span>Priority:</span>
+                    <span className="text-white truncate max-w-[60px] text-right">{project?.priority || 'Standard'}</span>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function PaymentStatusCard({ project, clientInvoices = [] }) {
+    const totalBudget = Number(project?.value || 0);
+
+    const paidAmount = useMemo(() => {
+        return clientInvoices.reduce((sum, inv) => {
+            if (inv.status === 'paid') {
+                const amt = inv.amount ?? (inv.amount_total_cents ? inv.amount_total_cents / 100 : 0);
+                return sum + Number(amt);
+            }
+            return sum;
+        }, 0);
+    }, [clientInvoices]);
+
+    const duePercentage = totalBudget > 0 ? Math.min(Math.round((paidAmount / totalBudget) * 100), 100) : 0;
+
+    return (
+        <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/5 flex flex-col justify-between h-[105px]">
+            <div className="space-y-1">
+                <div className="text-[10px] font-black text-muted uppercase tracking-widest">
+                    Payment Status
+                </div>
+                <div className="flex items-center gap-2">
+                    <div className="w-7 h-7 rounded-lg bg-brand-teal/10 flex items-center justify-center text-brand-teal shrink-0">
+                        <DollarSign size={14} />
+                    </div>
+                    <div className="min-w-0">
+                        <div className="text-base font-black text-white tracking-tight leading-none">
+                            {duePercentage}%
+                        </div>
+                        <div className="text-[10px] font-black text-brand-teal uppercase tracking-widest mt-0.5">
+                            Paid
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div className="space-y-1.5">
+                <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                    <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${duePercentage}%` }}
+                        className={`h-full rounded-full ${duePercentage === 100 ? 'bg-emerald-400' : 'bg-brand-teal'}`}
+                    />
+                </div>
+                <div className="flex justify-between text-[9px] font-bold text-muted uppercase tracking-wider">
+                    <span>Total:</span>
+                    <span className="text-white text-right">${totalBudget.toLocaleString()}</span>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+function GeneralDetailsCard({ project, clientInvoices = [], clientProposals = [], isAdmin, onAddInvoice, onAddProposal }) {
+    const [timeLeft, setTimeLeft] = useState(null);
+
+    const pendingInvoices = useMemo(() => clientInvoices.filter(inv => inv.status !== 'paid' && inv.status !== 'void'), [clientInvoices]);
+    const pendingProposals = useMemo(() => clientProposals.filter(prop => prop.status === 'sent'), [clientProposals]);
+    const latestInvoice = pendingInvoices[0];
+
+    useEffect(() => {
+        if (!project?.deadline) {
             setTimeLeft(null);
             return;
         }
-
-        let deadlineDate;
-        try {
-            deadlineDate = new Date(project.deadline);
-            if (isNaN(deadlineDate.getTime())) {
-                setTimeLeft(null);
-                return;
-            }
-        } catch {
+        const deadlineDate = new Date(project.deadline);
+        if (isNaN(deadlineDate.getTime())) {
             setTimeLeft(null);
             return;
         }
@@ -27,235 +190,88 @@ function ProjectStatusCard({ project }) {
         const updateCountdown = () => {
             const now = new Date();
             const diff = deadlineDate - now;
-
             if (diff <= 0) {
                 setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0, isOverdue: true });
-                return;
+                return true;
             }
-
-            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
-            setTimeLeft({ days, hours, minutes, seconds, isOverdue: false });
+            setTimeLeft({
+                days: Math.floor(diff / (1000 * 60 * 60 * 24)),
+                hours: Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)),
+                minutes: Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60)),
+                seconds: Math.floor((diff % (1000 * 60)) / 1000),
+                isOverdue: false
+            });
+            return false;
         };
 
-        updateCountdown();
-        const timer = setInterval(updateCountdown, 1000);
+        const shouldStop = updateCountdown();
+        if (shouldStop) return;
 
-        return () => clearInterval(timer);
-    }, [project.deadline]);
-
-    return (
-        <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5 space-y-3">
-            <div>
-                <div className="text-xs font-black text-muted uppercase tracking-widest mb-1.5">
-                    Project Status
-                </div>
-                <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-xl bg-brand-teal/10 flex items-center justify-center text-brand-teal shrink-0">
-                        <Zap size={16} />
-                    </div>
-                    <div>
-                        <div className="text-xl font-black text-white tracking-tight">{project.progress}%</div>
-                        <div className="text-xs font-black text-brand-teal uppercase tracking-widest">
-                            {project.stage}
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div className="h-1 bg-white/5 rounded-full overflow-hidden">
-                <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${project.progress}%` }}
-                    className={`h-full rounded-full ${project.progress === 100 ? 'bg-emerald-400' : 'bg-brand-teal'}`}
-                />
-            </div>
-
-            <div className="space-y-2.5 border-t border-white/5 pt-2.5">
-                <div className="flex flex-col gap-1">
-                    <div className="flex items-center justify-between gap-2">
-                        <span className="text-xs font-black text-muted uppercase tracking-widest">
-                            Due On
-                        </span>
-                        <span className="text-xs font-bold text-white uppercase tracking-wide truncate">
-                            {project.deadline || 'Flexible'}
-                        </span>
-                    </div>
-                    {timeLeft && (
-                        <div className={`flex items-center justify-center gap-2 p-2 rounded-lg ${timeLeft.isOverdue ? 'bg-brand-red/10 border border-brand-red/30' : 'bg-white/5'}`}>
-                            {timeLeft.isOverdue ? (
-                                <span className="text-[11px] font-black uppercase tracking-widest text-brand-red">Overdue</span>
-                            ) : (
-                                <>
-                                    {timeLeft.days > 0 && (
-                                        <div className="flex flex-col items-center min-w-[32px]">
-                                            <span className="text-[13px] font-black text-white">{timeLeft.days}</span>
-                                            <span className="text-[10px] font-bold text-muted uppercase tracking-widest">Days</span>
-                                        </div>
-                                    )}
-                                    <div className="flex flex-col items-center min-w-[28px]">
-                                        <span className="text-[13px] font-black text-white">{String(timeLeft.hours).padStart(2, '0')}</span>
-                                        <span className="text-[10px] font-bold text-muted uppercase tracking-widest">Hrs</span>
-                                    </div>
-                                    <span className="text-[11px] font-black text-muted -translate-y-[6px]">:</span>
-                                    <div className="flex flex-col items-center min-w-[28px]">
-                                        <span className="text-[13px] font-black text-white">{String(timeLeft.minutes).padStart(2, '0')}</span>
-                                        <span className="text-[10px] font-bold text-muted uppercase tracking-widest">Min</span>
-                                    </div>
-                                    <span className="text-[11px] font-black text-muted -translate-y-[6px]">:</span>
-                                    <div className="flex flex-col items-center min-w-[28px]">
-                                        <span className="text-[13px] font-black text-white">{String(timeLeft.seconds).padStart(2, '0')}</span>
-                                        <span className="text-[10px] font-bold text-muted uppercase tracking-widest">Sec</span>
-                                    </div>
-                                </>
-                            )}
-                        </div>
-                    )}
-                </div>
-
-                <div className="flex items-center justify-between gap-2">
-                    <span className="text-xs font-black text-muted uppercase tracking-widest">
-                        Investment
-                    </span>
-                    <span className="text-xs font-bold text-white uppercase tracking-wide">
-                        ${Number(project.value || 0).toLocaleString()}
-                    </span>
-                </div>
-
-                <div className="flex items-center justify-between gap-2">
-                    <span className="text-xs font-black text-muted uppercase tracking-widest">
-                        Priority
-                    </span>
-                    <span className="text-xs font-bold text-white uppercase tracking-wide">
-                        {project.priority || 'Standard'}
-                    </span>
-                </div>
-            </div>
-        </div>
-    );
-}
-
-function TimeInfoCard({ isAdmin, clientTimezone }) {
-    const [currentTime, setCurrentTime] = useState(new Date());
-
-    useEffect(() => {
         const timer = setInterval(() => {
-            setCurrentTime(new Date());
+            const stop = updateCountdown();
+            if (stop) clearInterval(timer);
         }, 1000);
+
         return () => clearInterval(timer);
-    }, []);
+    }, [project?.deadline]);
 
     return (
         <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5 space-y-3">
-            <div>
-                <div className="text-xs font-black text-muted uppercase tracking-widest mb-1.5">
-                    {isAdmin ? "Client Timezone" : "System Time"}
+            {/* Deadline Tracking */}
+            <div className="flex flex-col gap-1.5 pb-2.5 border-b border-white/5">
+                <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-black text-muted uppercase tracking-widest">Due On</span>
+                    <span className="text-xs font-bold text-white uppercase tracking-wide truncate">{project?.deadline || 'Flexible'}</span>
                 </div>
-                <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-xl bg-brand-teal/10 flex items-center justify-center text-brand-teal shrink-0">
-                        <Clock size={16} />
-                    </div>
-                    <div>
-                        <div className="text-xl font-black text-white tracking-tight">
-                            {currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                        </div>
-                        {isAdmin && (
-                            <div className="text-xs font-black text-brand-teal uppercase tracking-widest">
-                                {clientTimezone || "Unknown"}
+                {timeLeft && (
+                    <div className={`flex items-center justify-center gap-2 p-1.5 rounded-lg ${timeLeft.isOverdue ? 'bg-brand-red/10 border border-brand-red/30' : 'bg-white/5'}`}>
+                        {timeLeft.isOverdue ? (
+                            <span className="text-[10px] font-black uppercase tracking-widest text-brand-red py-0.5">Overdue</span>
+                        ) : (
+                            <div className="flex items-center gap-1.5 text-white font-black text-xs tabular-nums">
+                                <span>{timeLeft.days}d</span><span className="text-muted font-normal">:</span>
+                                <span>{String(timeLeft.hours).padStart(2, '0')}h</span><span className="text-muted font-normal">:</span>
+                                <span>{String(timeLeft.minutes).padStart(2, '0')}m</span><span className="text-muted font-normal">:</span>
+                                <span>{String(timeLeft.seconds).padStart(2, '0')}s</span>
                             </div>
+                        )}
+                    </div>
+                )}
+            </div>
+
+            {/* Financial Actions */}
+            <div className="space-y-2 text-xs font-black uppercase tracking-widest text-muted">
+                <div className="flex items-center justify-between">
+                    <span>Invoices Pending</span>
+                    <div className="flex items-center gap-2">
+                        <span className="text-brand-teal">{pendingInvoices.length}</span>
+                        {isAdmin && onAddInvoice && (
+                            <button onClick={onAddInvoice} className="p-1 rounded-lg bg-brand-teal/10 text-brand-teal hover:bg-brand-teal hover:text-white transition-all"><Plus size={12} /></button>
+                        )}
+                    </div>
+                </div>
+                <div className="flex items-center justify-between">
+                    <span>Proposals Pending</span>
+                    <div className="flex items-center gap-2">
+                        <span className="text-brand-teal">{pendingProposals.length}</span>
+                        {isAdmin && onAddProposal && (
+                            <button onClick={onAddProposal} className="p-1 rounded-lg bg-brand-teal/10 text-brand-teal hover:bg-brand-teal hover:text-white transition-all"><Plus size={12} /></button>
                         )}
                     </div>
                 </div>
             </div>
-        </div>
-    );
-}
 
-function PaymentStatusCard({ project, clientInvoices, clientProposals }) {
-    const pendingInvoices = clientInvoices.filter(inv => inv.status !== 'paid' && inv.status !== 'void');
-    const pendingProposals = clientProposals.filter(prop => prop.status === 'sent');
-    const totalBudget = Number(project.value || 0);
-    // Calculate paid amount from invoices - assuming invoice amount is in dollars (same as budget)
-    const paidAmount = clientInvoices.reduce((sum, inv) => {
-        if (inv.status === 'paid') {
-            return sum + Number(inv.amount || inv.amount_total_cents ? (inv.amount_total_cents / 100) : 0);
-        }
-        return sum;
-    }, 0);
-    const duePercentage = totalBudget > 0 ? Math.round((paidAmount / totalBudget) * 100) : 0;
-
-    return (
-        <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5 space-y-3">
-            <div>
-                <div className="text-xs font-black text-muted uppercase tracking-widest mb-1.5">
-                    Payment Status
-                </div>
-                <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 rounded-xl bg-brand-teal/10 flex items-center justify-center text-brand-teal shrink-0">
-                        <DollarSign size={16} />
-                    </div>
-                    <div className="flex-1">
-                        <div className="flex items-end justify-between">
-                            <div>
-                                <div className="text-xl font-black text-white tracking-tight">{duePercentage}%</div>
-                                <div className="text-xs font-black text-brand-teal uppercase tracking-widest">
-                                    Paid
-                                </div>
-                            </div>
-                            <div className="text-right">
-                                <div className="text-[11px] font-bold text-white">${paidAmount.toLocaleString()}</div>
-                                <div className="text-[11px] font-black text-muted uppercase tracking-widest">
-                                    of ${totalBudget.toLocaleString()}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div className="h-1 bg-white/5 rounded-full overflow-hidden">
-                <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${duePercentage}%` }}
-                    className={`h-full rounded-full ${duePercentage === 100 ? 'bg-emerald-400' : 'bg-brand-teal'}`}
-                />
-            </div>
-
-            <div className="space-y-2.5 border-t border-white/5 pt-2.5">
-                <div className="flex items-center justify-between">
-                    <span className="text-xs font-black text-muted uppercase tracking-widest">
-                        Pending Invoices
-                    </span>
-                    <span className="text-xs font-black text-brand-teal">
-                        {pendingInvoices.length}
-                    </span>
-                </div>
-
-                <div className="flex items-center justify-between">
-                    <span className="text-xs font-black text-muted uppercase tracking-widest">
-                        Pending Proposals
-                    </span>
-                    <span className="text-xs font-black text-brand-teal">
-                        {pendingProposals.length}
-                    </span>
-                </div>
-            </div>
-
-            {pendingInvoices.length > 0 && (
-                <div className="pt-2.5 border-t border-white/5">
-                    <div className="text-xs font-black text-muted uppercase tracking-widest mb-1.5">
-                        Latest Invoice
-                    </div>
-                    <div className="p-2.5 rounded-lg bg-white/5 border border-white/5">
-                        <div className="text-xs font-bold text-white truncate">
-                            {pendingInvoices[0].id ? `Invoice #${pendingInvoices[0].id}` : 'New Invoice'}
-                        </div>
-                        <div className="text-[11px] text-muted mt-0.5">
-                            ${Number(pendingInvoices[0].amount || pendingInvoices[0].amount_total_cents ? (pendingInvoices[0].amount_total_cents / 100) : 0).toLocaleString()}
-                        </div>
+            {/* Active Statement Display */}
+            {latestInvoice && (
+                <div className="pt-2 border-t border-white/5">
+                    <div className="text-[10px] font-black text-muted uppercase tracking-widest mb-1.5">Latest Active Invoice</div>
+                    <div className="flex items-center justify-between p-2 rounded-lg bg-white/5 border border-white/5">
+                        <span className="text-xs font-bold text-white truncate max-w-[140px]">
+                            {latestInvoice.id ? `Invoice #${latestInvoice.id}` : 'Draft Invoice'}
+                        </span>
+                        <span className="text-xs font-black text-brand-teal">
+                            ${Number(latestInvoice.amount ?? (latestInvoice.amount_total_cents ? latestInvoice.amount_total_cents / 100 : 0)).toLocaleString()}
+                        </span>
                     </div>
                 </div>
             )}
@@ -263,43 +279,70 @@ function PaymentStatusCard({ project, clientInvoices, clientProposals }) {
     );
 }
 
-function DeliverablesCard({ files }) {
-    if (!files || files.length === 0) return null;
+function DeliverablesCard({ files = [], isAdmin = false, onUpload, onDelete }) {
+    const fileInputRef = useRef(null);
+    const [fileUploading, setFileUploading] = useState(false);
+
+    const handleFileSelected = useCallback(async (e) => {
+        const file = e.target.files?.[0];
+        e.target.value = '';
+        if (!file || !onUpload) return;
+
+        setFileUploading(true);
+        try { await onUpload(file); } catch (err) { console.error(err); } finally { setFileUploading(false); }
+    }, [onUpload]);
 
     return (
-        <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5">
-            <div className="text-xs font-black text-muted uppercase tracking-widest mb-2.5">
-                Deliverables
+        <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5 space-y-3">
+            <div className="flex items-center justify-between gap-2">
+                <div className="text-xs font-black text-muted uppercase tracking-widest">Deliverables</div>
+                {isAdmin && (
+                    <>
+                        <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileSelected} />
+                        <button
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={fileUploading}
+                            className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/[0.03] border border-white/10 text-white hover:bg-white/5 hover:border-white/20 transition-all text-xs font-black uppercase tracking-widest disabled:opacity-50"
+                        >
+                            {fileUploading ? <div className="w-3.5 h-3.5 border-2 border-brand-teal border-t-transparent rounded-full animate-spin" /> : <Upload size={12} />}
+                            Upload
+                        </button>
+                    </>
+                )}
             </div>
-            <div className="space-y-2">
-                {files.map((f) => (
-                    <div
-                        key={f.id}
-                        className="flex items-center gap-2 p-2 rounded-lg bg-white/5"
-                    >
-                        <FileText size={12} className="text-brand-teal shrink-0" />
-                        <div className="flex-grow min-w-0">
-                            <div className="text-xs font-bold text-white truncate">
-                                {f.name}
+
+            {files.length > 0 ? (
+                <div className="space-y-2 max-h-[200px] overflow-y-auto custom-scrollbar pr-1">
+                    {files.map((f) => (
+                        <div key={f.id} className="flex items-center gap-3 p-2.5 rounded-xl bg-white/[0.01] border border-white/5">
+                            <div className="w-10 h-10 rounded-xl bg-brand-teal/10 flex items-center justify-center text-brand-teal shrink-0">
+                                <span className="text-[10px] font-black uppercase">
+                                    {f.name?.split('.').pop()?.slice(0, 3).toUpperCase() || 'FILE'}
+                                </span>
                             </div>
-                            <div className="text-[11px] text-muted mt-0.5">
-                                {f.size ? `${(Number(f.size) / (1024 * 1024)).toFixed(2)} MB` : '—'}
+                            <div className="flex-grow min-w-0">
+                                <div className="text-xs font-bold text-white truncate">{f.name}</div>
+                                <div className="text-[10px] font-bold text-muted mt-0.5">{formatBytes(f.size)}</div>
+                            </div>
+                            <div className="flex items-center gap-1 shrink-0">
+                                <a href={f.file_url} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded-lg bg-white/5 text-muted hover:text-white hover:bg-white/10 transition-all" title="Download"><Download size={14} /></a>
+                                {isAdmin && onDelete && (
+                                    <button onClick={() => onDelete(f.id)} className="p-1.5 rounded-lg bg-white/5 text-muted hover:text-brand-red hover:bg-brand-red/10 transition-all" title="Delete"><Trash2 size={14} /></button>
+                                )}
                             </div>
                         </div>
-                        <a
-                            href={f.file_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="p-1 rounded-md bg-brand-teal/10 text-brand-teal hover:bg-brand-teal hover:text-white transition-all shrink-0"
-                        >
-                            <Download size={10} />
-                        </a>
-                    </div>
-                ))}
-            </div>
+                    ))}
+                </div>
+            ) : (
+                <div className="text-center py-4 bg-white/[0.01] rounded-xl border border-dashed border-white/5">
+                    <div className="text-xs text-muted font-bold">No files uploaded yet</div>
+                </div>
+            )}
         </div>
     );
 }
+
+
 
 function SecureChannelCTA() {
     return (
@@ -312,13 +355,92 @@ function SecureChannelCTA() {
     );
 }
 
-export default function ProjectSidebar({ project, clientInvoices, clientProposals, files, isAdmin = false }) {
+// --- MAIN WRAPPER CONTAINER ---
+
+export default function ProjectSidebar({
+    project,
+    clientInvoices = [],
+    clientProposals = [],
+    files = [],
+    isAdmin = false,
+    onUpload,
+    onDelete,
+    onAddInvoice,
+    onAddProposal,
+    onCancelProject,
+    onCompleteProject,
+    onEditProject,
+}) {
     return (
-        <div className="space-y-3">
-            <ProjectStatusCard project={project} />
-            <PaymentStatusCard project={project} clientInvoices={clientInvoices} clientProposals={clientProposals} />
-            <DeliverablesCard files={files} />
-            <TimeInfoCard isAdmin={isAdmin} clientTimezone={project?.client?.timezone} />
+        <div className="space-y-3 w-full max-w-[340px]">
+            {/* Fixed: Corrected project prop reference passing contract */}
+
+            {/* Unified Metrics Top Row */}
+            <div className="grid grid-cols-2 gap-2">
+                <ProjectStatusCard project={project} />
+                <PaymentStatusCard project={project} clientInvoices={clientInvoices} />
+            </div>
+
+            {/* General Operations Panel */}
+            <GeneralDetailsCard
+                project={project}
+                clientInvoices={clientInvoices}
+                clientProposals={clientProposals}
+                isAdmin={isAdmin}
+                onAddInvoice={onAddInvoice}
+                onAddProposal={onAddProposal}
+            />
+
+            {/* Deliverables Manager */}
+            <DeliverablesCard files={files} isAdmin={isAdmin} onUpload={onUpload} onDelete={onDelete} />
+
+            <ClientInformation project={project} isAdmin={isAdmin} />
+
+            {/* Action Buttons */}
+            <div className="flex flex-col gap-2">
+                {isAdmin && ( // Admin specific buttons
+                    <div className="flex gap-2">
+                        {onEditProject && (
+                            <button
+                                onClick={onEditProject}
+                                className="flex-1 py-2.5 bg-brand-indigo/10 text-brand-indigo rounded-xl font-black uppercase tracking-widest text-xs shadow-lg hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"
+                            >
+                                Edit Project <Edit size={12} />
+                            </button>
+                        )}
+                        {onCompleteProject && (
+                            <button
+                                onClick={onCompleteProject}
+                                disabled={project?.status === 'cancelled' || project?.status === 'completed'}
+                                className={`flex-1 py-2.5 text-emerald-500 rounded-xl font-black uppercase tracking-widest text-xs shadow-lg flex items-center justify-center gap-2
+                                    ${project?.status === 'completed'
+                                        ? 'bg-emerald-500/10 opacity-50 cursor-not-allowed'
+                                        : project?.status === 'cancelled'
+                                            ? 'bg-emerald-500/10 opacity-50 cursor-not-allowed'
+                                            : 'bg-emerald-500/10 hover:-translate-y-0.5 transition-all'
+                                    }`}
+                            >
+                                {project?.status === 'completed' ? 'Completed' : 'Complete'} <CheckCircle size={12} />
+                            </button>
+                        )}
+                    </div>
+                )}
+                {onCancelProject && project?.status !== 'cancelled' && project?.status !== 'completed' && ( // Client or Admin cancel button
+                    <button
+                        onClick={onCancelProject}
+                        className="w-full py-2.5 bg-brand-red/10 text-brand-red rounded-xl font-black uppercase tracking-widest text-xs shadow-lg hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"
+                    >
+                        Cancel Project <Trash2 size={12} />
+                    </button>
+                )}
+                {project?.status === 'cancelled' && (
+                    <div className="w-full py-2.5 bg-brand-red/10 text-brand-red rounded-xl font-black uppercase tracking-widest text-xs shadow-lg flex items-center justify-center gap-2 opacity-50 cursor-not-allowed">
+                        Cancelled <Trash2 size={12} />
+                    </div>
+                )}
+            </div>
+
+            {/* Call to Actions */}
             <SecureChannelCTA />
         </div>
     );

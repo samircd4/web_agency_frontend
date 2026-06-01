@@ -97,7 +97,7 @@ export default function DashboardSidebar({
             </nav>
 
             <div className="mt-auto p-3 rounded-lg bg-white/[0.02] border border-white/5">
-                <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center justify-between mb-2" suppressHydrationWarning>
                     <span className="text-[8px] font-black uppercase tracking-widest text-slate-50">System</span>
                     <span className="flex h-1.5 w-1.5 rounded-full bg-brand-teal animate-pulse" />
                 </div>

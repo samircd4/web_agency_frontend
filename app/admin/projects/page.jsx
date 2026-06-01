@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Search, X, Edit3, Calendar, User, Loader2, AlertCircle,
-    CheckCircle2, Circle, ChevronRight, LayoutGrid, List, Plus, Tag, ChevronDown, SlidersHorizontal, Upload, Trash2, Download
+    CheckCircle2, Circle, ChevronRight, LayoutGrid, List, Plus, Tag, ChevronDown, SlidersHorizontal, Upload, Trash2, Download, Clock
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import AdminModal from '@/components/AdminModal';
@@ -61,6 +61,21 @@ function formatBytes(bytes) {
     return `${value.toFixed(decimals)} ${units[i]}`;
 }
 
+const getStatusClasses = (status) => {
+    switch (status) {
+        case 'pending':
+            return 'bg-amber-500/10 text-amber-300 border-amber-500/20';
+        case 'active':
+            return 'bg-brand-teal/10 text-brand-teal border-brand-teal/20';
+        case 'complete':
+            return 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20';
+        case 'cancelled':
+            return 'bg-brand-red/10 text-brand-red border-brand-red/20';
+        default:
+            return 'bg-white/5 text-primary border-white/10';
+    }
+};
+
 // ─── Kanban Column ───────────────────────────────────────────────────────────
 function KanbanColumn({ stage, projects }) {
     const meta = STAGE_META[stage] || { color: 'text-text-muted', bg: 'bg-white/5', border: 'border-white/5' };
@@ -79,7 +94,12 @@ function KanbanColumn({ stage, projects }) {
                                 <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${PRIORITY_DOT[p.priority] || 'bg-slate-600'}`} />
                                 <span className="text-[9px] font-black text-text-muted uppercase tracking-widest truncate">{p.priority || 'Medium'}</span>
                             </div>
-                            <span className="text-[9px] font-black text-text-dim uppercase shrink-0">{p.id}</span>
+                            <span className="text-[9px] font-black text-text-dim uppercase shrink-0 flex items-center gap-1">
+                                <span>{p.id}</span>
+                                <span className={`px-1.5 py-0.5 rounded-md text-[7px] font-black uppercase tracking-widest ${getStatusClasses(p.status)}`}>
+                                    {p.status}
+                                </span>
+                            </span>
                         </div>
                         <p className="text-xs font-black text-text-primary group-hover:text-brand-teal transition-colors leading-tight mb-2">{p.title}</p>
                         <div className="flex items-center gap-1.5 mb-2.5">
@@ -157,6 +177,7 @@ function MobileProjectCard({ p, i }) {
 function ListRow({ p, i }) {
     const meta = STAGE_META[p.stage] || { color: 'text-text-muted', bg: 'bg-white/5', border: 'border-white/5' };
     const stageIndex = STAGES.indexOf(p.stage);
+    const milestones = p.milestones || [];
     return (
         <Link href={`/admin/projects/${p.id}`} className="block">
             <motion.div initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.04 }}
@@ -169,7 +190,6 @@ function ListRow({ p, i }) {
                         </div>
                         <h3 className="text-base font-black text-text-primary group-hover:text-brand-teal transition-colors uppercase leading-tight mb-1.5">{p.title}</h3>
                         <div className="flex gap-1.5">
-                            <span className="px-2 py-0.5 rounded-md bg-white/5 text-[9px] font-black text-text-muted uppercase">{p.stage}</span>
                             <span className="px-2 py-0.5 rounded-md bg-white/5 text-[9px] font-black text-text-muted uppercase">{p.priority || 'Medium'}</span>
                             <span className="px-2 py-0.5 rounded-md bg-white/5 text-[9px] font-black text-text-muted uppercase">{p.client_name || '—'}</span>
                         </div>
@@ -207,6 +227,24 @@ function ListRow({ p, i }) {
                             View <ChevronRight size={10} />
                         </div>
                     </div>
+                </div>
+                <div className="border-t border-white/5 px-5 py-3 flex justify-between items-center bg-white/[0.01]">
+                    <div className="flex gap-2 overflow-x-auto">
+                        {milestones.length > 0 ? (
+                            milestones.slice(0, 5).map((m, mi) => (
+                                <div key={mi} className={`flex items-center gap-1.5 shrink-0 text-[7px] font-black uppercase tracking-widest ${m.done ? 'text-emerald-400' : 'text-dim'}`}>
+                                    {m.done ? <CheckCircle2 size={10} /> : <Clock size={10} />}
+                                    {m.label}
+                                    {mi < milestones.slice(0, 5).length - 1 && <span className="ml-1 text-slate-800">›</span>}
+                                </div>
+                            ))
+                        ) : (
+                            <span className="text-[7px] font-black uppercase tracking-widest text-muted">No Milestones</span>
+                        )}
+                    </div>
+                    <span className={`px-2 py-0.5 rounded-md text-[7px] font-black uppercase tracking-widest ${getStatusClasses(p.status)}`}>
+                        {p.status}
+                    </span>
                 </div>
             </motion.div>
         </Link>
@@ -1212,15 +1250,25 @@ export default function AdminProjectsPage() {
 
     // silent=true skips the full-page loading spinner so the drawer never unmounts
     const fetchProjects = useCallback(async (silent = false) => {
+        // NOTE: This currently performs N+1 queries to fetch full project details (including milestones).
+        // In a production scenario, the backend API `getAdminProjects` should be modified to return
+        // all necessary details directly to avoid this performance overhead.
         try {
             if (!silent) setLoading(true);
-            const res = await api.getAdminProjects({
+            const summaryProjects = await api.getAdminProjects({
                 stage: stageFilter || undefined,
                 priority: priorityFilter || undefined,
             });
-            const data = Array.isArray(res) ? res : res.results || [];
-            setProjects(data);
+            const data = Array.isArray(summaryProjects) ? summaryProjects : summaryProjects.results || [];
+
+            const detailedProjectsPromises = data.map(p =>
+                api.getAdminProjectDetail(p.id)
+            );
+            const detailedProjects = await Promise.all(detailedProjectsPromises);
+
+            setProjects(detailedProjects || []);
         } catch (err) {
+            console.error('Failed to fetch projects:', err);
             if (!silent) setError(err.message);
         } finally {
             if (!silent) setLoading(false);

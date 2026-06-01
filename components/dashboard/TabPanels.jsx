@@ -40,6 +40,20 @@ function ProjectsTab({
     deliverablesCount,
     searchQuery,
 }) {
+    const getStatusClasses = (status) => {
+        switch (status) {
+            case 'pending':
+                return 'bg-amber-500/10 text-amber-300 border-amber-500/20';
+            case 'active':
+                return 'bg-brand-teal/10 text-brand-teal border-brand-teal/20';
+            case 'complete':
+                return 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20';
+            case 'cancelled':
+                return 'bg-brand-red/10 text-brand-red border-brand-red/20';
+            default:
+                return 'bg-white/5 text-primary border-white/10';
+        }
+    };
     return (
         <motion.div key="projects" initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }}>
             <div className="mb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
@@ -131,17 +145,26 @@ function ProjectsTab({
                                         </div>
                                     </div>
 
-                                    {milestones.length > 0 && (
-                                        <div className="border-t border-white/5 px-5 py-3 flex gap-2 overflow-x-auto bg-white/[0.01]">
-                                            {milestones.slice(0, 5).map((m, mi) => (
-                                                <div key={mi} className={`flex items-center gap-1.5 shrink-0 text-[7px] font-black uppercase tracking-widest ${m.done ? 'text-emerald-400' : 'text-dim'}`}>
-                                                    {m.done ? <CheckCircle2 size={10} /> : <Clock size={10} />}
-                                                    {m.label}
-                                                    {mi < milestones.slice(0, 5).length - 1 && <span className="ml-1 text-slate-800">›</span>}
-                                                </div>
-                                            ))}
+
+
+                                    <div className="border-t border-white/5 px-5 py-3 flex justify-between items-center bg-white/[0.01]">
+                                        <div className="flex gap-2 overflow-x-auto">
+                                            {milestones.length > 0 ? (
+                                                milestones.slice(0, 5).map((m, mi) => (
+                                                    <div key={mi} className={`flex items-center gap-1.5 shrink-0 text-[7px] font-black uppercase tracking-widest ${m.done ? 'text-emerald-400' : 'text-dim'}`}>
+                                                        {m.done ? <CheckCircle2 size={10} /> : <Clock size={10} />}
+                                                        {m.label}
+                                                        {mi < milestones.slice(0, 5).length - 1 && <span className="ml-1 text-slate-800">›</span>}
+                                                    </div>
+                                                ))
+                                            ) : (
+                                                <span className="text-[7px] font-black uppercase tracking-widest text-muted">No Milestones</span>
+                                            )}
                                         </div>
-                                    )}
+                                        <span className={`px-2 py-0.5 rounded-md text-[7px] font-black uppercase tracking-widest ${getStatusClasses(project.status)}`}>
+                                            {project.status}
+                                        </span>
+                                    </div>
                                 </div>
                             </Link>
                         );

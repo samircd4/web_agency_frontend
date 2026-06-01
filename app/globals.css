@@ -105,6 +105,12 @@
         scrollbar-width: thin;
         scrollbar-color: #1e293b #020617;
     }
+
+    /* Date picker calendar icon color */
+    input[type="date"]::-webkit-calendar-picker-indicator {
+        filter: invert(30%) sepia(100%) saturate(1500%) hue-rotate(150deg) brightness(100%) contrast(100%); /* for teal */
+        cursor: pointer;
+    }
 }
 
 @layer utilities {

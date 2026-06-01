@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import {
     Terminal, CheckCircle2, Activity, Cpu,
-    ArrowLeft, Clock, Shield
+    ArrowLeft, Clock, Shield, Edit, CheckCircle
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import useDashboard from '@/hooks/useDashboard';
@@ -15,6 +15,7 @@ import DashboardSidebar from '@/components/dashboard/Sidebar';
 import DashboardTopbar from '@/components/dashboard/Topbar';
 import ProjectSidebar from '@/components/dashboard/ProjectSidebar';
 import ProjectStagePipeline from '@/components/dashboard/ProjectStagePipeline';
+import ConfirmDangerModal from '@/components/ConfirmDangerModal'; // Import ConfirmDangerModal
 
 const STAGE_META = {
     'Requirements': { color: 'text-yellow-400', bg: 'bg-yellow-400/10', border: 'border-yellow-400/20' },
@@ -31,6 +32,54 @@ export default function ClientProjectDetail() {
     const [project, setProject] = useState(null);
     const [projectLoading, setProjectLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [showCancelModal, setShowCancelModal] = useState(false);
+    const [showCompleteModal, setShowCompleteModal] = useState(false);
+    const [isCancelling, setIsCancelling] = useState(false);
+    const [isCompleting, setIsCompleting] = useState(false);
+
+    const handleCancelProject = async () => {
+        if (!project?.id) return;
+        setIsCancelling(true);
+        try {
+            if (currentUser.is_staff) {
+                await api.cancelAdminProject(project.id);
+            } else {
+                await api.cancelClientProject(project.id);
+            }
+            router.push('/dashboard?tab=projects'); // Redirect to projects list
+        } catch (err) {
+            console.error('Failed to cancel project:', err);
+        } finally {
+            setIsCancelling(false);
+            setShowCancelModal(false);
+        }
+    };
+
+    const handleCompleteProject = async () => {
+        if (!project?.id) return;
+        setIsCompleting(true);
+        try {
+            await api.completeAdminProject(project.id);
+            setProject(prev => ({ ...prev, stage: 'Complete' })); // Optimistically update UI
+            router.push('/dashboard?tab=projects'); // Redirect to projects list
+        } catch (err) {
+            console.error('Failed to complete project:', err);
+        } finally {
+            setIsCompleting(false);
+            setShowCompleteModal(false);
+        }
+    };
+
+    const getStatusClasses = (status) => {
+        switch (status?.toLowerCase()) {
+            case 'cancelled':
+                return 'text-xs px-3 py-1 rounded-full bg-brand-red/15 border border-brand-red/30 text-brand-red font-semibold capitalize';
+            case 'completed':
+                return 'text-xs px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-500 font-semibold capitalize';
+            default: // Assuming 'active' or any other in-progress state
+                return 'text-xs px-3 py-1 rounded-full bg-brand-teal/15 border border-brand-teal/30 text-brand-teal font-semibold capitalize';
+        }
+    };
 
     const {
         isSidebarOpen,
@@ -260,13 +309,16 @@ export default function ClientProjectDetail() {
                             >
                                 {/* Header Layout */}
                                 <div className="p-2 lg:p-4 border-b border-white/5 bg-white/[0.02]">
-                                    <div className="">
-                                        <div className="text-[10px] font-black text-brand-teal uppercase tracking-[0.3em] mb-1">
-                                            {project.id} • {project.priority || 'Standard'} Priority
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <div className="text-[10px] font-black text-brand-teal uppercase tracking-[0.3em] mb-1">
+                                                {project.id} • {project.priority || 'Standard'} Priority
+                                            </div>
+                                            <h1 className="text-lg md:text-xl lg:text-2xl font-black text-white tracking-tight">
+                                                {project.title}
+                                            </h1>
                                         </div>
-                                        <h1 className="text-lg md:text-xl lg:text-2xl font-black text-white tracking-tight">
-                                            {project.title}
-                                        </h1>
+                                        <span className={getStatusClasses(project.status)}>{project.status}</span>
                                     </div>
                                 </div>
 
@@ -409,12 +461,47 @@ export default function ClientProjectDetail() {
                                     clientInvoices={clientInvoices}
                                     clientProposals={clientProposals}
                                     files={files}
+                                    isAdmin={currentUser?.is_staff}
+                                    onUpload={null}
+                                    onDelete={null}
+                                    onAddInvoice={null}
+                                    onAddProposal={null}
+                                    onCancelProject={() => setShowCancelModal(true)}
+                                    onCompleteProject={() => setShowCompleteModal(true)}
+                                    onEditProject={() => router.push(`/admin/projects/${id}`)} // Placeholder for now
                                 />
                             </div>
                         </div>
                     </div>
                 </div>
             </main>
+
+            {/* Cancel Project Confirmation Modal */}
+            <ConfirmDangerModal
+                open={showCancelModal}
+                onClose={() => setShowCancelModal(false)}
+                title="Cancel Project"
+                subtitle="This will mark the project as cancelled and cannot be undone."
+                heading="Are you sure you want to cancel this project?"
+                body="This action will set the project status to 'cancelled'."
+                confirmText="Cancel Project"
+                loading={isCancelling}
+                onConfirm={handleCancelProject}
+            />
+
+            {/* Complete Project Confirmation Modal */}
+            {currentUser?.is_staff && (
+                <ConfirmDangerModal
+                    open={showCompleteModal}
+                    onClose={() => setShowCompleteModal(false)}
+                    title="Complete Project"
+                    subtitle="This will mark the project as complete."
+                    heading="Are you sure you want to mark this project as complete?"
+                    confirmText="Complete Project"
+                    loading={isCompleting}
+                    onConfirm={handleCompleteProject}
+                />
+            )}
         </div>
     );
 }
