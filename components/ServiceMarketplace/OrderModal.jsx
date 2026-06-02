@@ -54,7 +54,8 @@ export default function OrderModal({ isOpen, onClose, service, tier }) {
     setIsProcessing(true);
     setErrorMessage('');
     try {
-      const response = await fetch('http://localhost:8000/api/payments/create-session/', {
+      const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.drpythonsolutions.com';
+      const response = await fetch(`${API_BASE}/payments/create-session/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
