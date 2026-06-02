@@ -158,7 +158,9 @@ export default function useDashboard() {
 
             try {
                 const me = await api.getMe();
-                setCurrentUser(me);
+                if (!currentUser || me.id !== currentUser.id) {
+                    setCurrentUser(me);
+                }
 
                 const compactProjects = await api.getClientProjects();
 
