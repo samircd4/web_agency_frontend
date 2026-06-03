@@ -1,0 +1,57 @@
+'use client';
+
+import React from 'react';
+import { AnimatePresence } from 'framer-motion';
+import useDashboard from '@/hooks/useDashboard';
+import DashboardSidebar from '@/components/dashboard/Sidebar';
+import DashboardTopbar from '@/components/dashboard/Topbar';
+
+export default function DashboardLayout({ children }) {
+    const {
+        isSidebarOpen,
+        setIsSidebarOpen,
+        currentUser,
+        clientInvoices,
+        clientProposals,
+        handleLogout,
+    } = useDashboard();
+
+    const pendingInvoiceCount = (clientInvoices || []).filter(
+        (inv) => inv.status !== 'paid' && inv.status !== 'void'
+    ).length;
+    const pendingProposalCount = (clientProposals || []).filter(
+        (p) => p.status === 'sent'
+    ).length;
+
+    return (
+        <div className="min-h-screen bg-[#020617] text-slate-300 font-sans">
+            <AnimatePresence>
+                {isSidebarOpen && (
+                    <div
+                        className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-[100] lg:hidden"
+                        onClick={() => setIsSidebarOpen(false)}
+                    />
+                )}
+            </AnimatePresence>
+
+            <DashboardSidebar
+                isSidebarOpen={isSidebarOpen}
+                setIsSidebarOpen={setIsSidebarOpen}
+                handleLogout={handleLogout}
+                pendingInvoiceCount={pendingInvoiceCount}
+                pendingProposalCount={pendingProposalCount}
+            />
+
+            <div className="fixed top-0 right-0 left-0 lg:left-[256px] z-30 bg-[#020617] px-3 lg:px-6 py-3">
+                <DashboardTopbar
+                    setIsSidebarOpen={setIsSidebarOpen}
+                    currentUser={currentUser}
+                />
+            </div>
+
+            <main className="lg:pl-[256px] min-h-screen flex flex-col p-0 lg:p-0 mt-[100px]">
+                {children}
+            </main>
+        </div>
+    );
+}

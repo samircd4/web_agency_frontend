@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { ArrowLeft, Zap, Box, MessageSquare, CreditCard, Settings, LogOut, X } from 'lucide-react';
 
 export default function DashboardSidebar({
@@ -13,8 +13,7 @@ export default function DashboardSidebar({
     pendingProposalCount,
 }) {
     const pathname = usePathname();
-    const searchParams = useSearchParams();
-    const currentTab = searchParams.get('tab') || 'projects';
+    const currentTab = pathname?.split('/dashboard/')[1] || 'projects';
 
     const items = [
         { id: 'projects', name: 'Projects', icon: <Zap size={16} /> },
@@ -71,7 +70,7 @@ export default function DashboardSidebar({
                     return (
                         <Link
                             key={item.id}
-                            href={`/dashboard?tab=${item.id}`}
+                            href={`/dashboard/${item.id}`}
                             onClick={() => setIsSidebarOpen(false)}
                             className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-[11px] font-black uppercase tracking-widest transition-all relative ${isActive
                                 ? 'text-brand-teal bg-brand-teal/5 border border-brand-teal/20'

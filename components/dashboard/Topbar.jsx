@@ -13,6 +13,8 @@ export default function DashboardTopbar({
     currentUser,
 }) {
     const router = useRouter();
+    const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
+    const currentTab = currentPath.split('/dashboard/')[1] || 'projects';
 
     const handleLogout = async () => {
         await api.logout();
@@ -49,9 +51,14 @@ export default function DashboardTopbar({
             </div>
 
             <div className="flex items-center gap-2">
-                <button className="relative p-2 rounded-lg bg-white/5 text-slate-400 hover:text-white transition-all border border-white/5">
+                <button
+                    onClick={() => router.push('/dashboard/comms')}
+                    className="relative p-2 rounded-lg bg-white/5 text-slate-400 hover:text-white transition-all border border-white/5"
+                >
                     <MessageSquare size={14} />
-                    <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-brand-teal rounded-full border border-slate-950" />
+                    {currentTab === 'comms' && (
+                        <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-brand-teal rounded-full border border-slate-950" />
+                    )}
                 </button>
                 <NotificationDropdown />
                 <div className="h-4 w-px bg-white/10 mx-1" />

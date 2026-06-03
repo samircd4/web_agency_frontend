@@ -1,11 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import useSettings from './useSettings';
 
 export default function useDashboard() {
     const router = useRouter();
-    const searchParams = useSearchParams();
     const [activeTab, setActiveTab] = useState('projects');
     const [selectedProject, setSelectedProject] = useState(null);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -140,7 +139,7 @@ export default function useDashboard() {
         } catch (err) {
             // ignore
         }
-    }, [searchParams, setActiveTab, setBillingNotice, setBillingView]); // Added searchParams to dependencies
+    }, [setActiveTab, setBillingNotice, setBillingView]);
 
     useEffect(() => {
         if (mountedRef.current) return;
@@ -191,7 +190,7 @@ export default function useDashboard() {
         };
 
         initDashboard();
-    }, [router, searchParams]); // Add searchParams to dependency array here too if needed for initial load, but be careful of loops
+    }, [router]);
 
     const normalizeList = (res) =>
         Array.isArray(res) ? res : res?.results || [];

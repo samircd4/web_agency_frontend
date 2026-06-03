@@ -16,7 +16,7 @@ export const projects = [
     Icon: Search,
     isTeal: true,
     liveUrl: "https://drpython.solutions",
-    sourceCodeUrl: "https://github.com/drpython",
+    sourceCodeUrl: "https://github.com/drpythonsolutions",
     image: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=800&q=80&fit=crop",
     challenge: "Traditional scraping methods were failing against Cloudflare and Akamai protections, leading to data gaps.",
     solution: "We implemented a custom TLS fingerprinting layer and behavioral human-mimicry algorithms to maintain 99.9% uptime.",
