@@ -68,7 +68,7 @@ export default function UserAvatarDropdown({ currentUser, userDisplayName, userI
                                 Marketplace
                             </Link>
                             <Link
-                                href={currentUser.is_staff ? "/admin" : "/dashboard?tab=settings"}
+                                href={currentUser.is_staff ? "/admin" : "/dashboard/settings"}
                                 onClick={() => setIsDropdownOpen(false)}
                                 className="flex items-center gap-3 px-3 py-2 rounded-lg text-xs font-bold text-slate-300 hover:text-white hover:bg-white/5 transition-all group"
                             >

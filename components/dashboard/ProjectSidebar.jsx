@@ -347,7 +347,7 @@ function DeliverablesCard({ files = [], isAdmin = false, onUpload, onDelete }) {
 function SecureChannelCTA() {
     return (
         <Link
-            href="/dashboard?tab=comms"
+            href="/dashboard/comms"
             className="w-full py-2.5 bg-brand-teal text-primary rounded-xl font-black uppercase tracking-widest text-xs shadow-glow-teal hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"
         >
             Secure Channel <MessageSquare size={12} />

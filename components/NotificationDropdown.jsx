@@ -10,13 +10,13 @@ import Link from 'next/link';
 export default function NotificationDropdown() {
     const router = useRouter();
     const [notifications, setNotifications] = useState([
-        { type: 'project_activity', message: "New task 'Design Homepage' added to Project Alpha.", link: "/dashboard?tab=projects&project=alpha&task=design-homepage" },
-        { type: 'project_status', message: "Project Beta status updated to 'In Progress'.", link: "/dashboard?tab=projects&project=beta" },
-        { type: 'invoice_payment', message: "Invoice #2024001 for $1,500 has been paid.", link: "/dashboard?tab=billing&invoice=2024001" },
-        { type: 'proposal', message: "New proposal for 'Marketing Campaign' received.", link: "/dashboard?tab=proposals&proposal=marketing-campaign" },
-        { type: 'system', message: "System update completed successfully.", link: "/admin?tab=settings" },
-        { type: 'message', message: "You have 2 new messages from Sarah.", link: "/dashboard?tab=messages" },
-        { type: 'project_activity', message: "Milestone 'Phase 1 Complete' achieved for Project Gamma.", link: "/dashboard?tab=projects&project=gamma" },
+        { type: 'project_activity', message: "New task 'Design Homepage' added to Project Alpha.", link: "/dashboard/projects?project=alpha&task=design-homepage" },
+        { type: 'project_status', message: "Project Beta status updated to 'In Progress'.", link: "/dashboard/projects?project=beta" },
+        { type: 'invoice_payment', message: "Invoice #2024001 for $1,500 has been paid.", link: "/dashboard/billing?invoice=2024001" },
+        { type: 'proposal', message: "New proposal for 'Marketing Campaign' received.", link: "/dashboard/billing?proposal=marketing-campaign" },
+        { type: 'system', message: "System update completed successfully.", link: "/admin/settings" },
+        { type: 'message', message: "You have 2 new messages from Sarah.", link: "/dashboard/comms" },
+        { type: 'project_activity', message: "Milestone 'Phase 1 Complete' achieved for Project Gamma.", link: "/dashboard/projects?project=gamma" },
     ]);
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const dropdownRef = useRef(null);

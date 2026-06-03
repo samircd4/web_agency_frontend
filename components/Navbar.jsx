@@ -217,7 +217,7 @@ export default function Navbar() {
                                     <Link href="/services" onClick={() => setIsMenuOpen(false)} className="w-full flex items-center gap-3 p-4 glass border-white/5 text-white rounded-lg font-black uppercase tracking-widest text-[10px] active:bg-white/10">
                                         <Store size={14} className="text-brand-teal" /> Marketplace
                                     </Link>
-                                    <Link href={currentUser.is_staff ? "/admin" : "/dashboard?tab=settings"} onClick={() => setIsMenuOpen(false)} className="w-full flex items-center gap-3 p-4 glass border-white/5 text-white rounded-lg font-black uppercase tracking-widest text-[10px] active:bg-white/10">
+                                    <Link href={currentUser.is_staff ? "/admin" : "/dashboard/settings"} onClick={() => setIsMenuOpen(false)} className="w-full flex items-center gap-3 p-4 glass border-white/5 text-white rounded-lg font-black uppercase tracking-widest text-[10px] active:bg-white/10">
                                         <Settings size={14} className="text-brand-teal" /> Settings
                                     </Link>
                                     <Link href={currentUser.is_staff ? "/admin" : "/dashboard"} onClick={() => setIsMenuOpen(false)} className="w-full flex items-center gap-3 p-4 glass border-white/10 text-white rounded-lg font-black uppercase tracking-widest text-[10px] active:bg-white/10">

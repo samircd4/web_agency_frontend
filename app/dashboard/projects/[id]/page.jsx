@@ -46,7 +46,7 @@ export default function ClientProjectDetail() {
             } else {
                 await api.cancelClientProject(project.id);
             }
-            router.push('/dashboard?tab=projects'); // Redirect to projects list
+            router.push('/dashboard/projects'); // Redirect to projects list
         } catch (err) {
             console.error('Failed to cancel project:', err);
         } finally {
@@ -61,7 +61,7 @@ export default function ClientProjectDetail() {
         try {
             await api.completeAdminProject(project.id);
             setProject(prev => ({ ...prev, stage: 'Complete' })); // Optimistically update UI
-            router.push('/dashboard?tab=projects'); // Redirect to projects list
+            router.push('/dashboard/projects'); // Redirect to projects list
         } catch (err) {
             console.error('Failed to complete project:', err);
         } finally {
@@ -249,7 +249,7 @@ export default function ClientProjectDetail() {
                                 {error || 'Project not found'}
                             </div>
                             <Link
-                                href="/dashboard?tab=projects"
+                                href="/dashboard/projects"
                                 className="inline-flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-tiny font-black uppercase tracking-widest text-slate-300 hover:bg-white/10 transition-all"
                             >
                                 <ArrowLeft size={12} />
