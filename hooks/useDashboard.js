@@ -118,7 +118,7 @@ export default function useDashboard() {
             const qs = new URLSearchParams(window.location.search || '');
             const checkout = qs.get('checkout');
             const invoiceId = qs.get('invoice');
-            const sessionId = qs.get('sessionId');
+            const sessionId = qs.get('sessionId') || qs.get('session_id');
             if (checkout === 'success') {
                 setActiveTab('billing');
                 setBillingNotice({ kind: 'success', invoiceId, sessionId });
@@ -132,7 +132,7 @@ export default function useDashboard() {
 
             if (checkout) {
                 if (typeof window !== 'undefined') {
-                    const cleanUrl = window.location.pathname + '?tab=billing';
+                    const cleanUrl = window.location.pathname;
                     window.history.replaceState({}, '', cleanUrl);
                 }
             }
