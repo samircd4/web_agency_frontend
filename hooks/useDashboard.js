@@ -8,7 +8,17 @@ import useSettings from './useSettings';
 // ─── Context ────────────────────────────────────────────────────────────────
 
 const DashboardContext = createContext(null);
-const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000").replace(/\/$/, "");
+const getApiBaseUrl = () => {
+    if (process.env.NEXT_PUBLIC_API_BASE_URL) return process.env.NEXT_PUBLIC_API_BASE_URL;
+    if (typeof window !== "undefined") {
+        const host = window.location.hostname;
+        if (host === "drpythonsolutions.com" || host === "www.drpythonsolutions.com") {
+            return "https://api.drpythonsolutions.com";
+        }
+    }
+    return "http://localhost:8000";
+};
+const API_BASE_URL = getApiBaseUrl().replace(/\/$/, "");
 
 // ─── Provider ────────────────────────────────────────────────────────────────
 

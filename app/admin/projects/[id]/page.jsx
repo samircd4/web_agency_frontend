@@ -43,7 +43,17 @@ function formatBytes(bytes) {
 
 function resolveBackendUrl(url) {
     if (!url) return '';
-    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+    const getApiBaseUrl = () => {
+        if (process.env.NEXT_PUBLIC_API_BASE_URL) return process.env.NEXT_PUBLIC_API_BASE_URL;
+        if (typeof window !== "undefined") {
+            const host = window.location.hostname;
+            if (host === "drpythonsolutions.com" || host === "www.drpythonsolutions.com") {
+                return "https://api.drpythonsolutions.com";
+            }
+        }
+        return "http://localhost:8000";
+    };
+    const apiBaseUrl = getApiBaseUrl();
     if (url.startsWith('http://') || url.startsWith('https://')) {
         return url;
     }

@@ -10,6 +10,18 @@ import { api } from '@/lib/api';
 import AdminModal from '@/components/AdminModal';
 import ConfirmDangerModal from '@/components/ConfirmDangerModal';
 
+const getApiBaseUrl = () => {
+    if (process.env.NEXT_PUBLIC_API_BASE_URL) return process.env.NEXT_PUBLIC_API_BASE_URL;
+    if (typeof window !== "undefined") {
+        const host = window.location.hostname;
+        if (host === "drpythonsolutions.com" || host === "www.drpythonsolutions.com") {
+            return "https://api.drpythonsolutions.com";
+        }
+    }
+    return "http://localhost:8000";
+};
+const API_BASE_URL = getApiBaseUrl().replace(/\/$/, "");
+
 const fadeIn = (delay = 0) => ({
     initial: { opacity: 0, y: 10 },
     animate: { opacity: 1, y: 0 },
