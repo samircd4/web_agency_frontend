@@ -2,11 +2,13 @@
 
 import React from 'react';
 import { AnimatePresence } from 'framer-motion';
+import { DashboardProvider } from '@/hooks/useDashboard';
 import useDashboard from '@/hooks/useDashboard';
 import DashboardSidebar from '@/components/dashboard/Sidebar';
 import DashboardTopbar from '@/components/dashboard/Topbar';
 
-export default function DashboardLayout({ children }) {
+// Inner layout reads from the shared context provided by DashboardProvider above.
+function DashboardLayoutInner({ children }) {
     const {
         isSidebarOpen,
         setIsSidebarOpen,
@@ -53,5 +55,16 @@ export default function DashboardLayout({ children }) {
                 {children}
             </main>
         </div>
+    );
+}
+
+// Outer layout provides the single shared state for the entire dashboard subtree.
+export default function DashboardLayout({ children }) {
+    return (
+        <DashboardProvider>
+            <DashboardLayoutInner>
+                {children}
+            </DashboardLayoutInner>
+        </DashboardProvider>
     );
 }

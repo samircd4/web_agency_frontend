@@ -1,14 +1,43 @@
-import { useState, useEffect, useRef } from 'react';
+'use client';
+
+import { useState, useEffect, useRef, createContext, useContext } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import useSettings from './useSettings';
 
+// ─── Context ────────────────────────────────────────────────────────────────
+
+const DashboardContext = createContext(null);
+
+// ─── Provider ────────────────────────────────────────────────────────────────
+
+export function DashboardProvider({ children }) {
+    const value = useDashboardState();
+    return (
+        <DashboardContext.Provider value={value}>
+            {children}
+        </DashboardContext.Provider>
+    );
+}
+
+// ─── Consumer hook ────────────────────────────────────────────────────────────
+// Use this in any component inside the dashboard layout.
+// It reads from the single shared context so all components see the same state.
+
 export default function useDashboard() {
+    const ctx = useContext(DashboardContext);
+    if (!ctx) {
+        throw new Error('useDashboard must be used inside <DashboardProvider>');
+    }
+    return ctx;
+}
+
+// ─── Internal state hook (used only by DashboardProvider) ────────────────────
+
+function useDashboardState() {
     const router = useRouter();
-    const [activeTab, setActiveTab] = useState('projects');
     const [selectedProject, setSelectedProject] = useState(null);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-    const [isDesktop, setIsDesktop] = useState(false);
 
     // Live state
     const [currentUser, setCurrentUser] = useState(null);
@@ -43,6 +72,7 @@ export default function useDashboard() {
         usernameStatus,
         usernameCheckLoading,
     } = useSettings(currentUser, handleUserUpdate);
+
     const [clientInvoices, setClientInvoices] = useState([]);
     const [clientProposals, setClientProposals] = useState([]);
     const [billingDocsLoading, setBillingDocsLoading] = useState(false);
@@ -112,35 +142,30 @@ export default function useDashboard() {
         );
     };
 
+    // ── Handle Stripe return query params ──────────────────────────────────
     useEffect(() => {
-        // This useEffect is for handling checkout and billing notices only
         try {
             const qs = new URLSearchParams(window.location.search || '');
             const checkout = qs.get('checkout');
             const invoiceId = qs.get('invoice');
             const sessionId = qs.get('sessionId') || qs.get('session_id');
             if (checkout === 'success') {
-                setActiveTab('billing');
                 setBillingNotice({ kind: 'success', invoiceId, sessionId });
                 setBillingView('invoices');
             }
             if (checkout === 'cancel') {
-                setActiveTab('billing');
                 setBillingNotice({ kind: 'cancel', invoiceId, sessionId });
                 setBillingView('invoices');
             }
-
-            if (checkout) {
-                if (typeof window !== 'undefined') {
-                    const cleanUrl = window.location.pathname;
-                    window.history.replaceState({}, '', cleanUrl);
-                }
+            if (checkout && typeof window !== 'undefined') {
+                window.history.replaceState({}, '', window.location.pathname);
             }
-        } catch (err) {
+        } catch {
             // ignore
         }
-    }, [setActiveTab, setBillingNotice, setBillingView]);
+    }, []);
 
+    // ── Initial data fetch ─────────────────────────────────────────────────
     useEffect(() => {
         if (mountedRef.current) return;
         mountedRef.current = true;
@@ -192,6 +217,7 @@ export default function useDashboard() {
         initDashboard();
     }, [router]);
 
+    // ── Load billing docs whenever projects or billingRefreshNonce changes ──
     const normalizeList = (res) =>
         Array.isArray(res) ? res : res?.results || [];
 
@@ -260,6 +286,7 @@ export default function useDashboard() {
         };
     }, [projects, billingRefreshNonce]);
 
+    // ── Stripe success: sync + poll until invoice flips to paid ────────────
     useEffect(() => {
         if (billingNotice?.kind !== 'success') return;
         const invoiceId = billingNotice?.invoiceId
@@ -298,13 +325,10 @@ export default function useDashboard() {
     }, [billingNotice, projects, clientInvoices]);
 
     return {
-        activeTab,
-        setActiveTab,
         selectedProject,
         setSelectedProject,
         isSidebarOpen,
         setIsSidebarOpen,
-        isDesktop,
         currentUser,
         projects,
         loading,

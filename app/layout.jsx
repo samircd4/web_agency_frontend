@@ -77,12 +77,19 @@ export default function RootLayout({ children }) {
                     dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
                     suppressHydrationWarning={true}
                 />
-                {/* External Tracking Script */}
-                <script 
-                    async 
+                <script
+                    async
                     src="https://analytics.zapform.ai/api/tracking-script/cmou2x91o0006i6041glff0u0"
                     suppressHydrationWarning={true}
                 />
+                <script async src="https://www.googletagmanager.com/gtag/js?id=G-BLVNBL6E4B"></script>
+                <script>
+                    window.dataLayer = window.dataLayer || [];
+                    function gtag(){dataLayer.push(arguments)};
+                    gtag('js', new Date());
+
+                    gtag('config', 'G-BLVNBL6E4B');
+                </script>
             </head>
             <body className="antialiased bg-background text-foreground" suppressHydrationWarning={true}>
                 <LayoutWrapper>

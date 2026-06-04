@@ -13,10 +13,7 @@ export default function DashboardTabPage() {
     const { tab } = useParams() || {};
     const router = useRouter();
 
-    if (!VALID_TABS.includes(tab)) {
-        return notFound();
-    }
-
+    // ── Always call hooks before any conditional return ──────────────────
     const {
         searchQuery,
         setSearchQuery,
@@ -71,6 +68,11 @@ export default function DashboardTabPage() {
         return () => window.removeEventListener('resize', checkIsDesktop);
     }, []);
 
+    // ── Now it's safe to do conditional returns ───────────────────────────
+    if (!VALID_TABS.includes(tab)) {
+        return notFound();
+    }
+
     if (loading || !currentUser) {
         return (
             <div className="flex-grow flex items-center justify-center px-3 lg:px-6 pb-3 lg:pb-6">
@@ -104,10 +106,6 @@ export default function DashboardTabPage() {
     const userInitials = currentUser.first_name && currentUser.last_name
         ? `${currentUser.first_name[0]}${currentUser.last_name[0]}`.toUpperCase()
         : currentUser.username.slice(0, 2).toUpperCase();
-
-    const userDisplayName = currentUser.first_name && currentUser.last_name
-        ? `${currentUser.first_name} ${currentUser.last_name}`
-        : currentUser.username;
 
     return (
         <>
