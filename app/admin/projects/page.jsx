@@ -398,10 +398,10 @@ function ProjectDrawer({ project, onClose, onToggleMilestone, onDeleteMilestone,
             setFileUploading(false);
         }
     };
-
+    const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000").replace(/\/$/, "");
     const resolveBackendUrl = (url) => {
         if (!url) return '';
-        return url.startsWith('/') ? `http://localhost:8000${url}` : url;
+        return url.startsWith('/') ? `${API_BASE_URL}${url}` : url;
     };
 
     const handleDownload = async (url, filename) => {

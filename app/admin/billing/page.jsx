@@ -552,7 +552,7 @@ export default function AdminBillingDashboard() {
                                                     </button>
                                                 )}
                                                 <a 
-                                                    href={`http://localhost:8000/api/admin/projects/${inv.project}/invoices/${inv.id}/print/`} 
+                                                    href={`${API_BASE_URL}/admin/projects/${inv.project}/invoices/${inv.id}/print/`} 
                                                     target="_blank" 
                                                     rel="noopener noreferrer" 
                                                     className="p-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-text-secondary transition-all inline-block"

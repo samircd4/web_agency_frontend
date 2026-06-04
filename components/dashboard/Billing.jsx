@@ -15,6 +15,9 @@ import {
 } from 'lucide-react';
 import { api } from '@/lib/api';
 
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000").replace(/\/$/, "");
+
+
 export default function DashboardView() {
     const router = useRouter();
     const [activeTab, setActiveTab] = useState('missions');
@@ -765,7 +768,7 @@ export default function DashboardView() {
                                                                             </button>
                                                                             <button
                                                                                 type="button"
-                                                                                onClick={() => window.open(`http://localhost:8000/api/client/projects/${inv._projectId}/invoices/${inv.id}/print/`, '_blank', 'noopener,noreferrer')}
+                                                                                onClick={() => window.open(`${API_BASE_URL}/client/projects/${inv._projectId}/invoices/${inv.id}/print/`, '_blank', 'noopener,noreferrer')}
                                                                                 className="px-3 py-1.5 rounded-lg bg-brand-teal/10 border border-brand-teal/25 text-xs font-black uppercase tracking-[0.14em] text-brand-teal hover:bg-brand-teal/15 transition-all"
                                                                             >
                                                                                 Print
@@ -1212,7 +1215,7 @@ export default function DashboardView() {
                             <div className="p-4 bg-white/[0.02] border-t border-white/5 flex items-center justify-end gap-2">
                                 <button
                                     type="button"
-                                    onClick={() => window.open(`http://localhost:8000/api/client/projects/${selectedInvoice._projectId}/invoices/${selectedInvoice.id}/print/`, '_blank', 'noopener,noreferrer')}
+                                    onClick={() => window.open(`${API_BASE_URL}/client/projects/${selectedInvoice._projectId}/invoices/${selectedInvoice.id}/print/`, '_blank', 'noopener,noreferrer')}
                                     className="px-4 py-2 bg-brand-teal/10 border border-brand-teal/20 text-brand-teal rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-brand-teal/15 transition-all"
                                 >
                                     Print

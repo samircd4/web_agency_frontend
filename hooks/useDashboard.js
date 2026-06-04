@@ -8,6 +8,7 @@ import useSettings from './useSettings';
 // ─── Context ────────────────────────────────────────────────────────────────
 
 const DashboardContext = createContext(null);
+const API_BASE_URL = (process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:8000").replace(/\/$/, "");
 
 // ─── Provider ────────────────────────────────────────────────────────────────
 
@@ -136,7 +137,7 @@ function useDashboardState() {
 
     const handlePrintInvoice = (invoice) => {
         window.open(
-            `http://localhost:8000/api/client/projects/${invoice._projectId}/invoices/${invoice.id}/print/`,
+            `${API_BASE_URL}/client/projects/${invoice._projectId}/invoices/${invoice.id}/print/`,
             '_blank',
             'noopener,noreferrer'
         );
