@@ -1,4 +1,5 @@
 import { Geist, Geist_Mono, Space_Grotesk } from "next/font/google";
+import Script from "next/script"; // Imported Next.js Script Optimization component
 import "./globals.css";
 import LayoutWrapper from '@/components/LayoutWrapper';
 
@@ -77,21 +78,29 @@ export default function RootLayout({ children }) {
                     dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
                     suppressHydrationWarning={true}
                 />
-                <script
-                    async
+                
+                {/* 1. Optimized Zapform Tracker */}
+                <Script
                     src="https://analytics.zapform.ai/api/tracking-script/cmou2x91o0006i6041glff0u0"
-                    suppressHydrationWarning={true}
+                    strategy="afterInteractive"
                 />
-                <script async src="https://www.googletagmanager.com/gtag/js?id=G-BLVNBL6E4B"></script>
-                <script>
-                    window.dataLayer = window.dataLayer || [];
-                    function gtag(){dataLayer.push(arguments)};
-                    gtag('js', new Date());
-
-                    gtag('config', 'G-BLVNBL6E4B');
-                </script>
+                
+                {/* 2. Optimized Google Analytics Framework */}
+                <Script
+                    src="https://www.googletagmanager.com/gtag/js?id=G-BLVNBL6E4B"
+                    strategy="afterInteractive"
+                />
+                <Script id="google-analytics" strategy="afterInteractive">
+                    {`
+                        window.dataLayer = window.dataLayer || [];
+                        function gtag(){dataLayer.push(arguments);}
+                        gtag('js', new Date());
+                        gtag('config', 'G-BLVNBL6E4B');
+                    `}
+                </Script>
             </head>
-            <body className="antialiased bg-background text-foreground" suppressHydrationWarning={true}>
+            {/* Added fallback font family configuration directly inline matching your variables */}
+            <body className="font-sans antialiased bg-background text-foreground h-full" suppressHydrationWarning={true}>
                 <LayoutWrapper>
                     {children}
                 </LayoutWrapper>
