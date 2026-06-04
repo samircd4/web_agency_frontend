@@ -20,32 +20,43 @@ const spaceGrotesk = Space_Grotesk({
 
 export const metadata = {
     title: {
-        default: 'Dr. Python Solutions | Scraping & E-commerce Engineering',
-        template: '%s | Dr. Python Solutions'
+        // Optimizes your Google search title link to hit the 50-60 character sweet spot
+        default: 'Dr Python Solutions | Custom Web Scraping & APIs',
+        template: '%s | Dr Python Solutions'
     },
-    description: 'Expert software engineering specializing in industrial-grade web scraping, high-velocity API ecosystems, and premium e-commerce architectures.',
-    keywords: ['Web Scraping', 'Python Developer', 'Django E-commerce', 'Automation Expert', 'Data Extraction', 'API Development', 'Software Engineering'],
-    authors: [{ name: 'Samir' }],
-    creator: 'Samir',
+    // Front-loaded with a strong, transactional keyword ("Hire") to hook high-value clients
+    description: 'Hire expert Python engineers for industrial-grade web scraping, high-velocity API development, and scalable e-commerce data architectures.',
+    keywords: [
+        'Hire Python Developer',
+        'Web Scraping Services',
+        'Data Extraction Agency',
+        'Custom API Development',
+        'Django E-commerce Engineering',
+        'Web Automation Expert',
+        'Scalable Data Pipelines'
+    ],
+    authors: [{ name: 'Somir' }],
+    creator: 'Somir',
     openGraph: {
-        title: 'Dr. Python Solutions',
-        description: 'Engineering Scalable Digital Assets with Maximum Velocity',
+        // Expanded to ensure social shares (LinkedIn, etc.) look incredibly premium
+        title: 'Dr Python Solutions | Production-Grade Software Engineering',
+        description: 'Industrial-grade web scraping, high-velocity API ecosystems, and premium e-commerce data architectures built for maximum scale.',
         url: 'https://drpythonsolutions.com',
-        siteName: 'Dr. Python Solutions',
+        siteName: 'Dr Python Solutions',
         locale: 'en_US',
         type: 'website',
     },
     twitter: {
         card: 'summary_large_image',
-        title: 'Dr. Python Solutions',
-        description: 'Engineering Scalable Digital Assets with Velocity',
+        title: 'Dr Python Solutions | Custom Web Scraping & APIs',
+        description: 'Industrial-grade web scraping, high-velocity API ecosystems, and premium e-commerce data architectures built for maximum scale.',
     },
     robots: {
         index: true,
         follow: true,
     },
     icons: {
-        icon: '/favicon.png',
+        icon: '/logo/logo.png',
     },
 };
 
@@ -78,13 +89,13 @@ export default function RootLayout({ children }) {
                     dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
                     suppressHydrationWarning={true}
                 />
-                
+
                 {/* 1. Optimized Zapform Tracker */}
                 <Script
                     src="https://analytics.zapform.ai/api/tracking-script/cmou2x91o0006i6041glff0u0"
                     strategy="afterInteractive"
                 />
-                
+
                 {/* 2. Optimized Google Analytics Framework */}
                 <Script
                     src="https://www.googletagmanager.com/gtag/js?id=G-BLVNBL6E4B"
