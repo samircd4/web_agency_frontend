@@ -146,8 +146,10 @@ function useDashboardState() {
     };
 
     const handlePrintInvoice = (invoice) => {
+        const token = localStorage.getItem('access_token') || '';
+        const tokenParam = token ? `?token=${encodeURIComponent(token)}` : '';
         window.open(
-            `${API_BASE_URL}/client/projects/${invoice._projectId}/invoices/${invoice.id}/print/`,
+            `${API_BASE_URL}/client/projects/${invoice._projectId}/invoices/${invoice.id}/print/${tokenParam}`,
             '_blank',
             'noopener,noreferrer'
         );

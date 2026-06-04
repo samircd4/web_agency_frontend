@@ -878,7 +878,7 @@ function ProjectDrawer({ project, onClose, onToggleMilestone, onDeleteMilestone,
                                                         </button>
                                                         <button
                                                             type="button"
-                                                            onClick={() => window.open(resolveBackendUrl(`/admin/projects/${project.id}/invoices/${inv.id}/print/`), '_blank', 'noopener,noreferrer')}
+                                                            onClick={() => { const t = localStorage.getItem('access_token') || ''; const q = t ? `?token=${encodeURIComponent(t)}` : ''; window.open(resolveBackendUrl(`/admin/projects/${project.id}/invoices/${inv.id}/print/${q}`), '_blank', 'noopener,noreferrer'); }}
                                                             className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-[10px] font-black uppercase tracking-widest text-text-primary hover:bg-white/10 transition-all"
                                                             title="Open printable invoice"
                                                         >

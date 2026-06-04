@@ -563,15 +563,14 @@ export default function AdminBillingDashboard() {
                                                         <XCircle size={12} />
                                                     </button>
                                                 )}
-                                                <a 
-                                                    href={`${API_BASE_URL}/admin/projects/${inv.project}/invoices/${inv.id}/print/`} 
-                                                    target="_blank" 
-                                                    rel="noopener noreferrer" 
-                                                    className="p-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-text-secondary transition-all inline-block"
+                                                <button
+                                                    type="button"
+                                                    onClick={() => { const t = localStorage.getItem('access_token') || ''; const q = t ? `?token=${encodeURIComponent(t)}` : ''; window.open(`${API_BASE_URL}/admin/projects/${inv.project}/invoices/${inv.id}/print/${q}`, '_blank', 'noopener noreferrer'); }}
+                                                    className="p-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-text-secondary transition-all"
                                                     title="Print PDF"
                                                 >
                                                     <Printer size={12} />
-                                                </a>
+                                                </button>
                                                 <button 
                                                     onClick={() => { setInvoiceToDelete(inv); setIsDeleteInvoiceOpen(true); }} 
                                                     className="p-1.5 bg-admin-danger/10 hover:bg-admin-danger/20 text-admin-danger rounded-lg transition-all"
