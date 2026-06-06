@@ -5,7 +5,7 @@ import Script from "next/script";
 import "./globals.css";
 import LayoutWrapper from '@/components/LayoutWrapper';
 import JsonLd from '@/components/JsonLd';
-import { organizationSchema, websiteSchema } from '@/lib/schemas';
+import { organizationSchema, websiteSchema, faqSchema } from '@/lib/schemas';
 
 const geistSans = Geist({
     variable: "--font-geist-sans",
@@ -26,12 +26,12 @@ export const metadata = {
     metadataBase: new URL("https://drpythonsolutions.com"),
 
     title: {
-        default:  "Dr Python Solutions | Python Developer & E-commerce Expert",
+        default:  "Dr Python Solutions | Custom Web Scraping & APIs",
         template: "%s | Dr Python Solutions",
     },
 
     description:
-        "Hire a Python developer for e-commerce development, web scraping, API development, price monitoring and automation. 150+ projects delivered worldwide.",
+        "Hire expert Python engineers for industrial-grade web scraping, high-velocity API development, and scalable e-commerce data architectures. 150+ projects delivered.",
 
     keywords: [
         "hire python developer",
@@ -52,8 +52,8 @@ export const metadata = {
         url:         "https://drpythonsolutions.com",
         siteName:    "Dr Python Solutions",
         locale:      "en_US",
-        title:       "Dr Python Solutions | Python Developer & E-commerce Expert",
-        description: "E-commerce development, web scraping, API development and automation. 150+ projects delivered.",
+        title:       "Dr Python Solutions | Production-Grade Software Engineering",
+        description: "Industrial-grade web scraping, high-velocity API ecosystems, and premium e-commerce data architectures built for maximum scale.",
         images: [{
             url:    "/images/og-image.png",
             width:  1200,
@@ -64,8 +64,8 @@ export const metadata = {
 
     twitter: {
         card:        "summary_large_image",
-        title:       "Dr Python Solutions | Python Developer & E-commerce Expert",
-        description: "E-commerce development, web scraping, API development and automation.",
+        title:       "Dr Python Solutions | Custom Web Scraping & APIs",
+        description: "Industrial-grade web scraping, high-velocity API ecosystems, and premium e-commerce data architectures built for maximum scale.",
         images:      ["/images/og-image.png"],
     },
 
@@ -85,6 +85,16 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
+    // Combine standalone schemas into an item graph so Google maps your identity efficiently
+    const schemaGraph = {
+        "@context": "https://schema.org",
+        "@graph": [
+            organizationSchema,
+            websiteSchema,
+            faqSchema
+        ]
+    };
+
     return (
         <html
             lang="en"
@@ -93,17 +103,19 @@ export default function RootLayout({ children }) {
             className={`${geistSans.variable} ${geistMono.variable} ${spaceGrotesk.variable} h-full antialiased dark`}
         >
             <head>
-                {/* Google Analytics */}
+                {/* Fixed Google Analytics to prevent build crashes */}
                 <Script
                     src="https://www.googletagmanager.com/gtag/js?id=G-BLVNBL6E4B"
                     strategy="afterInteractive"
                 />
                 <Script id="google-analytics" strategy="afterInteractive">
                     {`
-                        window.dataLayer = window.dataLayer || [];
-                        function gtag(){dataLayer.push(arguments);}
-                        gtag('js', new Date());
-                        gtag('config', 'G-BLVNBL6E4B');
+                        if (typeof window !== 'undefined') {
+                            window.dataLayer = window.dataLayer || [];
+                            function gtag(){window.dataLayer.push(arguments);}
+                            gtag('js', new Date());
+                            gtag('config', 'G-BLVNBL6E4B');
+                        }
                     `}
                 </Script>
             </head>
@@ -112,9 +124,8 @@ export default function RootLayout({ children }) {
                 className="font-sans antialiased bg-background text-foreground h-full"
                 suppressHydrationWarning={true}
             >
-                {/* Schemas — replaces the old inline jsonLd script */}
-                <JsonLd data={organizationSchema} />
-                <JsonLd data={websiteSchema} />
+                {/* Render everything as a unified identity graph */}
+                <JsonLd data={schemaGraph} />
 
                 <LayoutWrapper>
                     {children}
