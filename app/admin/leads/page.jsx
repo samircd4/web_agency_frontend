@@ -8,15 +8,19 @@ import AdminModal from '@/components/AdminModal';
 
 const STATUS_STYLES = {
     'New': 'bg-admin-accent/10 text-admin-accent border-admin-accent/20',
-    'In Review': 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
+    'Reviewed': 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
     'Quote Sent': 'bg-brand-indigo/10 text-brand-indigo border-brand-indigo/20',
     'Converted': 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+    'Contacted': 'bg-brand-indigo/10 text-brand-indigo border-brand-indigo/20',
+    'Declined': 'bg-admin-danger/10 text-admin-danger border-admin-danger/20',
 };
 const PRIORITY_MAP = {
     'New': { dot: 'bg-admin-danger', priority: 'High' },
-    'In Review': { dot: 'bg-yellow-400', priority: 'Medium' },
+    'Reviewed': { dot: 'bg-yellow-400', priority: 'Medium' },
     'Quote Sent': { dot: 'bg-brand-indigo', priority: 'Medium' },
+    'Contacted': { dot: 'bg-brand-indigo', priority: 'Medium' },
     'Converted': { dot: 'bg-text-dim', priority: 'Low' },
+    'Declined': { dot: 'bg-text-dim', priority: 'Low' },
 };
 
 function timeAgo(dateStr) {
@@ -102,7 +106,6 @@ export default function LeadsPage() {
         (filter === 'All' || l.status === filter) &&
         [l.client_name, l.title, l.client_email].some(s => (s || '').toLowerCase().includes(search.toLowerCase()))
     );
-
     return (
         <div className="space-y-6">
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col sm:flex-row sm:items-end justify-between gap-4">
@@ -119,7 +122,7 @@ export default function LeadsPage() {
             </motion.div>
 
             <div className="flex gap-1.5 flex-wrap">
-                {['All', 'New', 'In Review', 'Quote Sent', 'Converted'].map(s => (
+                {['All', 'New', 'Reviewed', 'Quote Sent', 'Converted'].map(s => (
                     <button key={s} onClick={() => setFilter(s)}
                         className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${filter === s ? 'bg-admin-accent/10 text-admin-accent border border-admin-accent/20' : 'bg-white/5 text-text-muted border border-white/5 hover:text-text-primary'}`}>
                         {s}
@@ -228,7 +231,7 @@ export default function LeadsPage() {
                                     <div>
                                         <div className="text-[10px] font-black text-text-muted uppercase tracking-widest mb-2">Update Status</div>
                                         <div className="flex gap-1.5 flex-wrap">
-                                            {['New', 'In Review', 'Quote Sent'].filter(s => s !== selected.status).map(s => (
+                                            {['New', 'Reviewed', 'Quote Sent'].filter(s => s !== selected.status).map(s => (
                                                 <button key={s} onClick={() => { handleStatusUpdate(selected.id, s); setSelected({ ...selected, status: s }); }}
                                                     className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest border transition-all ${STATUS_STYLES[s]}`}>
                                                     {s}

@@ -1,9 +1,10 @@
 'use client';
 
-import { Menu, Search, MessageSquare, Bell } from 'lucide-react';
-import { getFullAvatarUrl, api } from '@/lib/api';
+import { useState, useEffect } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { Menu, Search, MessageSquare } from 'lucide-react';
+import { api } from '@/lib/api';
 import NotificationDropdown from '@/components/NotificationDropdown';
-import { useRouter } from 'next/navigation';
 import UserAvatarDropdown from '@/components/UserAvatarDropdown';
 
 export default function DashboardTopbar({
@@ -13,15 +14,22 @@ export default function DashboardTopbar({
     currentUser,
 }) {
     const router = useRouter();
-    const currentPath = typeof window !== 'undefined' ? window.location.pathname : '';
-    const currentTab = currentPath.split('/dashboard/')[1] || 'projects';
+    const pathname = usePathname(); // Safe framework-level path visibility
+    const [mounted, setMounted] = useState(false);
+
+    // Derive active tab smoothly based on router state
+    const currentTab = pathname?.split('/dashboard/')[1] || 'projects';
+
+    // Delay visual flag renders until client mounting settles down
+    useEffect(() => {
+        setMounted(true);
+    }, []);
 
     const handleLogout = async () => {
         await api.logout();
-        // setCurrentUser is not available directly in Topbar, so we rely on the parent (DashboardView) to re-fetch or clear user.
-        // For now, we'll just redirect.
         router.push('/');
     };
+
     const userInitials =
         currentUser?.first_name && currentUser?.last_name
             ? `${currentUser.first_name[0]}${currentUser.last_name[0]}`.toUpperCase()
@@ -56,7 +64,9 @@ export default function DashboardTopbar({
                     className="relative p-2 rounded-lg bg-white/5 text-slate-400 hover:text-white transition-all border border-white/5"
                 >
                     <MessageSquare size={14} />
-                    {currentTab === 'comms' && (
+                    
+                    {/* Only compare tab status once client script tracking settles */}
+                    {mounted && currentTab === 'comms' && (
                         <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-brand-teal rounded-full border border-slate-950" />
                     )}
                 </button>
