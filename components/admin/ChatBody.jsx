@@ -1,8 +1,20 @@
-'use client';
-
+import { useEffect, useRef } from 'react';
 import { Check, CheckCheck } from 'lucide-react';
 
-export default function ChatBody({ messages }) {
+export default function ChatBody({ messages, isClientTyping = false }) {
+    const bottomRef = useRef(null);
+
+    useEffect(() => {
+        const scrollToBottom = () => {
+            if (bottomRef.current) {
+                bottomRef.current.scrollIntoView({ behavior: 'smooth' });
+            }
+        };
+        scrollToBottom();
+        const timeoutId = setTimeout(scrollToBottom, 100);
+        return () => clearTimeout(timeoutId);
+    }, [messages, isClientTyping]);
+
     return (
         <div className="flex-1 overflow-y-auto p-5 space-y-5 min-h-0 bg-[#060814] custom-scrollbar">
             {messages.map((msg) => {
@@ -49,6 +61,24 @@ export default function ChatBody({ messages }) {
                     </div>
                 );
             })}
+
+            {/* Typing Indicator */}
+            {isClientTyping && (
+                <div className="flex gap-4">
+                    <div className="w-9 h-9 rounded-full bg-brand-teal/20 flex items-center justify-center text-brand-teal text-xs font-black shrink-0 mt-1">
+                        CL
+                    </div>
+                    <div className="bg-white/5 border border-white/5 p-4 rounded-xl rounded-tl-none max-w-[70%] shadow-sm">
+                        <div className="flex items-center gap-1.5 py-1">
+                            <span className="w-2.5 h-2.5 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '0ms' }} />
+                            <span className="w-2.5 h-2.5 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '150ms' }} />
+                            <span className="w-2.5 h-2.5 rounded-full bg-slate-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            <div ref={bottomRef} />
         </div>
     );
 }

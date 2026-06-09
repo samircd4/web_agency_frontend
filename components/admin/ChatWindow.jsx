@@ -11,7 +11,10 @@ export default function ChatWindow({
     setSelectedClient, 
     messages, 
     messagesLoading, 
-    onSendMessage 
+    onSendMessage,
+    isClientOnline = false,
+    isClientTyping = false,
+    onTypingStatusChange
 }) {
     return (
         <motion.main
@@ -21,17 +24,21 @@ export default function ChatWindow({
             transition={{ duration: 0.2 }}
             className="flex-grow flex flex-col h-full min-h-0 overflow-hidden"
         >
-            <ChatHeader selectedClient={selectedClient} onBack={() => setSelectedClient(null)} />
+            <ChatHeader 
+                selectedClient={selectedClient} 
+                onBack={() => setSelectedClient(null)} 
+                isClientOnline={isClientOnline} 
+            />
             
             {messagesLoading ? (
                 <div className="flex-1 flex items-center justify-center bg-[#060814]">
                     <Loader2 size={32} className="animate-spin text-brand-teal" />
                 </div>
             ) : (
-                <ChatBody messages={messages} />
+                <ChatBody messages={messages} isClientTyping={isClientTyping} />
             )}
             
-            <ChatFooter onSendMessage={onSendMessage} />
+            <ChatFooter onSendMessage={onSendMessage} onTypingStatusChange={onTypingStatusChange} />
         </motion.main>
     );
 }

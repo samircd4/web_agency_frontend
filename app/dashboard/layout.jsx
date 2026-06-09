@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { Suspense } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import { DashboardProvider } from '@/hooks/useDashboard';
 import useDashboard from '@/hooks/useDashboard';
@@ -13,17 +13,10 @@ function DashboardLayoutInner({ children }) {
         isSidebarOpen,
         setIsSidebarOpen,
         currentUser,
-        clientInvoices,
-        clientProposals,
         handleLogout,
+        pendingInvoiceCount,
+        pendingProposalCount,
     } = useDashboard();
-
-    const pendingInvoiceCount = (clientInvoices || []).filter(
-        (inv) => inv.status !== 'paid' && inv.status !== 'void'
-    ).length;
-    const pendingProposalCount = (clientProposals || []).filter(
-        (p) => p.status === 'sent'
-    ).length;
 
     return (
         <div className="min-h-screen bg-[#020617] text-slate-300 font-sans">
@@ -61,10 +54,12 @@ function DashboardLayoutInner({ children }) {
 // Outer layout provides the single shared state for the entire dashboard subtree.
 export default function DashboardLayout({ children }) {
     return (
-        <DashboardProvider>
-            <DashboardLayoutInner>
-                {children}
-            </DashboardLayoutInner>
-        </DashboardProvider>
+        <Suspense fallback={<div className="min-h-screen bg-[#020617] flex items-center justify-center text-slate-500">Loading dashboard...</div>}>
+            <DashboardProvider>
+                <DashboardLayoutInner>
+                    {children}
+                </DashboardLayoutInner>
+            </DashboardProvider>
+        </Suspense>
     );
 }

@@ -2,7 +2,7 @@
 
 import { ArrowLeft } from 'lucide-react';
 
-export default function ChatHeader({ selectedClient, onBack }) {
+export default function ChatHeader({ selectedClient, onBack, isClientOnline = false }) {
     return (
         <div className="p-4 border-b border-white/10 bg-white/[0.01] flex items-center justify-between shrink-0">
             <div className="flex items-center gap-3">
@@ -22,8 +22,8 @@ export default function ChatHeader({ selectedClient, onBack }) {
                             : selectedClient.username}
                     </div>
                     <div className="flex items-center gap-1 text-[8px] text-slate-500">
-                        <span className="w-1.5 h-1.5 rounded-full bg-brand-teal animate-pulse" />
-                        Online
+                        <span className={`w-1.5 h-1.5 rounded-full ${isClientOnline ? 'bg-brand-teal animate-pulse' : 'bg-slate-500'}`} />
+                        {isClientOnline ? 'Online' : 'Offline'}
                     </div>
                 </div>
             </div>

@@ -2,10 +2,11 @@
 
 import React, { useEffect, useState } from 'react';
 import { notFound, useRouter, useParams } from 'next/navigation';
-import { Loader2 } from 'lucide-react';
 import useDashboard from '@/hooks/useDashboard';
 import DashboardTabPanels from '@/components/dashboard/TabPanels';
 import DashboardModals from '@/components/dashboard/Modals';
+import BillingNotice from '@/components/dashboard/BillingNotice';
+import DashboardLoadingState from '@/components/dashboard/DashboardLoadingState';
 
 const VALID_TABS = ['projects', 'vault', 'comms', 'billing', 'settings'];
 
@@ -74,16 +75,7 @@ export default function DashboardTabPage() {
     }
 
     if (loading || !currentUser) {
-        return (
-            <div className="flex-grow flex items-center justify-center px-3 lg:px-6 pb-3 lg:pb-6">
-                <div className="flex flex-col items-center gap-3">
-                    <Loader2 size={32} className="animate-spin text-brand-teal" />
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
-                        Decrypting Command Space...
-                    </span>
-                </div>
-            </div>
-        );
+        return <DashboardLoadingState />;
     }
 
     const vaultFiles = projects.flatMap((m) =>
@@ -109,41 +101,14 @@ export default function DashboardTabPage() {
 
     return (
         <>
-            {billingNotice?.kind && (
-                <div className="px-3 lg:px-6 pb-4">
-                    <div
-                        className={`p-4 rounded-xl border ${billingNotice.kind === 'success'
-                            ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-200'
-                            : 'bg-amber-500/10 border-amber-500/20 text-amber-200'
-                            }`}
-                    >
-                        <div className="flex items-start justify-between gap-4">
-                            <div>
-                                <div className="font-black uppercase tracking-widest text-[10px] mb-1">
-                                    {billingNotice.kind === 'success'
-                                        ? 'Payment Successful'
-                                        : 'Payment Canceled'}
-                                </div>
-                                <div className="text-slate-200/90 text-xs">
-                                    {billingNotice.kind === 'success'
-                                        ? 'Thanks — your payment was received. Your invoice status will update shortly.'
-                                        : 'No charges were made. You can try again anytime.'}
-                                </div>
-                            </div>
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    router.push('/dashboard/billing');
-                                    setBillingView('invoices');
-                                }}
-                                className="shrink-0 px-3 py-1.5 rounded-lg bg-white/5 border border-white/15 text-xs font-black uppercase tracking-[0.14em] text-white hover:bg-white/10 transition-all"
-                            >
-                                View Billing
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <BillingNotice
+                billingNotice={billingNotice}
+                onViewBilling={() => {
+                    router.push('/dashboard/billing');
+                    setBillingView('invoices');
+                }}
+            />
+
 
             <div className="flex-grow px-3 lg:px-6 pb-3 lg:pb-6">
                 <DashboardTabPanels
