@@ -109,6 +109,8 @@ export default function Chatbot() {
     const isTypingRef = useRef(false);
     const reconnectTimerRef = useRef(null);
     const guestSessionId = useRef(null);
+    const reconnectAttemptRef = useRef(0);
+    const adminTypingTimerRef = useRef(null);
     const isOpenRef = useRef(false);
 
     // ── Auth check (once, client-side) ──────────────────────────────────────
@@ -192,6 +194,7 @@ export default function Chatbot() {
         socket.onopen = () => {
             console.log('[Chatbot] WebSocket connected');
             setIsConnected(true);
+            reconnectAttemptRef.current = 0;
 
             // Announce our presence
             socket.send(JSON.stringify({ type: 'presence', status: 'online' }));
@@ -228,6 +231,10 @@ export default function Chatbot() {
             }
 
             if (data.type === 'message' || data.message) {
+                // Clear typing indicator when a new message arrives
+                setIsAdminTyping(false);
+                if (adminTypingTimerRef.current) clearTimeout(adminTypingTimerRef.current);
+
                 const raw = data.message || data;
                 const isFromMe = userIsAuth
                     ? raw.from_client === true
@@ -283,9 +290,19 @@ export default function Chatbot() {
 
             if (data.type === 'typing') {
                 const isStaff = data.is_staff;
-                const isOtherParty = userIsAuth ? isStaff : !data.from_guest;
+                const isOtherParty = userIsAuth ? isStaff : (data.from_guest === false || isStaff);
                 if (isOtherParty || isStaff) {
-                    setIsAdminTyping(data.is_typing);
+                    if (data.is_typing) {
+                        setIsAdminTyping(true);
+                        if (adminTypingTimerRef.current) clearTimeout(adminTypingTimerRef.current);
+                        // Auto-clear typing indicator after 4 seconds of inactivity
+                        adminTypingTimerRef.current = setTimeout(() => {
+                            setIsAdminTyping(false);
+                        }, 4000);
+                    } else {
+                        setIsAdminTyping(false);
+                        if (adminTypingTimerRef.current) clearTimeout(adminTypingTimerRef.current);
+                    }
                 }
                 return;
             }
@@ -297,6 +314,7 @@ export default function Chatbot() {
                     // Clear typing indicator when admin goes offline
                     if (data.status === 'offline') {
                         setIsAdminTyping(false);
+                        if (adminTypingTimerRef.current) clearTimeout(adminTypingTimerRef.current);
                     }
                     if (data.status === 'online' && socket.readyState === WebSocket.OPEN) {
                         socket.send(JSON.stringify({ type: 'presence', status: 'online' }));
@@ -314,11 +332,18 @@ export default function Chatbot() {
             console.log('[Chatbot] WebSocket closed');
             setIsConnected(false);
             setIsAdminOnline(false);
-            // Reconnect after 5 seconds
+            setIsAdminTyping(false);
+            if (adminTypingTimerRef.current) clearTimeout(adminTypingTimerRef.current);
+
+            // Reconnect with exponential backoff + random jitter (up to 30s)
+            const attempts = reconnectAttemptRef.current;
+            const delay = Math.min(1000 * Math.pow(2, attempts), 30000) + Math.random() * 1000;
+            reconnectAttemptRef.current += 1;
+
             reconnectTimerRef.current = setTimeout(() => {
                 ws.current = null;
                 connectWebSocket();
-            }, 5000);
+            }, delay);
         };
     }, [authChecked, userIsAuth, threadId]);
 

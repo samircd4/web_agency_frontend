@@ -4,7 +4,7 @@ import { Loader2 } from 'lucide-react';
 import SearchInput from './SearchInput';
 import ClientRow from './ClientRow';
 
-export default function ClientListPanel({ clients, loading, selectedClient, setSelectedClient, searchQuery, setSearchQuery }) {
+export default function ClientListPanel({ clients, loading, selectedClient, setSelectedClient, searchQuery, setSearchQuery, onDelete }) {
     return (
         <div className={`${selectedClient ? 'hidden lg:flex' : 'flex'} w-full lg:w-80 border-r border-white/10 bg-white/[0.01] flex-col h-full min-h-0 shrink-0`}>
             <SearchInput query={searchQuery} setQuery={setSearchQuery} />
@@ -25,6 +25,7 @@ export default function ClientListPanel({ clients, loading, selectedClient, setS
                             client={client}
                             isActive={selectedClient?.id === client.id}
                             onClick={() => setSelectedClient(client)}
+                            onDelete={onDelete}
                         />
                     ))
                 )}

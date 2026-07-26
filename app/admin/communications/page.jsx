@@ -8,57 +8,69 @@ import useAuthAndUser from '@/hooks/useAuthAndUser';
 import ClientListPanel from '@/components/admin/ClientListPanel';
 import ChatWindow from '@/components/admin/ChatWindow';
 import EmptyChatState from '@/components/admin/EmptyChatState';
-import { Users, Globe, Wifi, MessageSquare, Send, X, ArrowLeft, Circle, Check, CheckCheck } from 'lucide-react';
+import { Users, Globe, Wifi, MessageSquare, Send, X, ArrowLeft, Circle, Check, CheckCheck, Trash2, AlertTriangle } from 'lucide-react';
 
 // ─── Guest Session List Row ──────────────────────────────────────────────────
 
-function GuestRow({ session, isActive, onClick }) {
+function GuestRow({ session, isActive, onClick, onDelete }) {
     const last = session.last_message;
     const name = session.name && session.name !== 'Guest' ? session.name : (session.email || `Visitor ${String(session.id).slice(0, 8)}`);
     return (
-        <button
-            onClick={onClick}
-            className={`w-full text-left px-4 py-3 transition-all hover:bg-white/5 border-b border-white/5 last:border-0 ${isActive ? 'bg-brand-teal/10 border-l-2 border-l-brand-teal' : ''}`}
-        >
-            <div className="flex items-center gap-3">
-                <div className="relative flex-shrink-0">
-                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-violet-500/20 to-purple-500/10 border border-violet-500/20 flex items-center justify-center">
-                        <Globe size={16} className="text-violet-400" />
+        <div className={`group relative flex items-center hover:bg-white/5 transition-all border-b border-white/5 last:border-0 ${isActive ? 'bg-brand-teal/10 border-l-2 border-l-brand-teal' : ''}`}>
+            <button
+                onClick={onClick}
+                className="flex-grow text-left px-4 py-3 min-w-0"
+            >
+                <div className="flex items-center gap-3">
+                    <div className="relative flex-shrink-0">
+                        <div className="w-9 h-9 rounded-full bg-gradient-to-br from-violet-500/20 to-purple-500/10 border border-violet-500/20 flex items-center justify-center">
+                            <Globe size={16} className="text-violet-400" />
+                        </div>
+                        <div className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-[#060814] ${session.is_online ? 'bg-emerald-400' : 'bg-slate-600'}`} />
                     </div>
-                    <div className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-[#060814] ${session.is_online ? 'bg-emerald-400' : 'bg-slate-600'}`} />
-                </div>
-                <div className="min-w-0 flex-1">
-                    <div className="flex items-center justify-between">
-                        <span className="text-white text-sm font-medium truncate">{name}</span>
-                        {session.unread_count > 0 && (
-                            <span className="ml-2 w-5 h-5 bg-brand-teal rounded-full text-[10px] font-bold text-white flex items-center justify-center flex-shrink-0">
-                                {session.unread_count > 9 ? '9+' : session.unread_count}
-                            </span>
-                        )}
-                    </div>
-                    {session.is_typing ? (
-                        <p className="text-brand-teal text-xs font-medium animate-pulse mt-0.5">
-                            is typing...
-                        </p>
-                    ) : (
-                        <div className="flex items-center gap-1 mt-0.5 text-xs text-slate-500 min-w-0">
-                            {last && !last.from_guest && (
-                                <span className="shrink-0">
-                                    {last.is_read ? (
-                                        <CheckCheck className="w-3.5 h-3.5 text-brand-teal" />
-                                    ) : (
-                                        <Check className="w-3.5 h-3.5 text-slate-600" />
-                                    )}
+                    <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between">
+                            <span className="text-white text-sm font-medium truncate">{name}</span>
+                            {session.unread_count > 0 && (
+                                <span className="ml-2 w-5 h-5 bg-brand-teal rounded-full text-[10px] font-bold text-white flex items-center justify-center flex-shrink-0">
+                                    {session.unread_count > 9 ? '9+' : session.unread_count}
                                 </span>
                             )}
-                            <span className="truncate flex-grow">
-                                {last ? last.text : 'No messages yet'}
-                            </span>
                         </div>
-                    )}
+                        {session.is_typing ? (
+                            <p className="text-brand-teal text-xs font-medium animate-pulse mt-0.5">
+                                is typing...
+                            </p>
+                        ) : (
+                            <div className="flex items-center gap-1 mt-0.5 text-xs text-slate-500 min-w-0">
+                                {last && !last.from_guest && (
+                                    <span className="shrink-0">
+                                        {last.is_read ? (
+                                            <CheckCheck className="w-3.5 h-3.5 text-brand-teal" />
+                                        ) : (
+                                            <Check className="w-3.5 h-3.5 text-slate-600" />
+                                        )}
+                                    </span>
+                                )}
+                                <span className="truncate flex-grow">
+                                    {last ? last.text : 'No messages yet'}
+                                </span>
+                            </div>
+                        )}
+                    </div>
                 </div>
-            </div>
-        </button>
+            </button>
+            {/* Delete button */}
+            {onDelete && (
+                <button
+                    onClick={(e) => { e.stopPropagation(); onDelete(session); }}
+                    title="Delete session"
+                    className="opacity-0 group-hover:opacity-100 flex-shrink-0 mr-3 p-1.5 rounded-md text-slate-600 hover:text-red-400 hover:bg-red-500/10 transition-all"
+                >
+                    <Trash2 size={14} />
+                </button>
+            )}
+        </div>
     );
 }
 
@@ -356,6 +368,8 @@ export default function AdminCommunications() {
     const [isGuestTyping, setIsGuestTyping] = useState(false);
     const guestWatchWs = useRef(null);
     const selectedGuestRef = useRef(selectedGuest);
+    const guestTypingTimerRef = useRef(null);
+    const clientTypingTimerRef = useRef(null);
 
     useEffect(() => {
         selectedGuestRef.current = selectedGuest;
@@ -525,11 +539,24 @@ export default function AdminCommunications() {
                     s.id === session_id ? { ...s, is_typing: is_typing } : s
                 ));
                 if (selectedGuestRef.current && selectedGuestRef.current.id === session_id) {
-                    setIsGuestTyping(is_typing);
+                    if (is_typing) {
+                        setIsGuestTyping(true);
+                        if (guestTypingTimerRef.current) clearTimeout(guestTypingTimerRef.current);
+                        guestTypingTimerRef.current = setTimeout(() => {
+                            setIsGuestTyping(false);
+                            setGuestSessions(prev => prev.map(s => s.id === session_id ? { ...s, is_typing: false } : s));
+                        }, 4000);
+                    } else {
+                        setIsGuestTyping(false);
+                        if (guestTypingTimerRef.current) clearTimeout(guestTypingTimerRef.current);
+                    }
                 }
             } else if (data.type === 'new_message') {
                 const { session_id, session_name, message } = data;
                 const activeId = selectedGuestRef.current?.id;
+
+                if (guestTypingTimerRef.current) clearTimeout(guestTypingTimerRef.current);
+                setIsGuestTyping(false);
 
                 const formattedMsg = {
                     id: message.id,
@@ -795,6 +822,8 @@ export default function AdminCommunications() {
         ws.current.onmessage = (event) => {
             const data = JSON.parse(event.data);
             if (data.message) {
+                setIsClientTyping(false);
+                if (clientTypingTimerRef.current) clearTimeout(clientTypingTimerRef.current);
                 setMessages(prev => {
                     // Deduplicate: skip if message ID already exists
                     if (prev.some(m => m.id === data.message.id)) return prev;
@@ -814,7 +843,16 @@ export default function AdminCommunications() {
                     return m;
                 }));
             } else if (data.type === 'typing' && !data.is_staff) {
-                setIsClientTyping(data.is_typing);
+                if (data.is_typing) {
+                    setIsClientTyping(true);
+                    if (clientTypingTimerRef.current) clearTimeout(clientTypingTimerRef.current);
+                    clientTypingTimerRef.current = setTimeout(() => {
+                        setIsClientTyping(false);
+                    }, 4000);
+                } else {
+                    setIsClientTyping(false);
+                    if (clientTypingTimerRef.current) clearTimeout(clientTypingTimerRef.current);
+                }
             } else if (data.type === 'presence' && !data.is_staff) {
                 setIsClientOnline(data.status === 'online');
                 if (data.status === 'online') {
@@ -889,6 +927,34 @@ export default function AdminCommunications() {
             .toLowerCase().includes(searchQuery.toLowerCase())
     );
 
+    // ── Delete confirmation modal state ──────────────────────────────────────
+    const [deleteTarget, setDeleteTarget] = useState(null); // { type: 'client'|'guest', item }
+    const [isDeleting, setIsDeleting] = useState(false);
+
+    const promptDeleteClient = (client) => setDeleteTarget({ type: 'client', item: client });
+    const promptDeleteGuest = (session) => setDeleteTarget({ type: 'guest', item: session });
+
+    const handleConfirmDelete = async () => {
+        if (!deleteTarget || isDeleting) return;
+        setIsDeleting(true);
+        try {
+            if (deleteTarget.type === 'client') {
+                await api.deleteAdminChatThread(deleteTarget.item.id);
+                setClients(prev => prev.filter(c => c.id !== deleteTarget.item.id));
+                if (selectedClient?.id === deleteTarget.item.id) setSelectedClient(null);
+            } else {
+                await api.deleteGuestSession(deleteTarget.item.id);
+                setGuestSessions(prev => prev.filter(s => s.id !== deleteTarget.item.id));
+                if (selectedGuest?.id === deleteTarget.item.id) setSelectedGuest(null);
+            }
+            setDeleteTarget(null);
+        } catch (err) {
+            console.error('Delete failed:', err);
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
     return (
         <div className="absolute top-20 bottom-0 left-0 lg:left-64 right-0 flex flex-col bg-[#060814] text-white overflow-hidden">
 
@@ -940,6 +1006,7 @@ export default function AdminCommunications() {
                             setSelectedClient={setSelectedClient}
                             searchQuery={searchQuery}
                             setSearchQuery={setSearchQuery}
+                            onDelete={promptDeleteClient}
                         />
                         <AnimatePresence mode="wait">
                             {selectedClient ? (
@@ -991,6 +1058,7 @@ export default function AdminCommunications() {
                                                     s.id === session.id ? { ...s, unread_count: 0 } : s
                                                 ));
                                             }}
+                                            onDelete={promptDeleteGuest}
                                         />
                                     ))
                                 )}
@@ -1025,6 +1093,69 @@ export default function AdminCommunications() {
                     </>
                 )}
             </div>
+
+            {/* ── Delete Confirmation Modal ── */}
+            <AnimatePresence>
+                {deleteTarget && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+                        onClick={() => !isDeleting && setDeleteTarget(null)}
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            exit={{ scale: 0.9, opacity: 0 }}
+                            onClick={(e) => e.stopPropagation()}
+                            className="bg-[#0d1128] border border-white/10 rounded-2xl p-6 w-full max-w-sm mx-4 shadow-2xl"
+                        >
+                            <div className="flex items-center gap-3 mb-4">
+                                <div className="w-10 h-10 rounded-xl bg-red-500/10 border border-red-500/20 flex items-center justify-center flex-shrink-0">
+                                    <AlertTriangle size={18} className="text-red-400" />
+                                </div>
+                                <div>
+                                    <h3 className="text-white font-semibold text-sm">Delete Conversation</h3>
+                                    <p className="text-slate-500 text-xs mt-0.5">This action cannot be undone</p>
+                                </div>
+                            </div>
+                            <p className="text-slate-300 text-sm mb-6">
+                                Are you sure you want to permanently delete the chat with{' '}
+                                <span className="text-white font-medium">
+                                    {deleteTarget.type === 'client'
+                                        ? (deleteTarget.item.first_name && deleteTarget.item.last_name
+                                            ? `${deleteTarget.item.first_name} ${deleteTarget.item.last_name}`
+                                            : deleteTarget.item.username)
+                                        : (deleteTarget.item.name && deleteTarget.item.name !== 'Guest'
+                                            ? deleteTarget.item.name
+                                            : (deleteTarget.item.email || `Visitor ${String(deleteTarget.item.id).slice(0, 8)}`))}
+                                </span>? All messages will be lost.
+                            </p>
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setDeleteTarget(null)}
+                                    disabled={isDeleting}
+                                    className="flex-1 px-4 py-2.5 rounded-xl border border-white/10 text-slate-400 text-sm font-medium hover:bg-white/5 transition-colors disabled:opacity-50"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleConfirmDelete}
+                                    disabled={isDeleting}
+                                    className="flex-1 px-4 py-2.5 rounded-xl bg-red-500/90 hover:bg-red-500 text-white text-sm font-semibold transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+                                >
+                                    {isDeleting ? (
+                                        <><span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />Deleting...</>
+                                    ) : (
+                                        <><Trash2 size={14} />Delete</>  
+                                    )}
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 }
