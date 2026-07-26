@@ -9,7 +9,7 @@ import { motion } from 'framer-motion';
 export default function Footer() {
     return (
         <footer className="bg-surface-900 border-t border-white/5 pt-16 pb-10 md:pt-24 md:pb-12">
-            <div className="container mx-auto px-6">
+            <div className="container mx-auto px-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-8 mb-12 md:mb-20">
                     <div className="lg:col-span-2">
                         <Link href="/" className="flex items-center gap-3 mb-8 group">

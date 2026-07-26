@@ -1,13 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { Star, Heart, Clock, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Star, Heart, Clock, Eye, ChevronLeft, ChevronRight, Share2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { isServiceSaved, toggleSavedService } from '@/lib/services';
+import ShareModal from '@/components/ShareModal';
 
 export default function ServiceCard({ service }) {
   const [isFavorite, setIsFavorite] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [direction, setDirection] = useState(1);
+  const [isShareOpen, setIsShareOpen] = useState(false);
   
   const {
     id,
@@ -35,6 +38,15 @@ export default function ServiceCard({ service }) {
   const displayImages = gallery.length > 0 ? gallery : [image];
   const hasMultipleImages = displayImages.length > 1;
 
+  useEffect(() => {
+    if (!hasMultipleImages) return;
+    const interval = setInterval(() => {
+      setDirection(1);
+      setActiveImageIndex((prev) => (prev + 1) % displayImages.length);
+    }, 3500);
+    return () => clearInterval(interval);
+  }, [hasMultipleImages, displayImages.length]);
+
   const toggleFavorite = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -42,16 +54,39 @@ export default function ServiceCard({ service }) {
     setIsFavorite(updatedStatus);
   };
 
+  const handleShare = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsShareOpen(true);
+  };
+
   const handleNextImage = (e) => {
     e.preventDefault();
     e.stopPropagation();
+    setDirection(1);
     setActiveImageIndex((prev) => (prev === displayImages.length - 1 ? 0 : prev + 1));
   };
 
   const handlePrevImage = (e) => {
     e.preventDefault();
     e.stopPropagation();
+    setDirection(-1);
     setActiveImageIndex((prev) => (prev === 0 ? displayImages.length - 1 : prev - 1));
+  };
+
+  const slideVariants = {
+    enter: (dir) => ({
+      x: dir > 0 ? '100%' : '-100%',
+      opacity: 1
+    }),
+    center: {
+      x: 0,
+      opacity: 1
+    },
+    exit: (dir) => ({
+      x: dir > 0 ? '-100%' : '100%',
+      opacity: 1
+    })
   };
 
   const targetUrl = service.slug || id;
@@ -68,22 +103,24 @@ export default function ServiceCard({ service }) {
         >
           {/* Image Container */}
           <div className="relative aspect-[4/3] overflow-hidden group/image">
-            <AnimatePresence mode="wait">
+            <AnimatePresence initial={false} custom={direction}>
               <motion.div
                 key={activeImageIndex}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                className="absolute inset-0"
+                custom={direction}
+                variants={slideVariants}
+                initial="enter"
+                animate="center"
+                exit="exit"
+                transition={{ duration: 0.4, ease: [0.25, 1, 0.5, 1] }}
+                className="absolute inset-0 w-full h-full"
               >
                 <Image
                   src={displayImages[activeImageIndex]}
                   alt={title}
                   fill
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw" // 👈 Added to clear your performance warning
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   className="object-cover group-hover/card:scale-110 transition-transform duration-700"
-                  priority={id < 3} // Optimization hint for your top-row cards
+                  priority={id < 3}
                 />
               </motion.div>
             </AnimatePresence>
@@ -117,6 +154,7 @@ export default function ServiceCard({ service }) {
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
+                      setDirection(idx > activeImageIndex ? 1 : -1);
                       setActiveImageIndex(idx);
                     }}
                     onKeyDown={(e) => {
@@ -147,11 +185,11 @@ export default function ServiceCard({ service }) {
               <div className="flex items-center gap-2">
                 <div className="w-6 h-6 rounded-full bg-gradient-to-br from-brand-teal to-brand-blue overflow-hidden relative">
                   <div className="w-full h-full flex items-center justify-center text-[10px] font-bold text-white">
-                    {seller.name.charAt(0)}
+                    {seller?.name?.charAt(0) || 'D'}
                   </div>
                 </div>
                 <span className="text-xs font-medium text-slate-400 group-hover/card:text-white transition-colors">
-                  {seller.name}
+                  {seller?.name || 'Dr. Python'}
                 </span>
               </div>
               
@@ -167,24 +205,28 @@ export default function ServiceCard({ service }) {
             </h3>
 
             {/* Footer */}
-            <div className="mt-auto pt-4 border-t border-white/5 flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                {/* Rating */}
-                <div className="flex items-center gap-1">
-                  <Star className="w-3.5 h-3.5 text-brand-teal fill-brand-teal" />
-                  <span className="text-xs font-bold text-white">{(rating || 5.0).toFixed(1)}</span>
-                  <span className="text-[10px] text-slate-500">({reviewCount})</span>
+            <div className="mt-auto pt-4 border-t border-white/5 flex items-center justify-between gap-2">
+              <div className="flex flex-wrap items-center gap-3">
+                {/* Styled Rating & Reviews */}
+                <div className="flex items-center gap-1.5">
+                  <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-brand-teal/10 border border-brand-teal/30">
+                    <Star className="w-3 h-3 text-brand-teal fill-brand-teal" />
+                    <span className="text-[11px] font-black text-white">{(rating || 5.0).toFixed(1)}</span>
+                  </div>
+                  <span className="text-[11px] font-extrabold text-slate-300">
+                    ({reviewCount} Reviews) 
+                  </span>
                 </div>
                 
                 {/* Views */}
-                <div className="flex items-center gap-1 text-slate-500">
-                  <Eye size={12} />
-                  <span className="text-[10px] font-bold">{views || 0}</span>
+                <div className="flex items-center gap-1 text-slate-400" title="Real Service Views">
+                  <Eye size={12} className="text-brand-teal" />
+                  <span className="text-[11px] font-bold">{views || 0}</span>
                 </div>
               </div>
 
               <div className="text-right">
-                <span className="text-[10px] uppercase text-slate-500 block leading-none mb-0.5">From</span>
+                <span className="text-[10px] uppercase text-slate-300 block leading-none mb-0.5">Start From</span>
                 <span className="text-lg font-black text-white">${displayPrice}</span>
               </div>
             </div>
@@ -192,15 +234,36 @@ export default function ServiceCard({ service }) {
         </motion.div>
       </Link>
 
-      {/* Favorite Button - Positioned absolutely OUTSIDE the Link to prevent hydration error */}
-      <button 
-        onClick={toggleFavorite}
-        className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/20 backdrop-blur-md flex items-center justify-center border border-white/10 hover:bg-black/40 transition-all z-20"
-      >
-        <Heart 
-          className={`w-4 h-4 transition-colors ${isFavorite ? 'text-brand-red fill-brand-red' : 'text-white'}`} 
-        />
-      </button>
+      {/* Action Buttons (Share & Favorite) - Positioned absolutely OUTSIDE the Link */}
+      <div className="absolute top-3 right-3 flex items-center gap-2 z-20">
+        <button 
+          onClick={handleShare}
+          className="w-8 h-8 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center border border-white/10 hover:bg-black/70 hover:border-brand-teal/50 transition-all text-slate-300 hover:text-white shadow-lg"
+          title="Share Service"
+        >
+          <Share2 size={14} className="text-brand-teal" />
+        </button>
+        <button 
+          onClick={toggleFavorite}
+          className="w-8 h-8 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center border border-white/10 hover:bg-black/70 transition-all shadow-lg"
+          title={isFavorite ? "Saved" : "Save"}
+        >
+          <Heart 
+            className={`w-4 h-4 transition-colors ${isFavorite ? 'text-brand-red fill-brand-red' : 'text-white'}`} 
+          />
+        </button>
+      </div>
+
+      {/* Share Modal Dialog */}
+      <ShareModal
+        isOpen={isShareOpen}
+        onClose={() => setIsShareOpen(false)}
+        title={title}
+        description={service.description || service.aboutService || title}
+        url={typeof window !== 'undefined' ? `${window.location.origin}/services/${targetUrl}` : ''}
+        category={service.category || 'Service Capability'}
+        image={displayImages[0]}
+      />
     </div>
   );
 }

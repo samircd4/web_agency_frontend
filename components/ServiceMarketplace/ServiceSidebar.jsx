@@ -42,21 +42,7 @@ export default function ServiceSidebar({ filters, setFilters, searchQuery, setSe
     <aside className="w-full lg:w-72 flex-shrink-0">
       <div className="sticky top-32 space-y-8">
         <div className="hidden lg:block">
-          <h2 className="text-2xl font-black text-white mb-6">Filters</h2>
-        </div>
-        <div>
-          
-          {/* Search Input in Sidebar */}
-          <div className="relative group mb-8">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-brand-teal transition-colors" />
-            <input 
-              type="text" 
-              placeholder="Search services..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-surface-900 border border-white/10 rounded-xl py-3 pl-11 pr-4 text-sm text-white placeholder:text-slate-500 focus:outline-none focus:border-brand-teal/50 transition-all shadow-lg"
-            />
-          </div>
+          <h2 className="text-2xl font-black text-white mb-2">Filters</h2>
         </div>
         
         {filterGroups.map((group, idx) => (

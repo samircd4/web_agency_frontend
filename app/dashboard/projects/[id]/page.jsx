@@ -19,6 +19,7 @@ import ProjectActivityLogSection from '@/components/dashboard/project-detail/Pro
 import ProjectDetailFooter from '@/components/dashboard/project-detail/ProjectDetailFooter';
 import ProjectCancelModal from '@/components/dashboard/project-detail/ProjectCancelModal';
 import ProjectCompleteModal from '@/components/dashboard/project-detail/ProjectCompleteModal';
+import ReviewSection from '@/components/dashboard/project-detail/ReviewSection';
 
 export default function ClientProjectDetail() {
     const { id } = useParams();
@@ -74,12 +75,12 @@ export default function ClientProjectDetail() {
         }
     };
 
-    const handleCompleteProject = async () => {
+    const handleCompleteProject = async (extraData = {}) => {
         if (!project?.id) return;
         setIsCompleting(true);
         try {
-            await api.completeAdminProject(project.id);
-            setProject(prev => ({ ...prev, stage: 'Complete' }));
+            await api.completeAdminProject(project.id, extraData);
+            setProject(prev => ({ ...prev, stage: 'Complete', ...extraData }));
             router.push('/dashboard/projects');
         } catch (err) {
             console.error('Failed to complete project:', err);
@@ -149,6 +150,23 @@ export default function ClientProjectDetail() {
 
                             {/* Activity log */}
                             <ProjectActivityLogSection activities={activities} />
+
+                            {/* Review Section — only for clients on completed projects */}
+                            <ReviewSection
+                                projectId={project.id}
+                                projectStage={project.stage}
+                                projectStatus={project.status}
+                                completionImageUrl={
+                                    project.completion_image_url ||
+                                    project.completion_image ||
+                                    project.portfolio_image ||
+                                    project.portfolio_image_url ||
+                                    project.cover_image ||
+                                    project.cover_image_url ||
+                                    ''
+                                }
+                                isAdmin={currentUser?.is_staff}
+                            />
                         </div>
 
                         {/* Footer Protocol bar */}
@@ -167,6 +185,7 @@ export default function ClientProjectDetail() {
                             onDelete={null}
                             onAddInvoice={null}
                             onAddProposal={null}
+                            onUpdateProjectImage={(url) => setProject(prev => ({ ...prev, completion_image_url: url }))}
                             onCancelProject={() => setShowCancelModal(true)}
                             onCompleteProject={() => setShowCompleteModal(true)}
                             onEditProject={() => router.push(`/admin/projects/${id}`)}

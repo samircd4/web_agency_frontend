@@ -524,7 +524,7 @@ export default function BlogPostDetail() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(articleJsonLd) }}
       />
 
-      <article className="container mx-auto px-6">
+      <article className="container mx-auto px-4">
         
         {/* Navigation & Action Buttons */}
         <div className="max-w-4xl mx-auto mb-12 flex items-center justify-between">

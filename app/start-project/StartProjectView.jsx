@@ -128,7 +128,7 @@ export default function StartProjectView() {
       <div className="absolute top-0 right-0 w-[50rem] h-[50rem] bg-brand-teal/5 rounded-full blur-[150px] -mr-64 -mt-64 pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-[40rem] h-[40rem] bg-brand-red/5 rounded-full blur-[150px] -ml-64 -mb-64 pointer-events-none" />
 
-      <div className="container mx-auto px-6 relative z-10">
+      <div className="container mx-auto px-4 relative z-10">
         
         {/* Header Section */}
         <div className="max-w-4xl mx-auto mb-4">

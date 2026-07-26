@@ -47,8 +47,8 @@ const services = [
 export default function ServicesGrid() {
     return (
         <section id="services" className="py-8 bg-background relative overflow-hidden">
-            <div className="w-full md:container mx-auto px-0 md:px-6">
-                <div className="text-center mb-10 px-6 md:px-0">
+            <div className="container mx-auto px-4">
+                <div className="text-center mb-10">
                     <ScrollReveal>
                         <h2 className="text-3xl md:text-5xl font-black text-white mb-4 tracking-tight">
                             Mission Critical <span className="text-gradient-red">Services.</span>
@@ -61,7 +61,7 @@ export default function ServicesGrid() {
                     </ScrollReveal>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 px-6 md:px-0">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {services.map((service, index) => (
                         <ScrollReveal key={index} delay={index * 0.1}>
                             <div className="p-6 rounded-xl glass border border-white/5 h-full hover:border-brand-teal/30 transition-all group">

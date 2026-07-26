@@ -107,7 +107,7 @@ export default function BlogView() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(blogJsonLd) }}
       />
 
-      <div className="container mx-auto px-6">
+      <div className="container mx-auto px-4">
         
         {/* Header & Tag Explorer */}
         <header className="max-w-4xl mb-12">

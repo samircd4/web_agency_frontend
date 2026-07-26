@@ -77,7 +77,7 @@ export default function AboutUs() {
                 <div className="absolute bottom-0 left-[-10%] w-[45%] h-[45%] bg-brand-red/5 rounded-full blur-[130px] animate-pulse-slow" style={{ animationDelay: '3s' }} />
                 <div className="absolute inset-0 opacity-[0.07] pointer-events-none [background-image:radial-gradient(var(--color-surface-700)_1px,transparent_1px)] [background-size:40px_40px]" />
 
-                <div className="container mx-auto px-6 relative z-10">
+                <div className="container mx-auto px-4 relative z-10">
                     <div className="grid lg:grid-cols-2 gap-16 items-center">
                         
                         {/* Left Content */}
@@ -216,7 +216,7 @@ export default function AboutUs() {
                 <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
                     style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '30px 30px' }} />
 
-                <div className="container mx-auto px-6 relative z-10">
+                <div className="container mx-auto px-4 relative z-10">
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-12 text-center">
                         {stats.map((stat, i) => (
                             <motion.div
@@ -243,7 +243,7 @@ export default function AboutUs() {
             <section className="py-16 md:py-24 relative overflow-hidden">
                 <div className="absolute right-0 top-0 w-1/2 h-full bg-brand-teal/3 blur-[160px] rounded-full pointer-events-none" />
 
-                <div className="container mx-auto px-6 relative z-10">
+                <div className="container mx-auto px-4 relative z-10">
                     <div className="grid lg:grid-cols-2 gap-20 items-center">
 
                         {/* Left – copy */}
@@ -305,7 +305,7 @@ export default function AboutUs() {
             <section className="py-16 md:py-24 bg-slate-950 relative overflow-hidden">
                 <div className="absolute inset-0 opacity-[0.04] pointer-events-none [background-image:radial-gradient(var(--color-surface-700)_1px,transparent_1px)] [background-size:36px_36px]" />
 
-                <div className="container mx-auto px-6 relative z-10">
+                <div className="container mx-auto px-4 relative z-10">
                     <ScrollReveal>
                         <div className="text-center mb-16">
                             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-red/10 border border-brand-red/20 text-brand-red text-[10px] font-black tracking-[0.2em] uppercase mb-6">
@@ -363,7 +363,7 @@ export default function AboutUs() {
             <section className="py-16 md:py-24 relative overflow-hidden">
                 <div className="absolute left-0 top-0 w-1/2 h-full bg-brand-red/3 blur-[160px] rounded-full pointer-events-none" />
 
-                <div className="container mx-auto px-6 relative z-10">
+                <div className="container mx-auto px-4 relative z-10">
                     <ScrollReveal>
                         <div className="mb-16">
                             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-teal/10 border border-brand-teal/20 text-brand-teal text-[10px] font-black tracking-[0.2em] uppercase mb-6">
@@ -427,7 +427,7 @@ export default function AboutUs() {
                     style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '30px 30px' }} />
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60%] h-[60%] bg-brand-teal/5 rounded-full blur-[120px] pointer-events-none animate-pulse-slow" />
 
-                <div className="container mx-auto px-6 relative z-10 text-center">
+                <div className="container mx-auto px-4 relative z-10 text-center">
                     <ScrollReveal>
                         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-teal/10 border border-brand-teal/20 text-brand-teal text-[10px] font-black tracking-[0.2em] uppercase mb-8">
                             <Award size={12} />

@@ -59,7 +59,7 @@ export default function Hero() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8 }}
-                className="container mx-auto px-6 relative z-10"
+                className="container mx-auto px-4 relative z-10"
             >
                 <div className="grid lg:grid-cols-2 gap-16 items-center">
 

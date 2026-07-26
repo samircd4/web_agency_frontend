@@ -26,9 +26,11 @@ export default function ServiceMarketplace() {
         budget: 'Any budget'
     });
 
+    const [isMounted, setIsMounted] = useState(false);
     const [savedVersion, setSavedVersion] = useState(0);
 
     useEffect(() => {
+        setIsMounted(true);
         const handleSavedChange = () => setSavedVersion(v => v + 1);
         window.addEventListener('savedServicesChanged', handleSavedChange);
         return () => window.removeEventListener('savedServicesChanged', handleSavedChange);
@@ -59,9 +61,10 @@ export default function ServiceMarketplace() {
     }, []);
 
     const savedCount = useMemo(() => {
+        if (!isMounted) return 0;
         const savedIds = getSavedServices();
         return savedIds.length;
-    }, [savedVersion]);
+    }, [isMounted, savedVersion]);
 
     const getServicePrice = (s) => {
         if (typeof s.price === 'number') return s.price;
@@ -79,6 +82,7 @@ export default function ServiceMarketplace() {
 
         // Filter by Saved View Tab
         if (viewMode === 'saved') {
+            if (!isMounted) return [];
             result = result.filter(s => isServiceSaved(s.id));
         }
 
@@ -124,10 +128,10 @@ export default function ServiceMarketplace() {
         }
 
         return result;
-    }, [servicesList, searchQuery, filters, viewMode, savedVersion]);
+    }, [servicesList, searchQuery, filters, viewMode, savedVersion, isMounted]);
 
     return (
-        <div className="container mx-auto px-6 pt-2 pb-12">
+        <div className="container mx-auto px-4 pt-2 pb-12">
             <div className="flex flex-col lg:flex-row gap-8 lg:gap-12 relative">
 
                 {/* Desktop Sidebar */}
@@ -181,54 +185,78 @@ export default function ServiceMarketplace() {
 
                 {/* Main Content & Grid Area */}
                 <div className="flex-grow">
-                    {/* Prominent Tab Switcher Header */}
-                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 pb-6 border-b border-white/5">
+                    {/* Prominent Tab Switcher & Search Bar Header */}
+                    <div className="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4 mb-6 pb-6 border-b border-white/5">
                         
-                        {/* View Mode Toggle Buttons */}
-                        <div className="flex items-center p-1.5 bg-surface-900/80 border border-white/10 rounded-2xl gap-1">
-                            <button
-                                onClick={() => setViewMode('all')}
-                                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${
-                                    viewMode === 'all'
-                                        ? 'bg-brand-teal text-slate-950 shadow-glow-teal'
-                                        : 'text-slate-400 hover:text-white'
-                                }`}
-                            >
-                                <Layers size={14} />
-                                <span>All Capabilities</span>
-                                <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${
-                                    viewMode === 'all' ? 'bg-slate-950/20 text-slate-950' : 'bg-white/5 text-slate-400'
-                                }`}>
-                                    {servicesList.length}
-                                </span>
-                            </button>
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 flex-grow">
+                            {/* View Mode Toggle Buttons */}
+                            <div className="flex items-center p-1.5 bg-surface-900/80 border border-white/10 rounded-2xl gap-1 flex-shrink-0">
+                                <button
+                                    onClick={() => setViewMode('all')}
+                                    className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${
+                                        viewMode === 'all'
+                                            ? 'bg-brand-teal text-slate-950 shadow-glow-teal'
+                                            : 'text-slate-400 hover:text-white'
+                                    }`}
+                                >
+                                    <Layers size={14} />
+                                    <span>Services</span>
+                                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${
+                                        viewMode === 'all' ? 'bg-slate-950/20 text-slate-950' : 'bg-white/5 text-slate-400'
+                                    }`}>
+                                        {servicesList.length}
+                                    </span>
+                                </button>
 
-                            <button
-                                onClick={() => setViewMode('saved')}
-                                className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${
-                                    viewMode === 'saved'
-                                        ? 'bg-brand-red text-white shadow-glow-red'
-                                        : 'text-slate-400 hover:text-white'
-                                }`}
-                            >
-                                <Heart size={14} className={savedCount > 0 ? "fill-current text-white" : ""} />
-                                <span>Saved Services</span>
-                                <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${
-                                    viewMode === 'saved' ? 'bg-white/20 text-white' : 'bg-white/5 text-slate-400'
-                                }`}>
-                                    {savedCount}
-                                </span>
-                            </button>
+                                <button
+                                    onClick={() => setViewMode('saved')}
+                                    className={`flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest transition-all ${
+                                        viewMode === 'saved'
+                                            ? 'bg-brand-red text-white shadow-glow-red'
+                                            : 'text-slate-400 hover:text-white'
+                                    }`}
+                                >
+                                    <Heart size={14} className={savedCount > 0 ? "fill-current text-white" : ""} />
+                                    <span>Saved Services</span>
+                                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold ${
+                                        viewMode === 'saved' ? 'bg-white/20 text-white' : 'bg-white/5 text-slate-400'
+                                    }`}>
+                                        {savedCount}
+                                    </span>
+                                </button>
+                            </div>
+
+                            {/* Search Input (Placed after Saved Services and before Filter button on mobile) */}
+                            <div className="flex-grow flex items-center gap-3">
+                                <div className="relative group w-full">
+                                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 group-focus-within:text-brand-teal transition-colors" />
+                                    <input 
+                                        type="text" 
+                                        placeholder="Search services..."
+                                        value={searchQuery}
+                                        onChange={(e) => setSearchQuery(e.target.value)}
+                                        className="w-full bg-surface-900 border border-white/10 rounded-2xl py-2.5 pl-11 pr-8 text-xs text-white placeholder:text-slate-500 focus:outline-none focus:border-brand-teal/50 transition-all shadow-lg"
+                                    />
+                                    {searchQuery && (
+                                        <button
+                                            onClick={() => setSearchQuery('')}
+                                            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white text-xs"
+                                        >
+                                            <X size={14} />
+                                        </button>
+                                    )}
+                                </div>
+
+                                {/* Mobile Filter Button (Positioned after search input) */}
+                                <button
+                                    onClick={() => setShowMobileFilters(true)}
+                                    className="lg:hidden flex items-center gap-2 px-4 py-2.5 bg-surface-900 border border-white/10 rounded-2xl text-white font-bold text-xs hover:border-brand-teal/50 transition-all flex-shrink-0"
+                                >
+                                    <Filter size={14} className="text-brand-teal" />
+                                    <span>Filters</span>
+                                </button>
+                            </div>
                         </div>
-
-                        {/* Mobile Filter Button */}
-                        <button
-                            onClick={() => setShowMobileFilters(true)}
-                            className="lg:hidden flex items-center gap-2 px-4 py-2.5 bg-surface-900 border border-white/10 rounded-xl text-white font-bold text-xs"
-                        >
-                            <Filter size={14} className="text-brand-teal" />
-                            <span>Filters</span>
-                        </button>
                     </div>
 
                     {/* Results Status Line */}

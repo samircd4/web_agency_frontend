@@ -98,14 +98,15 @@ export default function AdminProjectDetail() {
     // Edit form
     const [editLoading, setEditLoading] = useState(false);
     const [editForm, setEditForm] = useState({
-        title: '',
-        description: '',
-        value: 0,
-        deadline: '',
-        priority: 'Medium',
-        stage: 'Dev',
-        tagsStr: ''
+        title: '', description: '', value: 0, deadline: '', priority: 'Medium', stage: 'Dev', service_id: '', tagsStr: ''
     });
+    const [allServices, setAllServices] = useState([]);
+
+    useEffect(() => {
+        api.getAdminServices().then(res => {
+            setAllServices(Array.isArray(res) ? res : res.results || []);
+        }).catch(() => {});
+    }, []);
 
     // Billing state
     const [billingTab, setBillingTab] = useState('invoices'); // invoices | proposals
@@ -182,6 +183,7 @@ export default function AdminProjectDetail() {
                 deadline: p.deadline || '',
                 priority: p.priority || 'Medium',
                 stage: p.stage || 'Dev',
+                service_id: p.service_id || p.service || '',
                 tagsStr: (p.tags || []).join(', ')
             });
             setClientInvoices(Array.isArray(invs) ? invs : invs.results || []);
@@ -322,6 +324,10 @@ export default function AdminProjectDetail() {
     };
 
     const handleFileUpload = async (file) => {
+        if (isProjectCompleted) {
+            showToast('Project is completed. File uploads are locked.', 'error');
+            return;
+        }
         try {
             await api.uploadAdminProjectFile(id, file);
             await loadProject();
@@ -333,6 +339,10 @@ export default function AdminProjectDetail() {
     };
 
     const handleDeleteFile = async (fileId) => {
+        if (isProjectCompleted) {
+            showToast('Project is completed. File deletion is locked.', 'error');
+            return;
+        }
         try {
             await api.deleteAdminProjectFile(id, fileId);
             await loadProject();
@@ -368,15 +378,25 @@ export default function AdminProjectDetail() {
         return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
     };
 
+    // Milestone Actions (ported from main admin projects page)
+    const isProjectCompleted = (project?.status || '').toLowerCase() === 'completed';
+
     const handleAddNewMilestone = (e) => {
         e.preventDefault();
+        if (isProjectCompleted) {
+            showToast('Project is already completed. Cannot add new milestones.', 'error');
+            return;
+        }
         if (!newMilestoneLabel.trim()) return;
         handleAddMilestone(project.id, newMilestoneLabel.trim());
         setNewMilestoneLabel('');
     };
 
-    // Milestone Actions (ported from main admin projects page)
     async function handleToggleMilestone(projectId, milestoneId, currentDone) {
+        if (isProjectCompleted) {
+            showToast('Project is already completed. Milestones are locked.', 'error');
+            return;
+        }
         try {
             const nextDone = !currentDone;
             await api.updateMilestone(projectId, milestoneId, { done: nextDone });
@@ -389,6 +409,10 @@ export default function AdminProjectDetail() {
     }
 
     function handleDeleteMilestone(projectId, milestoneId, milestoneLabel = '') {
+        if (isProjectCompleted) {
+            showToast('Project is already completed. Cannot delete milestones.', 'error');
+            return;
+        }
         if (!milestoneId) return;
         setDangerConfirm({ open: true, kind: 'milestone', projectId, id: milestoneId, label: milestoneLabel || '' });
     }
@@ -481,11 +505,13 @@ export default function AdminProjectDetail() {
                             </div>
                             <div className="flex items-center gap-2">
                                 <span className={getStatusClasses(project.status)}>{project.status}</span>
-                                <button
-                                    onClick={() => setIsEditing(true)}
-                                    className="px-4 py-2 rounded-xl bg-brand-teal text-text-primary font-black uppercase tracking-widest text-xs hover:-translate-y-0.5 transition-all shadow-glow-teal flex items-center gap-2">
-                                    <Edit3 size={12} /> Edit Project
-                                </button>
+                                {!isProjectCompleted && (
+                                    <button
+                                        onClick={() => setIsEditing(true)}
+                                        className="px-4 py-2 rounded-xl bg-brand-teal text-text-primary font-black uppercase tracking-widest text-xs hover:-translate-y-0.5 transition-all shadow-glow-teal flex items-center gap-2">
+                                        <Edit3 size={12} /> Edit Project
+                                    </button>
+                                )}
                             </div>
                         </div>
                     </div>
@@ -530,22 +556,28 @@ export default function AdminProjectDetail() {
                                 <p className="text-xs text-text-dim italic mb-3 ml-1">No milestones established for this project.</p>
                             )}
 
-                            {/* Add Milestone Form */}
-                            <form onSubmit={handleAddNewMilestone} className="flex gap-2 pt-2 border-t border-white/5">
-                                <input
-                                    type="text"
-                                    value={newMilestoneLabel}
-                                    onChange={(e) => setNewMilestoneLabel(e.target.value)}
-                                    placeholder="Establish new milestone label..."
-                                    className="flex-grow bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-text-primary placeholder:text-text-dim focus:outline-none focus:border-brand-teal/50"
-                                />
-                                <button
-                                    type="submit"
-                                    className="px-3.5 py-2 bg-brand-teal text-text-primary rounded-xl font-black uppercase tracking-widest text-[10px] hover:-translate-y-0.5 transition-all shadow-glow-teal shrink-0"
-                                >
-                                    Add
-                                </button>
-                            </form>
+                            {/* Add Milestone Form / Lock Banner */}
+                            {isProjectCompleted ? (
+                                <div className="pt-2.5 border-t border-white/5 text-[11px] font-bold text-emerald-400/80 italic text-center flex items-center justify-center gap-1.5">
+                                    <CheckCircle2 size={13} className="text-emerald-400" /> Project completed — Milestones are locked.
+                                </div>
+                            ) : (
+                                <form onSubmit={handleAddNewMilestone} className="flex gap-2 pt-2 border-t border-white/5">
+                                    <input
+                                        type="text"
+                                        value={newMilestoneLabel}
+                                        onChange={(e) => setNewMilestoneLabel(e.target.value)}
+                                        placeholder="Establish new milestone label..."
+                                        className="flex-grow bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs text-text-primary placeholder:text-text-dim focus:outline-none focus:border-brand-teal/50"
+                                    />
+                                    <button
+                                        type="submit"
+                                        className="px-3.5 py-2 bg-brand-teal text-text-primary rounded-xl font-black uppercase tracking-widest text-[10px] hover:-translate-y-0.5 transition-all shadow-glow-teal shrink-0"
+                                    >
+                                        Add
+                                    </button>
+                                </form>
+                            )}
                         </div>
 
                         <ProjectTags tags={project.tags} />
@@ -571,6 +603,12 @@ export default function AdminProjectDetail() {
                         onAddProposal={() => setCreateProposalOpen(true)}
                         onCancelProject={() => setShowCancelModal(true)}
                         onCompleteProject={() => setShowCompleteModal(true)}
+                        onUpdateProject={async (data) => {
+                            await api.patchAdminProject(project.id, data);
+                            const detail = await api.getAdminProjectDetail(project.id);
+                            setProject(detail);
+                            showToast('Project updated successfully');
+                        }}
                     />
                 </div>
 
@@ -647,6 +685,20 @@ export default function AdminProjectDetail() {
                                 ))}
                             </select>
                         </div>
+                    </div>
+
+                    <div className="space-y-2">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Associated Catalog Service</label>
+                        <select
+                            value={editForm.service_id || ''}
+                            onChange={(e) => setEditForm({ ...editForm, service_id: e.target.value || null, service: e.target.value || null })}
+                            className="w-full bg-surface-900 border border-white/10 rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:border-brand-teal/50 font-bold"
+                        >
+                            <option value="">None (Custom Project)</option>
+                            {allServices.map(s => (
+                                <option key={s.id} value={s.id}>{s.title} ({s.id})</option>
+                            ))}
+                        </select>
                     </div>
 
                     <div className="space-y-2">

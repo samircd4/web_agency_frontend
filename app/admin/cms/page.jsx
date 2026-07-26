@@ -1,13 +1,79 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     FileEdit, Plus, Trash2, X, Save,
-    Tag, Calendar, BookOpen, Briefcase, ToggleLeft, ToggleRight, Loader2, AlertCircle
+    Tag, BookOpen, Briefcase, ToggleLeft, ToggleRight, Loader2, AlertCircle,
+    Upload, Eye, EyeOff
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import AdminModal from '@/components/AdminModal';
+
+// ─── Image upload field ───────────────────────────────────────────────────────
+function CmsImageUpload({ label, value, onChange, disabled }) {
+    const fileRef = useRef();
+    const [uploading, setUploading] = useState(false);
+    const [preview, setPreview] = useState(value || '');
+
+    useEffect(() => { setPreview(value || ''); }, [value]);
+
+    const handleFile = async (file) => {
+        if (!file) return;
+        setUploading(true);
+        try {
+            const result = await api.uploadCMSImage(file);
+            const url = result?.url || result?.file_url || result?.image_url || '';
+            onChange(url);
+            setPreview(url);
+        } catch (err) {
+            const localUrl = URL.createObjectURL(file);
+            setPreview(localUrl);
+            alert('Upload failed: ' + (err.message || 'Unknown') + '\nLocal preview only.');
+        } finally {
+            setUploading(false);
+        }
+    };
+
+    return (
+        <div className="space-y-1.5">
+            <label className="text-[10px] font-black uppercase tracking-widest ml-1 text-text-muted">{label}</label>
+            <div className="flex gap-2">
+                <input
+                    type="text"
+                    value={value || ''}
+                    onChange={e => { onChange(e.target.value); setPreview(e.target.value); }}
+                    placeholder="https://... or upload"
+                    disabled={disabled || uploading}
+                    className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-text-primary placeholder:text-text-dim focus:outline-none focus:border-brand-teal/50 transition-all"
+                />
+                <button
+                    type="button"
+                    onClick={() => fileRef.current?.click()}
+                    disabled={disabled || uploading}
+                    className="px-3 py-2 rounded-xl bg-brand-teal/10 border border-brand-teal/20 text-brand-teal text-xs font-black uppercase tracking-widest hover:bg-brand-teal/20 transition-all flex items-center gap-1.5 whitespace-nowrap disabled:opacity-50"
+                >
+                    {uploading ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
+                    {uploading ? 'Uploading...' : 'Upload'}
+                </button>
+                <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={e => handleFile(e.target.files?.[0])} />
+            </div>
+            {preview && (
+                <div className="relative rounded-xl overflow-hidden border border-white/10 bg-slate-950" style={{ height: 140 }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={preview} alt="" className="w-full h-full object-cover" onError={() => setPreview('')} />
+                    <button
+                        type="button"
+                        onClick={() => { onChange(''); setPreview(''); }}
+                        className="absolute top-2 right-2 w-6 h-6 rounded-full bg-black/70 flex items-center justify-center text-white hover:bg-brand-red transition-colors"
+                    >
+                        <X size={11} />
+                    </button>
+                </div>
+            )}
+        </div>
+    );
+}
 
 function ContentTable({ items, tab, onEdit, onDelete, onToggle }) {
     const formatDate = (dateStr) => {
@@ -163,8 +229,10 @@ export default function CMSPage() {
             body: item.content_markdown || '',
             description: item.description || '',
             cover_image_url: item.cover_image_url || '',
+            gallery: item.gallery || [],
             slug: item.slug || '',
-            isNew: false
+            isNew: false,
+            previewMode: false,
         });
         setError('');
     };
@@ -178,8 +246,10 @@ export default function CMSPage() {
             body: '',
             description: '',
             cover_image_url: '',
+            gallery: [],
             published: false,
-            isNew: true
+            isNew: true,
+            previewMode: false,
         });
         setError('');
     };
@@ -242,6 +312,7 @@ export default function CMSPage() {
             if (tab === 'portfolio') {
                 payload.description = editor.description;
                 payload.cover_image_url = editor.cover_image_url;
+                payload.gallery = editor.gallery || [];
 
                 if (editor.isNew) {
                     await api.createAdminPortfolioItem(payload);
@@ -357,23 +428,46 @@ export default function CMSPage() {
                                         className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-text-primary placeholder:text-text-dim focus:outline-none focus:border-brand-teal/50 transition-all font-mono" />
                                 </div>
 
-                                {tab === 'portfolio' && (
-                                    <>
-                                        <div className="space-y-1.5">
-                                            <label className="text-[10px] font-black text-text-muted uppercase tracking-widest ml-1">Cover Image URL</label>
-                                            <input type="text" value={editor.cover_image_url} onChange={e => setEditor(p => ({ ...p, cover_image_url: e.target.value }))}
-                                                placeholder="https://images.unsplash.com/photo-..." disabled={saving}
-                                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-text-primary placeholder:text-text-dim focus:outline-none focus:border-brand-teal/50 transition-all" />
-                                        </div>
+                            {tab === 'portfolio' && (
+                                <>
+                                    <CmsImageUpload
+                                        label="Cover Image"
+                                        value={editor.cover_image_url}
+                                        onChange={url => setEditor(p => ({ ...p, cover_image_url: url }))}
+                                        disabled={saving}
+                                    />
 
-                                        <div className="space-y-1.5">
-                                            <label className="text-[10px] font-black text-text-muted uppercase tracking-widest ml-1">Short Description</label>
-                                            <textarea value={editor.description} onChange={e => setEditor(p => ({ ...p, description: e.target.value }))}
-                                                placeholder="Brief introduction displayed in cards..." disabled={saving} rows={3}
-                                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-text-primary placeholder:text-text-dim focus:outline-none focus:border-brand-teal/50 transition-all resize-none" />
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-black text-text-muted uppercase tracking-widest ml-1">Short Description</label>
+                                        <textarea value={editor.description} onChange={e => setEditor(p => ({ ...p, description: e.target.value }))}
+                                            placeholder="Brief introduction displayed in cards..." disabled={saving} rows={3}
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-text-primary placeholder:text-text-dim focus:outline-none focus:border-brand-teal/50 transition-all resize-none" />
+                                    </div>
+
+                                    {/* Gallery for portfolio */}
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-text-muted uppercase tracking-widest ml-1">Gallery Images (optional)</label>
+                                        <div className="grid grid-cols-3 gap-2">
+                                            {(editor.gallery || []).map((img, idx) => (
+                                                <div key={idx} className="relative aspect-video rounded-lg overflow-hidden border border-white/10 bg-slate-950 group">
+                                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                    <img src={img} alt={`g${idx}`} className="w-full h-full object-cover" />
+                                                    <button type="button" onClick={() => setEditor(p => ({ ...p, gallery: (p.gallery || []).filter((_, i) => i !== idx) }))}
+                                                        className="absolute top-1 right-1 w-5 h-5 rounded-full bg-black/70 flex items-center justify-center text-white hover:bg-brand-red transition-colors">
+                                                        <X size={10} />
+                                                    </button>
+                                                </div>
+                                            ))}
                                         </div>
-                                    </>
-                                )}
+                                        <CmsImageUpload
+                                            label="Add gallery image"
+                                            value=""
+                                            onChange={url => { if (url) setEditor(p => ({ ...p, gallery: [...(p.gallery || []), url] })); }}
+                                            disabled={saving}
+                                        />
+                                    </div>
+                                </>
+                            )}
 
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black text-text-muted uppercase tracking-widest ml-1 flex items-center gap-1.5">
@@ -416,12 +510,31 @@ export default function CMSPage() {
                                 </div>
 
                                 <div className="space-y-1.5">
-                                    <label className="text-[10px] font-black text-text-muted uppercase tracking-widest ml-1">Content (Markdown)</label>
-                                    <textarea value={editor.body} onChange={e => setEditor(p => ({ ...p, body: e.target.value }))}
-                                        placeholder="Write case study or blog article in Markdown..." disabled={saving}
-                                        rows={12}
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-text-primary placeholder:text-text-dim focus:outline-none focus:border-brand-teal/50 transition-all font-mono resize-none" />
-                                </div>
+                                        <div className="flex items-center justify-between ml-1 mb-1">
+                                            <label className="text-[10px] font-black text-text-muted uppercase tracking-widest">Content (Markdown)</label>
+                                            <button
+                                                type="button"
+                                                onClick={() => setEditor(p => ({ ...p, previewMode: !p.previewMode }))}
+                                                className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-[9px] font-black uppercase tracking-widest text-text-muted hover:text-text-primary transition-all"
+                                            >
+                                                {editor.previewMode ? <EyeOff size={11} /> : <Eye size={11} />}
+                                                {editor.previewMode ? 'Edit' : 'Preview'}
+                                            </button>
+                                        </div>
+                                        {editor.previewMode ? (
+                                            <div className="min-h-[200px] max-h-[350px] overflow-y-auto p-4 bg-white/5 border border-white/10 rounded-xl prose prose-invert prose-sm max-w-none">
+                                                {editor.body
+                                                    ? <div dangerouslySetInnerHTML={{ __html: editor.body.replace(/#{1,6} (.+)/g, (m, t, o, s) => `<h${m.split(' ')[0].length}>${t}</h${m.split(' ')[0].length}>`).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/\*(.+?)\*/g, '<em>$1</em>').replace(/\n\n/g, '<br/><br/>') }} />
+                                                    : <span className="text-text-dim text-xs">Nothing to preview yet...</span>
+                                                }
+                                            </div>
+                                        ) : (
+                                            <textarea value={editor.body} onChange={e => setEditor(p => ({ ...p, body: e.target.value }))}
+                                                placeholder="Write case study or blog article in Markdown..." disabled={saving}
+                                                rows={12}
+                                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-text-primary placeholder:text-text-dim focus:outline-none focus:border-brand-teal/50 transition-all font-mono resize-none" />
+                                        )}
+                                    </div>
 
                                 {tab === 'journal' && (
                                     <div className="flex items-center justify-between p-4 rounded-xl bg-white/5 border border-white/5">

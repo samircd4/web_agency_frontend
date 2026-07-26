@@ -39,7 +39,7 @@ const techStack = [
 export default function TechStackPage() {
   return (
     <main className="pt-32 pb-24 bg-background min-h-screen">
-      <div className="container mx-auto px-6">
+      <div className="container mx-auto px-4">
         {/* Header */}
         <div className="text-center mb-24">
           <ScrollReveal>
@@ -60,7 +60,7 @@ export default function TechStackPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
           {techStack.map((stack, index) => (
             <ScrollReveal key={index} delay={index * 0.1} className="h-full">
-              <div className="p-10 rounded-[3rem] glass border border-white/5 hover:border-brand-red/30 transition-all group h-full flex flex-col">
+              <div className="p-8 md:p-10 rounded-2xl glass border border-white/5 hover:border-brand-red/30 transition-all group h-full flex flex-col">
                 <div className="flex items-center gap-4 mb-8">
                   <div className="p-4 rounded-2xl bg-white/5 group-hover:scale-110 transition-transform duration-500">
                     {stack.icon}
@@ -88,7 +88,7 @@ export default function TechStackPage() {
         {/* Call to Action */}
         <div className="mt-24 text-center">
           <ScrollReveal>
-            <div className="p-12 rounded-[4rem] glass border border-white/10 bg-gradient-to-br from-brand-red/10 to-transparent">
+            <div className="p-8 md:p-12 rounded-2xl glass border border-white/10 bg-gradient-to-br from-brand-red/10 to-transparent">
               <h2 className="text-3xl md:text-4xl font-black text-white mb-6">Need a custom technical assessment?</h2>
               <p className="text-slate-400 mb-8 max-w-xl mx-auto">Our architects are ready to evaluate your existing stack or design a new one from the ground up.</p>
               <a href="/contact" className="inline-flex items-center gap-3 px-10 py-5 bg-brand-red text-white rounded-2xl font-black uppercase tracking-widest text-sm shadow-2xl hover:shadow-brand-red/20 transition-all">

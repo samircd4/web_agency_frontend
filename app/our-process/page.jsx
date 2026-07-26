@@ -43,7 +43,7 @@ const processSteps = [
 export default function OurProcessPage() {
   return (
     <main className="pt-32 pb-24 bg-background min-h-screen">
-      <div className="container mx-auto px-6">
+      <div className="container mx-auto px-4">
         {/* Header */}
         <div className="text-center mb-24">
           <ScrollReveal>

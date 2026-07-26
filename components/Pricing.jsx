@@ -239,7 +239,7 @@ export default function Pricing() {
 
             {/* ── PLAN CARDS ────────────────────────────────────────────── */}
             <section className="pb-16 relative">
-                <div className="container mx-auto px-6">
+                <div className="container mx-auto px-4">
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
                         {plans.map((plan, i) => (
                             <motion.div
@@ -347,7 +347,7 @@ export default function Pricing() {
                 <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
                     style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '30px 30px' }} />
 
-                <div className="container mx-auto px-6 relative z-10">
+                <div className="container mx-auto px-4 relative z-10">
                     <ScrollReveal>
                         <div className="text-center mb-16">
                             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-red/10 border border-brand-red/20 text-brand-red text-[10px] font-black tracking-[0.2em] uppercase mb-6">
@@ -396,7 +396,7 @@ export default function Pricing() {
             <section className="py-16 md:py-24 relative overflow-hidden">
                 <div className="absolute right-0 top-0 w-1/2 h-full bg-brand-teal/3 blur-[160px] rounded-full pointer-events-none" />
 
-                <div className="container mx-auto px-6 relative z-10">
+                <div className="container mx-auto px-4 relative z-10">
                     <ScrollReveal>
                         <div className="text-center mb-16">
                             <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-teal/10 border border-brand-teal/20 text-brand-teal text-[10px] font-black tracking-[0.2em] uppercase mb-6">
@@ -423,7 +423,7 @@ export default function Pricing() {
                     style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '30px 30px' }} />
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60%] h-[60%] bg-brand-teal/5 rounded-full blur-[120px] pointer-events-none animate-pulse-slow" />
 
-                <div className="container mx-auto px-6 relative z-10 text-center">
+                <div className="container mx-auto px-4 relative z-10 text-center">
                     <ScrollReveal>
                         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-teal/10 border border-brand-teal/20 text-brand-teal text-[10px] font-black tracking-[0.2em] uppercase mb-8">
                             <Zap size={12} fill="currentColor" />

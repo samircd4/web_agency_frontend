@@ -40,8 +40,8 @@ const skills = [
 export default function Expertise() {
     return (
         <section id="expertise" className="pt-0 pb-12 bg-background relative overflow-hidden">
-            <div className="w-full md:container mx-auto px-0 md:px-6">
-                <div className="grid lg:grid-cols-2 gap-12 items-center px-6 md:px-0">
+            <div className="container mx-auto px-4">
+                <div className="grid lg:grid-cols-2 gap-12 items-center">
                     
                     {/* Content Section */}
                     <div className="flex flex-col items-center text-center">

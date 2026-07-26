@@ -86,7 +86,7 @@ export default function PortfolioDetailPage() {
 
   return (
     <main className="pt-32 pb-24 bg-background min-h-screen">
-      <div className="container mx-auto px-6">
+      <div className="container mx-auto px-4">
         
         {/* Back Link & Share */}
         <div className="flex items-center justify-between mb-12">

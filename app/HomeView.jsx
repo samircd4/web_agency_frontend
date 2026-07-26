@@ -9,6 +9,7 @@ import Stats from '@/components/Stats';
 import Contact from '@/components/Contact';
 import Portfolio from '@/components/Portfolio';
 import Process from '@/components/Process';
+import Testimonials from '@/components/Testimonials';
 import ScrollReveal from '@/components/ScrollReveal';
 
 export default function HomeView() {
@@ -34,6 +35,10 @@ export default function HomeView() {
 
             <ScrollReveal width="100%">
                 <DashboardShowcase />
+            </ScrollReveal>
+
+            <ScrollReveal width="100%">
+                <Testimonials />
             </ScrollReveal>
 
             <ScrollReveal width="100%">

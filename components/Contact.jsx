@@ -69,7 +69,7 @@ export default function Contact() {
         <section id="contact" className="pt-0 pb-4 bg-background relative overflow-hidden">
             <div className="absolute top-1/2 right-0 w-[40rem] h-[40rem] bg-brand-teal/5 rounded-full blur-[150px] pointer-events-none" />
 
-            <div className="w-full md:container mx-auto px-0 md:px-6 relative z-10">
+            <div className="container mx-auto px-4 relative z-10">
                 <div className="max-w-6xl mx-auto glass border-white/5 rounded-xl overflow-hidden shadow-premium">
                     <div className="grid lg:grid-cols-2">
 

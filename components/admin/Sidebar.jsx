@@ -15,7 +15,8 @@ import {
     LogOut,
     X,
     ArrowLeft,
-    Layers
+    Layers,
+    Star
 } from 'lucide-react';
 
 export default function AdminSidebar({
@@ -33,6 +34,7 @@ export default function AdminSidebar({
         { id: 'clients', href: '/admin/clients', label: 'Clients', icon: <Users size={16} /> },
         { id: 'billing', href: '/admin/billing', label: 'Billing', icon: <DollarSign size={16} /> },
         { id: 'cms', href: '/admin/cms', label: 'Content (CMS)', icon: <FileEdit size={16} /> },
+        { id: 'reviews', href: '/admin/reviews', label: 'Reviews', icon: <Star size={16} /> },
         { id: 'communications', href: '/admin/communications', label: 'Communications', icon: <MessageSquare size={16} /> },
         { id: 'settings', href: '/admin/settings', label: 'Settings', icon: <Settings size={16} /> },
     ];
