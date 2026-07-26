@@ -273,10 +273,29 @@ export default function Communications({ missions = [] }) {
             }
         };
 
-        ws.current.onerror = (err) => console.error('WebSocket error:', err);
-        ws.current.onclose = () => console.log('WebSocket disconnected for thread:', threadId);
+        let pollInterval = null;
+        const startPollingFallback = () => {
+            if (!pollInterval) {
+                pollInterval = setInterval(() => {
+                    api.getClientThreadMessages(threadId).then(chatLog => {
+                        setMessages((Array.isArray(chatLog) ? chatLog : []).map(msg => ({ ...msg, timestamp: new Date(msg.timestamp) })));
+                    }).catch(() => {});
+                }, 4000);
+            }
+        };
+
+        ws.current.onerror = (err) => {
+            console.error('WebSocket error:', err);
+            startPollingFallback();
+        };
+
+        ws.current.onclose = () => {
+            console.log('WebSocket disconnected for thread:', threadId);
+            startPollingFallback();
+        };
 
         return () => {
+            if (pollInterval) clearInterval(pollInterval);
             if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
             if (ws.current) {
                 if (ws.current.readyState === WebSocket.OPEN) {
