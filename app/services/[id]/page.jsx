@@ -1,19 +1,21 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { Star, Heart, Share2, Clock, RotateCcw, Check, ShieldCheck, ChevronDown, MessageCircle, ArrowRight, User, Calendar, DollarSign, Timer, ArrowLeft, Zap, Award, Activity, Layers, TrendingUp, Search, Cloud, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Star, Heart, Share2, Clock, RotateCcw, Check, ShieldCheck, ChevronDown, MessageCircle, ArrowRight, User, Calendar, DollarSign, Timer, ArrowLeft, Zap, Award, Activity, Layers, TrendingUp, Search, Cloud, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
-import { mockServices } from '@/data/services';
+import { fetchPublicServiceByIdentifier, isServiceSaved, toggleSavedService } from '@/lib/services';
 import OrderModal from '@/components/ServiceMarketplace/OrderModal';
 import ScrollReveal from '@/components/ScrollReveal';
 
 export default function ServiceDetailPage() {
     const { id } = useParams();
-    const service = mockServices.find(s => s.id === id) || mockServices[0];
+    const [service, setServiceData] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [activeTier, setActiveTier] = useState('basic');
     const [isFavorite, setIsFavorite] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -22,12 +24,87 @@ export default function ServiceDetailPage() {
     const [showStickyBar, setShowStickyBar] = useState(false);
     const [reviewFilter, setReviewFilter] = useState('all');
     const [isFilterOpen, setIsFilterOpen] = useState(false);
+    const [copiedToast, setCopiedToast] = useState(false);
+    const [visibleReviewsCount, setVisibleReviewsCount] = useState(3);
     
-    React.useEffect(() => {
+    const handleShare = async () => {
+        if (!service) return;
+        const shareData = {
+            title: service.title,
+            text: service.description || service.title,
+            url: window.location.href,
+        };
+        if (typeof navigator !== 'undefined' && navigator.share) {
+            try {
+                await navigator.share(shareData);
+                return;
+            } catch (e) {
+                // Fallback to clipboard if share cancelled
+            }
+        }
+        if (typeof navigator !== 'undefined' && navigator.clipboard) {
+            try {
+                await navigator.clipboard.writeText(window.location.href);
+                setCopiedToast(true);
+                setTimeout(() => setCopiedToast(false), 2500);
+            } catch (err) {
+                console.error("Clipboard copy failed:", err);
+            }
+        }
+    };
+    
+    useEffect(() => {
+        let isMounted = true;
+        async function loadServiceDetail() {
+            setLoading(true);
+            setError(null);
+            try {
+                const data = await fetchPublicServiceByIdentifier(id);
+                if (isMounted) {
+                    setServiceData(data);
+                    setIsFavorite(isServiceSaved(data.id || id));
+                }
+            } catch (err) {
+                console.error("Error loading service detail from backend:", err);
+                if (isMounted) setError("Service not found or backend API unavailable.");
+            } finally {
+                if (isMounted) setLoading(false);
+            }
+        }
+        if (id) {
+            loadServiceDetail();
+        }
+        return () => { isMounted = false; };
+    }, [id]);
+
+    useEffect(() => {
         const handleScroll = () => setShowStickyBar(window.scrollY > 600);
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
+
+    if (loading) {
+        return (
+            <main className="pt-36 pb-24 bg-background min-h-screen flex flex-col items-center justify-center text-slate-500 gap-4">
+                <Loader2 className="w-10 h-10 animate-spin text-brand-teal" />
+                <span className="text-xs font-black uppercase tracking-widest text-slate-400">Loading Service Specifications...</span>
+            </main>
+        );
+    }
+
+    if (error || !service) {
+        return (
+            <main className="pt-36 pb-24 bg-background min-h-screen text-center container mx-auto px-4">
+                <div className="max-w-md mx-auto py-24 glass rounded-3xl border border-white/10 p-8 space-y-6">
+                    <h2 className="text-2xl font-black text-white">Service Not Found</h2>
+                    <p className="text-slate-400 text-sm">{error || "The requested service specification could not be retrieved."}</p>
+                    <Link href="/services" className="inline-flex items-center gap-2 px-6 py-3 bg-brand-teal text-slate-950 font-black text-xs uppercase tracking-widest rounded-xl hover:bg-brand-teal/90 transition-all">
+                        <ArrowLeft size={16} /> Back to Capabilities
+                    </Link>
+                </div>
+            </main>
+        );
+    }
 
     const gallery = service.gallery || [service.image];
 
@@ -69,36 +146,60 @@ export default function ServiceDetailPage() {
                                     <div>
                                         <div className="flex items-center gap-2">
                                             <span className="text-sm text-white font-bold">{service.seller.name}</span>
-                                            <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-brand-teal/10 border border-brand-teal/20">
+                                            <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-brand-teal/10 border border-brand-teal/30">
                                                 <div className="w-1.5 h-1.5 rounded-full bg-brand-teal animate-pulse" />
-                                                <span className="text-[8px] font-black uppercase text-brand-teal tracking-widest">Agent Online</span>
+                                                <span className="text-[9px] font-black uppercase text-brand-teal tracking-widest">Seller Online</span>
                                             </div>
                                             <span className="px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-[8px] font-black uppercase text-slate-400 tracking-widest">
                                                 {service.seller.level || 'Pro'}
                                             </span>
                                         </div>
-                                        <div className="flex items-center gap-1 mt-0.5">
-                                            <Star className="w-3 h-3 text-brand-teal fill-brand-teal" />
-                                            <span className="text-[10px] font-bold text-white">{service.rating.toFixed(1)}</span>
-                                            <span className="text-[9px] text-slate-500">({service.reviews})</span>
+                                        <div className="flex items-center gap-2 mt-1">
+                                            <div className="flex items-center gap-1 px-2 py-0.5 rounded-lg bg-brand-teal/10 border border-brand-teal/30">
+                                                <Star className="w-3.5 h-3.5 text-brand-teal fill-brand-teal" />
+                                                <span className="text-xs font-black text-white">{(service.rating || 5.0).toFixed(1)}</span>
+                                            </div>
+                                            <span className="text-xs font-extrabold text-slate-300">
+                                                ({service.reviews_count ?? service.reviews ?? service.clientReviews?.length ?? 0} Verified Reviews)
+                                            </span>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div className="h-6 w-px bg-white/10 hidden md:block" />
 
-                                <div className="flex items-center gap-3">
+                                <div className="flex items-center gap-3 relative">
                                     <button
-                                        onClick={() => setIsFavorite(!isFavorite)}
-                                        className="flex items-center gap-2 text-[10px] font-bold text-slate-400 hover:text-white transition-colors"
+                                        onClick={() => {
+                                            const updated = toggleSavedService(service.id || id);
+                                            setIsFavorite(updated);
+                                        }}
+                                        className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-[10px] font-bold text-slate-300 hover:text-white hover:border-brand-teal/30 transition-all"
                                     >
                                         <Heart className={`w-3.5 h-3.5 ${isFavorite ? 'text-brand-red fill-brand-red' : ''}`} />
                                         <span>{isFavorite ? 'Saved' : 'Save'}</span>
                                     </button>
-                                    <button className="flex items-center gap-2 text-[10px] font-bold text-slate-400 hover:text-white transition-colors">
-                                        <Share2 className="w-3.5 h-3.5" />
-                                        <span>Share</span>
+                                    <button 
+                                        onClick={handleShare}
+                                        className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-[10px] font-bold text-slate-300 hover:text-white hover:border-brand-teal/30 transition-all"
+                                    >
+                                        <Share2 className="w-3.5 h-3.5 text-brand-teal" />
+                                        <span>{copiedToast ? 'Copied!' : 'Share'}</span>
                                     </button>
+
+                                    <AnimatePresence>
+                                        {copiedToast && (
+                                            <motion.div
+                                                initial={{ opacity: 0, y: 10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: -10 }}
+                                                className="absolute top-full left-0 mt-2 px-3 py-1.5 bg-brand-teal text-slate-950 font-black text-[9px] uppercase tracking-widest rounded-lg shadow-lg z-30 flex items-center gap-1.5"
+                                            >
+                                                <Check size={12} />
+                                                <span>Link copied to clipboard!</span>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
                                 </div>
                             </div>
                         </div>
@@ -440,53 +541,81 @@ export default function ServiceDetailPage() {
                                         </div>
 
                                         {/* Individual Reviews */}
-                                        <div className="grid gap-4">
-                                            {service.clientReviews
-                                                .filter(r => reviewFilter === 'all' || r.rating === reviewFilter)
-                                                .map((review, i) => (
-                                                <div key={i} className="p-6 rounded-2xl bg-white/[0.02] border border-white/5 group hover:border-white/10 transition-colors">
-                                                    <div className="flex items-center justify-between mb-4">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-white/10 to-transparent flex items-center justify-center text-slate-400 text-xs font-bold border border-white/5">
-                                                                {review.name.charAt(0)}
-                                                            </div>
-                                                            <div>
-                                                                <div className="text-sm font-bold text-white">{review.name}</div>
-                                                                <div className="text-[8px] font-black text-slate-500 uppercase tracking-widest mt-0.5">Verified Client</div>
-                                                                <div className="text-base font-black text-white">{review.name}</div>
-                                                                <div className="flex items-center gap-2">
-                                                                    <div className="flex text-brand-teal">
-                                                                        {[...Array(5)].map((_, starI) => (
-                                                                            <Star key={starI} size={12} fill={starI < review.rating ? "currentColor" : "none"} />
-                                                                        ))}
+                                        {(() => {
+                                            const allReviews = service.clientReviews || [];
+                                            const filteredReviews = allReviews.filter(r => reviewFilter === 'all' || r.rating === reviewFilter);
+                                            const displayedReviews = filteredReviews.slice(0, visibleReviewsCount);
+
+                                            return (
+                                                <>
+                                                    <div className="grid gap-4">
+                                                        {displayedReviews.map((review, i) => (
+                                                            <div key={i} className="p-6 md:p-8 rounded-3xl bg-surface-900/40 border border-white/5 group hover:border-brand-teal/30 transition-all shadow-xl">
+                                                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+                                                                    <div className="flex items-center gap-4">
+                                                                        {/* Bigger User Avatar */}
+                                                                        <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-gradient-to-br from-brand-teal/20 via-brand-blue/20 to-slate-900 flex items-center justify-center text-white text-xl md:text-2xl font-black border-2 border-brand-teal/40 shadow-xl shadow-brand-teal/10 overflow-hidden relative flex-shrink-0">
+                                                                            {review.image || review.client_avatar ? (
+                                                                                <Image src={review.image || review.client_avatar} alt={review.name} fill className="object-cover" />
+                                                                            ) : (
+                                                                                <span>{(review.name || 'C').charAt(0)}</span>
+                                                                            )}
+                                                                        </div>
+                                                                        <div>
+                                                                            <h4 className="text-base md:text-lg font-black text-white leading-snug">{review.name}</h4>
+                                                                            <div className="flex items-center gap-2 mt-1">
+                                                                                <div className="flex text-brand-teal">
+                                                                                    {[...Array(5)].map((_, starI) => (
+                                                                                        <Star key={starI} size={14} fill={starI < review.rating ? "currentColor" : "none"} />
+                                                                                    ))}
+                                                                                </div>
+                                                                                <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{review.date_text || review.date || 'Verified Client'}</span>
+                                                                            </div>
+                                                                        </div>
                                                                     </div>
-                                                                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">{review.date}</span>
+                                                                    <div className="px-3.5 py-1.5 rounded-full bg-brand-teal/10 border border-brand-teal/30 text-[9px] font-black text-brand-teal uppercase tracking-widest self-start sm:self-auto">
+                                                                        Verified Client
+                                                                    </div>
+                                                                </div>
+
+                                                                <p className="text-slate-300 text-base md:text-lg leading-relaxed italic mb-6">
+                                                                    &quot;{review.text}&quot;
+                                                                </p>
+
+                                                                {/* Review Metadata Bar */}
+                                                                <div className="flex flex-wrap gap-4 pt-4 border-t border-white/5">
+                                                                    {review.budget && (
+                                                                        <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-slate-400">
+                                                                            <DollarSign size={14} className="text-brand-teal" />
+                                                                            <span>Investment: <span className="text-white">{review.budget}</span></span>
+                                                                        </div>
+                                                                    )}
+                                                                    {review.duration && (
+                                                                        <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-widest text-slate-400">
+                                                                            <Timer size={14} className="text-brand-teal" />
+                                                                            <span>Delivery Time: <span className="text-white">{review.duration}</span></span>
+                                                                        </div>
+                                                                    )}
                                                                 </div>
                                                             </div>
-                                                        </div>
-                                                        <div className="mt-2 md:mt-0 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-[9px] font-black text-brand-teal uppercase tracking-widest">
-                                                            Verified Client
-                                                        </div>
+                                                        ))}
                                                     </div>
 
-                                                    <p className="text-slate-300 text-base md:text-lg leading-relaxed italic mb-4">
-                                                        &quot;{review.text}&quot;
-                                                    </p>
-
-                                                    {/* Review Metadata Bar */}
-                                                    <div className="flex flex-wrap gap-3 pt-3 border-t border-white/5">
-                                                        <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-slate-500">
-                                                            <DollarSign size={12} className="text-brand-teal" />
-                                                            <span>Price: <span className="text-white">{review.budget}</span></span>
+                                                    {/* Load More Reviews Button */}
+                                                    {visibleReviewsCount < filteredReviews.length && (
+                                                        <div className="text-center mt-8">
+                                                            <button
+                                                                onClick={() => setVisibleReviewsCount(prev => prev + 3)}
+                                                                className="px-8 py-3.5 bg-surface-900 border border-white/10 hover:border-brand-teal/50 hover:bg-brand-teal/10 text-white text-xs font-black uppercase tracking-widest rounded-2xl transition-all inline-flex items-center gap-2.5 shadow-xl hover:shadow-glow-teal group cursor-pointer"
+                                                            >
+                                                                <span>Load More Reviews ({filteredReviews.length - visibleReviewsCount} remaining)</span>
+                                                                <ChevronDown size={16} className="text-brand-teal group-hover:translate-y-0.5 transition-transform" />
+                                                            </button>
                                                         </div>
-                                                        <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-slate-500">
-                                                            <Timer size={12} className="text-brand-teal" />
-                                                            <span>Delivery: <span className="text-white">{review.duration}</span></span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
+                                                    )}
+                                                </>
+                                            );
+                                        })()}
                                     </div>
                                 )}
 

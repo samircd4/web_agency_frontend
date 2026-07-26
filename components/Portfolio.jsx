@@ -2,9 +2,19 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ExternalLink, Terminal, Search, Cpu, Shield, Zap } from 'lucide-react';
+import { ExternalLink, Terminal, Search, Cpu, Shield, Zap, Globe, Code } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
+
+function GithubIcon({ size = 11, className = "" }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+      <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4" />
+      <path d="M9 18c-4.51 2-5-2-7-2" />
+    </svg>
+  );
+}
 
 const categories = ["All", "Web Scraping", "E-commerce", "API Systems"];
 
@@ -22,6 +32,7 @@ function getIcon(category) {
 }
 
 export default function Portfolio() {
+    const router = useRouter();
     const [projects, setProjects] = useState([]);
     const [loading, setLoading] = useState(true);
     const [activeFilter, setActiveFilter] = useState("All");
@@ -44,13 +55,15 @@ export default function Portfolio() {
     }, []);
 
     // Frontend categorization filter based on loaded items
+    const safeProjects = Array.isArray(projects) ? projects : [];
     const filteredProjects = activeFilter === "All"
-        ? projects
-        : projects.filter(p => {
-            // Check if tags or description matches the category
-            // Standard category can be mapped based on title or tags
+        ? safeProjects
+        : safeProjects.filter(p => {
             const catLower = activeFilter.toLowerCase();
-            const tagMatch = p.tags?.some(t => t.name.toLowerCase() === catLower);
+            const tagMatch = p.tags?.some(t => {
+                const tagName = typeof t === 'string' ? t : t?.name;
+                return tagName && tagName.toLowerCase() === catLower;
+            });
             const descMatch = p.description?.toLowerCase().includes(catLower) || p.title?.toLowerCase().includes(catLower);
             return tagMatch || descMatch;
         });
@@ -123,12 +136,13 @@ export default function Portfolio() {
                         <AnimatePresence mode="popLayout">
                             {filteredProjects.map((project, index) => {
                                 const isTeal = index % 2 === 0;
-                                const tagNames = project.tags?.map(t => t.name) || ["Python", "Django"];
+                                const tagNames = project.tags?.map(t => (typeof t === 'string' ? t : t?.name)).filter(Boolean) || ["Python", "Django"];
                                 const category = tagNames.includes("Next.js") ? "API Systems" : tagNames.includes("Django") ? "E-commerce" : "Web Scraping";
                                 const Icon = getIcon(category);
                                 const image = project.cover_image_url || "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=800&q=80&fit=crop";
-                                const metricLabel = isTeal ? "Throughput" : "Latency";
-                                const metricValue = isTeal ? "5.2M / day" : "< 85ms";
+                                const metricLabel = "Impact Metric";
+                                const metricValue = project.impact_metric || (isTeal ? "5.2M / day" : "< 85ms");
+                                const targetUrl = project.slug || project.id;
 
                                 return (
                                     <motion.div
@@ -140,12 +154,14 @@ export default function Portfolio() {
                                         transition={{ duration: 0.35 }}
                                         className="group relative cursor-pointer"
                                     >
-                                        <Link href={`/portfolio/${project.slug}`}>
-                                            <div className={`rounded-xl border transition-all duration-500 bg-white/[0.03] backdrop-blur-sm ${
+                                        <div
+                                            onClick={() => router.push(`/portfolio/${targetUrl}`)}
+                                            className={`rounded-xl border transition-all duration-500 bg-white/[0.03] backdrop-blur-sm cursor-pointer ${
                                                 isTeal
                                                     ? 'border-white/10 hover:border-brand-teal/40 hover:shadow-[0_0_40px_0_rgba(0,200,150,0.10)]'
                                                     : 'border-white/10 hover:border-brand-red/40  hover:shadow-[0_0_40px_0_rgba(232,69,69,0.10)]'
-                                            }`}>
+                                            }`}
+                                        >
 
                                                 {/* Image Container */}
                                                 <div className="relative w-full aspect-[16/9] overflow-hidden rounded-t-xl">
@@ -192,8 +208,8 @@ export default function Portfolio() {
                                                         {project.description}
                                                     </p>
 
-                                                    {/* Tags + CTA row */}
-                                                    <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
+                                                    {/* Tags + CTA & Action Links row */}
+                                                    <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-white/5">
                                                         <div className="flex flex-wrap gap-1.5">
                                                             {tagNames.slice(0, 3).map((tag) => (
                                                                 <span
@@ -205,19 +221,49 @@ export default function Portfolio() {
                                                             ))}
                                                         </div>
 
-                                                        <div
-                                                            className={`flex-shrink-0 inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider whitespace-nowrap transition-all duration-300 group-hover:scale-105 ${
-                                                                isTeal
-                                                                    ? 'bg-brand-teal text-white shadow-lg shadow-brand-teal/20'
-                                                                    : 'bg-brand-red  text-white shadow-lg shadow-brand-red/20'
-                                                            }`}
-                                                        >
-                                                            Case Study
+                                                        <div className="flex items-center gap-2">
+                                                            {project.live_url && (
+                                                                <a
+                                                                    href={project.live_url}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    onClick={(e) => e.stopPropagation()}
+                                                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-brand-teal/10 hover:bg-brand-teal/20 border border-brand-teal/30 text-brand-teal text-[9px] font-black uppercase tracking-wider transition-all"
+                                                                    title="Open Live Demo"
+                                                                >
+                                                                    <Globe size={11} />
+                                                                    <span>Live Demo</span>
+                                                                </a>
+                                                            )}
+
+                                                            {project.github_url && (
+                                                                <a
+                                                                    href={project.github_url}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    onClick={(e) => e.stopPropagation()}
+                                                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white text-[9px] font-black uppercase tracking-wider transition-all"
+                                                                    title="View GitHub Repository"
+                                                                >
+                                                                    <GithubIcon size={11} className="text-slate-300" />
+                                                                    <span>GitHub</span>
+                                                                </a>
+                                                            )}
+
+                                                            <div
+                                                                className={`flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider whitespace-nowrap transition-all duration-300 group-hover:scale-105 ${
+                                                                    isTeal
+                                                                        ? 'bg-brand-teal text-white shadow-lg shadow-brand-teal/20'
+                                                                        : 'bg-brand-red  text-white shadow-lg shadow-brand-red/20'
+                                                                }`}
+                                                            >
+                                                                <span>Case Study</span>
+                                                                <ExternalLink size={10} />
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        </Link>
+                                        </div>
                                     </motion.div>
                                 );
                             })}

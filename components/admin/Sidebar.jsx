@@ -15,6 +15,7 @@ import {
     LogOut,
     X,
     ArrowLeft,
+    Layers
 } from 'lucide-react';
 
 export default function AdminSidebar({
@@ -26,6 +27,7 @@ export default function AdminSidebar({
 
     const items = [
         { id: 'dashboard', href: '/admin', label: 'Dashboard', icon: <LayoutDashboard size={16} /> },
+        { id: 'services', href: '/admin/services', label: 'Services', icon: <Layers size={16} /> },
         { id: 'leads', href: '/admin/leads', label: 'Leads', icon: <Zap size={16} /> },
         { id: 'projects', href: '/admin/projects', label: 'Projects', icon: <Briefcase size={16} /> },
         { id: 'clients', href: '/admin/clients', label: 'Clients', icon: <Users size={16} /> },

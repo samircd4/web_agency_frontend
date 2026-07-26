@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Send, CheckCircle2, User, Mail, MessageSquare, Briefcase, CreditCard, ShieldCheck, ArrowRight, Loader2, Calendar } from 'lucide-react';
 import { api } from '@/lib/api';
+import { submitServiceOrder } from '@/lib/services';
 
 export default function OrderModal({ isOpen, onClose, service, tier }) {
   const [step, setStep] = useState(1); // 1: Details, 2: Payment, 3: Success
@@ -45,8 +46,19 @@ export default function OrderModal({ isOpen, onClose, service, tier }) {
   const depositPercentage = 50;
   const paymentAmount = isLargeProject ? (price * (depositPercentage / 100)) : price;
 
-  const handleNextStep = (e) => {
+  const handleNextStep = async (e) => {
     e.preventDefault();
+    try {
+      await submitServiceOrder(service.id, {
+        client_name: formData.name,
+        client_email: formData.email,
+        tier_name: tier.title || 'Basic',
+        price: price,
+        notes: formData.requirements
+      });
+    } catch (err) {
+      console.warn("Notice: Lead creation offline or fallback:", err.message);
+    }
     setStep(2);
   };
 

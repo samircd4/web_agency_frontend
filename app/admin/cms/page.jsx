@@ -101,6 +101,7 @@ export default function CMSPage() {
     const [tab, setTab] = useState('portfolio');
     const [portfolio, setPortfolio] = useState([]);
     const [journal, setJournal] = useState([]);
+    const [availableTags, setAvailableTags] = useState([]);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState('');
@@ -108,12 +109,14 @@ export default function CMSPage() {
 
     const loadContent = async () => {
         try {
-            const [pItems, bItems] = await Promise.all([
+            const [pItems, bItems, tagItems] = await Promise.all([
                 api.getAdminPortfolioItems(),
-                api.getAdminBlogPosts()
+                api.getAdminBlogPosts(),
+                api.getAdminTags()
             ]);
             setPortfolio(pItems);
             setJournal(bItems);
+            setAvailableTags(tagItems || []);
         } catch (err) {
             console.error('Failed to load CMS content:', err);
             setError('Could not retrieve CMS records. Please try again.');
@@ -372,13 +375,44 @@ export default function CMSPage() {
                                     </>
                                 )}
 
-                                <div className="space-y-1.5">
+                                <div className="space-y-2">
                                     <label className="text-[10px] font-black text-text-muted uppercase tracking-widest ml-1 flex items-center gap-1.5">
-                                        <Tag size={10} /> Tags (comma-separated)
+                                        <Tag size={10} /> Select Tags (Click to toggle)
                                     </label>
+                                    <div className="flex flex-wrap gap-1.5 p-3 rounded-xl bg-white/[0.02] border border-white/10 max-h-32 overflow-y-auto">
+                                        {availableTags.map(tag => {
+                                            const currentTags = editor.tagsStr.split(',').map(t => t.trim()).filter(Boolean);
+                                            const isSelected = currentTags.some(t => t.toLowerCase() === tag.name.toLowerCase());
+
+                                            const toggleTag = () => {
+                                                let updated;
+                                                if (isSelected) {
+                                                    updated = currentTags.filter(t => t.toLowerCase() !== tag.name.toLowerCase());
+                                                } else {
+                                                    updated = [...currentTags, tag.name];
+                                                }
+                                                setEditor(p => ({ ...p, tagsStr: updated.join(', ') }));
+                                            };
+
+                                            return (
+                                                <button
+                                                    key={tag.id || tag.name}
+                                                    type="button"
+                                                    onClick={toggleTag}
+                                                    className={`px-2.5 py-1 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all border ${
+                                                        isSelected
+                                                            ? 'bg-brand-teal/20 border-brand-teal text-brand-teal shadow-glow-teal scale-105'
+                                                            : 'bg-white/5 border-white/10 text-text-muted hover:text-text-primary hover:border-brand-teal/40'
+                                                    }`}
+                                                >
+                                                    {isSelected ? '✓ ' : '+ '}{tag.name}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
                                     <input type="text" value={editor.tagsStr} onChange={e => setEditor(p => ({ ...p, tagsStr: e.target.value }))}
-                                        placeholder="Python, Django, React..." disabled={saving}
-                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-text-primary placeholder:text-text-dim focus:outline-none focus:border-brand-teal/50 transition-all" />
+                                        placeholder="Or type custom tags (comma-separated)..." disabled={saving}
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-xs text-text-primary placeholder:text-text-dim focus:outline-none focus:border-brand-teal/50 transition-all font-mono" />
                                 </div>
 
                                 <div className="space-y-1.5">

@@ -15,7 +15,7 @@ export default function ServiceSidebar({ filters, setFilters, searchQuery, setSe
       id: 'category',
       title: 'Category',
       type: 'select',
-      options: ['All categories', 'Development', 'Design', 'Infrastructure', 'Content', 'Security', 'Cloud']
+      options: ['All categories', 'Development', 'Data & Automation', 'Design', 'Infrastructure', 'Content', 'Security', 'Cloud']
     },
     {
       id: 'deliveryTime',

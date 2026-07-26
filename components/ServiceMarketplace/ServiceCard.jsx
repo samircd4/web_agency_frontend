@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { Star, Heart, Clock, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import { isServiceSaved, toggleSavedService } from '@/lib/services';
 
 export default function ServiceCard({ service }) {
   const [isFavorite, setIsFavorite] = useState(false);
@@ -12,8 +13,9 @@ export default function ServiceCard({ service }) {
     id,
     title,
     seller,
-    rating,
+    rating = 5.0,
     reviews,
+    reviews_count,
     price,
     image,
     gallery = [],
@@ -21,14 +23,23 @@ export default function ServiceCard({ service }) {
     views,
   } = service;
 
-  // Use gallery if available, otherwise fallback to primary image
+  const reviewCount = reviews_count ?? reviews ?? service.clientReviews?.length ?? 0;
+
+  useEffect(() => {
+    if (id) {
+      setIsFavorite(isServiceSaved(id));
+    }
+  }, [id]);
+
+  const displayPrice = price || service.tiers?.basic?.price || service.tiers?.standard?.price || 0;
   const displayImages = gallery.length > 0 ? gallery : [image];
   const hasMultipleImages = displayImages.length > 1;
 
   const toggleFavorite = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    setIsFavorite(!isFavorite);
+    const updatedStatus = toggleSavedService(id);
+    setIsFavorite(updatedStatus);
   };
 
   const handleNextImage = (e) => {
@@ -43,10 +54,12 @@ export default function ServiceCard({ service }) {
     setActiveImageIndex((prev) => (prev === 0 ? displayImages.length - 1 : prev - 1));
   };
 
+  const targetUrl = service.slug || id;
+
   return (
     <div className="relative h-full group/card">
       {/* Link covers the entire card EXCEPT the buttons */}
-      <Link href={`/services/${id}`} className="block h-full">
+      <Link href={`/services/${targetUrl}`} className="block h-full">
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -159,8 +172,8 @@ export default function ServiceCard({ service }) {
                 {/* Rating */}
                 <div className="flex items-center gap-1">
                   <Star className="w-3.5 h-3.5 text-brand-teal fill-brand-teal" />
-                  <span className="text-xs font-bold text-white">{rating.toFixed(1)}</span>
-                  <span className="text-[10px] text-slate-500">({reviews})</span>
+                  <span className="text-xs font-bold text-white">{(rating || 5.0).toFixed(1)}</span>
+                  <span className="text-[10px] text-slate-500">({reviewCount})</span>
                 </div>
                 
                 {/* Views */}
@@ -172,7 +185,7 @@ export default function ServiceCard({ service }) {
 
               <div className="text-right">
                 <span className="text-[10px] uppercase text-slate-500 block leading-none mb-0.5">From</span>
-                <span className="text-lg font-black text-white">${price}</span>
+                <span className="text-lg font-black text-white">${displayPrice}</span>
               </div>
             </div>
           </div>

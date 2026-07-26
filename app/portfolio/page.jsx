@@ -1,1 +1,7 @@
-export { default } from './PortfolioView';
+'use client';
+
+import PortfolioView from './PortfolioView';
+
+export default function PortfolioPage() {
+    return <PortfolioView />;
+}
