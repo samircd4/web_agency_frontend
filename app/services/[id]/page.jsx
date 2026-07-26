@@ -4,14 +4,12 @@ import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { Star, Heart, Share2, Clock, RotateCcw, Check, ShieldCheck, ChevronDown, MessageCircle, ArrowRight, User, Calendar, DollarSign, Timer, ArrowLeft, Zap, Award, Activity, Layers, TrendingUp, Search, Cloud, ChevronLeft, ChevronRight, Loader2, Eye, X } from 'lucide-react';
+import { Star, Heart, Share2, Clock, RotateCcw, Check, ShieldCheck, ChevronDown, MessageCircle, ArrowRight, User, Calendar, DollarSign, Timer, ArrowLeft, Zap, Award, Activity, Layers, TrendingUp, Search, Cloud, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import { fetchPublicServiceByIdentifier, isServiceSaved, toggleSavedService } from '@/lib/services';
-import { api } from '@/lib/api';
 import OrderModal from '@/components/ServiceMarketplace/OrderModal';
 import ScrollReveal from '@/components/ScrollReveal';
-import ShareModal from '@/components/ShareModal';
 
 export default function ServiceDetailPage() {
     const { id } = useParams();
@@ -21,7 +19,6 @@ export default function ServiceDetailPage() {
     const [activeTier, setActiveTier] = useState('basic');
     const [isFavorite, setIsFavorite] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [isShareOpen, setIsShareOpen] = useState(false);
     const [openFaq, setOpenFaq] = useState(null);
     const [activeImage, setActiveImage] = useState(0);
     const [showStickyBar, setShowStickyBar] = useState(false);
@@ -29,34 +26,30 @@ export default function ServiceDetailPage() {
     const [isFilterOpen, setIsFilterOpen] = useState(false);
     const [copiedToast, setCopiedToast] = useState(false);
     const [visibleReviewsCount, setVisibleReviewsCount] = useState(3);
-    const [serviceReviews, setServiceReviews] = useState([]);
-    const [isContactModalOpen, setIsContactModalOpen] = useState(false);
-    const [contactMessage, setContactMessage] = useState('');
-    const [contactSubmitting, setContactSubmitting] = useState(false);
     
-    const handleShare = () => {
-        setIsShareOpen(true);
-    };
-
-    const handleStartChatWithSeller = async (e) => {
-        e.preventDefault();
-        setContactSubmitting(true);
-        try {
-            const thread = await api.startSellerChat({
-                seller_id: service?.seller?.id || null,
-                service_id: service?.id || null,
-                message: contactMessage || `Hi, I have a question about ${service?.title}.`
-            });
-            setIsContactModalOpen(false);
-            setContactMessage('');
-            window.location.href = `/dashboard/comms?thread=${thread.id}`;
-        } catch (err) {
-            console.error("Failed to start chat with seller:", err);
-            if (err?.status === 401 || err?.message?.includes('401') || err?.message?.includes('Authentication')) {
-                window.location.href = `/admin/login?next=/services/${id}`;
+    const handleShare = async () => {
+        if (!service) return;
+        const shareData = {
+            title: service.title,
+            text: service.description || service.title,
+            url: window.location.href,
+        };
+        if (typeof navigator !== 'undefined' && navigator.share) {
+            try {
+                await navigator.share(shareData);
+                return;
+            } catch (e) {
+                // Fallback to clipboard if share cancelled
             }
-        } finally {
-            setContactSubmitting(false);
+        }
+        if (typeof navigator !== 'undefined' && navigator.clipboard) {
+            try {
+                await navigator.clipboard.writeText(window.location.href);
+                setCopiedToast(true);
+                setTimeout(() => setCopiedToast(false), 2500);
+            } catch (err) {
+                console.error("Clipboard copy failed:", err);
+            }
         }
     };
     
@@ -85,31 +78,10 @@ export default function ServiceDetailPage() {
     }, [id]);
 
     useEffect(() => {
-        if (!service?.id) return;
-        const loadReviews = async () => {
-            try {
-                const data = await api.getPublicReviews({ service_id: service.id });
-                setServiceReviews(Array.isArray(data) ? data : data.results || []);
-            } catch { /* silent */ }
-        };
-        loadReviews();
-    }, [service?.id]);
-
-    useEffect(() => {
         const handleScroll = () => setShowStickyBar(window.scrollY > 600);
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
-
-    const gallery = service?.gallery || (service?.image ? [service.image] : []);
-
-    useEffect(() => {
-        if (!gallery || gallery.length <= 1) return;
-        const interval = setInterval(() => {
-            setActiveImage((prev) => (prev + 1) % gallery.length);
-        }, 4000);
-        return () => clearInterval(interval);
-    }, [gallery?.length]);
 
     if (loading) {
         return (
@@ -133,6 +105,8 @@ export default function ServiceDetailPage() {
             </main>
         );
     }
+
+    const gallery = service.gallery || [service.image];
 
     const tier = service.tiers?.[activeTier] || {
         price: service.price,
@@ -186,7 +160,7 @@ export default function ServiceDetailPage() {
                                                 <span className="text-xs font-black text-white">{(service.rating || 5.0).toFixed(1)}</span>
                                             </div>
                                             <span className="text-xs font-extrabold text-slate-300">
-                                                ({service.reviews_count ?? service.reviews ?? service.clientReviews?.length ?? 0} Reviews)
+                                                ({service.reviews_count ?? service.reviews ?? service.clientReviews?.length ?? 0} Verified Reviews)
                                             </span>
                                         </div>
                                     </div>
@@ -195,10 +169,6 @@ export default function ServiceDetailPage() {
                                 <div className="h-6 w-px bg-white/10 hidden md:block" />
 
                                 <div className="flex items-center gap-3 relative">
-                                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-[10px] font-bold text-slate-300" title="Total Views">
-                                        <Eye className="w-3.5 h-3.5 text-brand-teal" />
-                                        <span>{service.views || 0} Views</span>
-                                    </div>
                                     <button
                                         onClick={() => {
                                             const updated = toggleSavedService(service.id || id);
@@ -214,8 +184,22 @@ export default function ServiceDetailPage() {
                                         className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 text-[10px] font-bold text-slate-300 hover:text-white hover:border-brand-teal/30 transition-all"
                                     >
                                         <Share2 className="w-3.5 h-3.5 text-brand-teal" />
-                                        <span>Share</span>
+                                        <span>{copiedToast ? 'Copied!' : 'Share'}</span>
                                     </button>
+
+                                    <AnimatePresence>
+                                        {copiedToast && (
+                                            <motion.div
+                                                initial={{ opacity: 0, y: 10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: -10 }}
+                                                className="absolute top-full left-0 mt-2 px-3 py-1.5 bg-brand-teal text-slate-950 font-black text-[9px] uppercase tracking-widest rounded-lg shadow-lg z-30 flex items-center gap-1.5"
+                                            >
+                                                <Check size={12} />
+                                                <span>Link copied to clipboard!</span>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
                                 </div>
                             </div>
                         </div>
@@ -388,7 +372,7 @@ export default function ServiceDetailPage() {
                                         </button>
 
                                         <button
-                                            onClick={() => setIsContactModalOpen(true)}
+                                            onClick={() => setIsModalOpen(true)}
                                             className="w-full py-2 md:py-3 glass text-white rounded-lg md:rounded-xl font-black uppercase tracking-widest text-[7px] md:text-[9px] hover:bg-white/10 transition-all flex items-center justify-center gap-1 md:gap-2"
                                         >
                                             Contact Seller <MessageCircle size={10} className="md:w-3 md:h-3" />
@@ -668,67 +652,6 @@ export default function ServiceDetailPage() {
                                      </div>
                                  </div>
 
-                                {/* Service-specific client reviews from real submissions */}
-                                {serviceReviews.length > 0 && (
-                                    <div className="mb-12">
-                                        <h2 className="text-xl font-black text-white mb-2 uppercase tracking-tight">What Clients Say</h2>
-                                        <p className="text-sm text-slate-400 mb-6">Reviews from clients who have completed a project using this service.</p>
-                                        <div className="grid gap-4">
-                                            {serviceReviews.map((review, i) => {
-                                                const valComm = Number(review.rating_communication ?? review.rating ?? 5);
-                                                const valQual = Number(review.rating_quality ?? review.rating ?? 5);
-                                                const valTime = Number(review.rating_timeliness ?? review.rating ?? 5);
-                                                const rawAvg = ((valComm + valQual + valTime) / 3);
-                                                const avg = (isNaN(rawAvg) ? 5.0 : rawAvg).toFixed(1);
-
-                                                const clientName = review.client_name || review.name || review.client?.full_name || 'Client';
-                                                const initials = clientName.split(' ').filter(Boolean).map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'CL';
-                                                const commentText = review.comment || review.text || review.feedback || '';
-
-                                                return (
-                                                    <div key={review.id || i} className="p-5 rounded-2xl bg-surface-900/40 border border-white/5 hover:border-brand-teal/20 transition-all">
-                                                        <div className="flex items-start gap-4">
-                                                            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-brand-teal/20 to-brand-teal/5 border border-brand-teal/20 flex items-center justify-center shrink-0">
-                                                                <span className="text-sm font-black text-brand-teal">{initials}</span>
-                                                            </div>
-                                                            <div className="flex-1 min-w-0">
-                                                                <div className="flex items-center justify-between gap-2 flex-wrap mb-2">
-                                                                    <span className="text-sm font-black text-white">{clientName}</span>
-                                                                    <div className="flex items-center gap-1.5">
-                                                                        {[1,2,3,4,5].map(s => (
-                                                                            <Star key={s} size={11} className={s <= Math.round(parseFloat(avg)) ? 'fill-brand-teal text-brand-teal' : 'text-white/15'} />
-                                                                        ))}
-                                                                        <span className="text-xs font-black text-brand-teal">{avg}</span>
-                                                                    </div>
-                                                                </div>
-                                                                <div className="grid grid-cols-3 gap-2 mb-3">
-                                                                    {[
-                                                                        { label: 'Communication', val: valComm },
-                                                                        { label: 'Quality', val: valQual },
-                                                                        { label: 'Timeliness', val: valTime },
-                                                                    ].map(({ label, val }) => (
-                                                                        <div key={label} className="text-center py-1 px-1.5 rounded-lg bg-white/[0.03] border border-white/5">
-                                                                            <div className="text-[8px] font-black uppercase tracking-widest text-text-muted mb-1">{label}</div>
-                                                                            <div className="flex justify-center gap-0.5">
-                                                                                {[1,2,3,4,5].map(s => (
-                                                                                    <Star key={s} size={8} className={s <= val ? 'fill-brand-teal text-brand-teal' : 'text-white/10'} />
-                                                                                ))}
-                                                                            </div>
-                                                                        </div>
-                                                                    ))}
-                                                                </div>
-                                                                {commentText && (
-                                                                    <p className="text-sm text-slate-400 italic">"{commentText}"</p>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-                                )}
-
                                 {/* FAQ Section */}
                                 <div className="mb-8">
                                     <h2 className="text-xl font-black text-white mb-4 uppercase tracking-tight">Common Questions</h2>
@@ -773,91 +696,12 @@ export default function ServiceDetailPage() {
                 </div>
             </div>
 
-            <ShareModal
-                isOpen={isShareOpen}
-                onClose={() => setIsShareOpen(false)}
-                title={service.title}
-                description={service.description || service.aboutService || service.title}
-                url={typeof window !== 'undefined' ? window.location.href : ''}
-                category={service.category || 'Service Capability'}
-                image={gallery[0] || service.image}
-            />
-
             <OrderModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 service={service}
                 tier={tier}
             />
-
-            {/* Contact Seller Modal */}
-            <AnimatePresence>
-                {isContactModalOpen && (
-                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            className="glass border border-white/10 rounded-2xl max-w-lg w-full p-6 space-y-5 shadow-2xl relative"
-                        >
-                            <div className="flex items-center justify-between border-b border-white/10 pb-4">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-full bg-brand-teal/20 border border-brand-teal/30 flex items-center justify-center overflow-hidden shrink-0">
-                                        {service?.seller?.avatar ? (
-                                            /* eslint-disable-next-line @next/next/no-img-element */
-                                            <img src={service.seller.avatar} alt="Seller Avatar" className="w-full h-full object-cover" />
-                                        ) : (
-                                            <User size={20} className="text-brand-teal" />
-                                        )}
-                                    </div>
-                                    <div>
-                                        <div className="text-sm font-black text-white">{service?.seller?.name || 'Dr. Python'}</div>
-                                        <div className="text-[10px] text-brand-teal uppercase font-bold tracking-widest">{service?.seller?.level || 'Top Rated Seller'}</div>
-                                    </div>
-                                </div>
-                                <button onClick={() => setIsContactModalOpen(false)} className="p-1 rounded-lg bg-white/5 text-slate-400 hover:text-white">
-                                    <X size={16} />
-                                </button>
-                            </div>
-
-                            <div className="p-3 rounded-xl bg-white/5 border border-white/5 text-xs text-slate-300">
-                                <span className="font-bold text-white">Inquiring about:</span> {service?.title}
-                            </div>
-
-                            <form onSubmit={handleStartChatWithSeller} className="space-y-4">
-                                <div>
-                                    <label className="text-xs font-bold text-slate-400 block mb-1.5 uppercase tracking-wider">Your Inquiry / Message</label>
-                                    <textarea
-                                        value={contactMessage}
-                                        onChange={(e) => setContactMessage(e.target.value)}
-                                        placeholder={`Hi ${service?.seller?.name || 'Dr. Python'}, I would like to discuss...`}
-                                        rows={4}
-                                        required
-                                        className="w-full bg-slate-950 border border-white/10 rounded-xl p-3 text-xs text-white placeholder:text-slate-600 focus:outline-none focus:border-brand-teal font-medium"
-                                    />
-                                </div>
-
-                                <div className="flex gap-3 pt-2">
-                                    <button
-                                        type="button"
-                                        onClick={() => setIsContactModalOpen(false)}
-                                        className="flex-1 py-3 bg-white/5 text-white rounded-xl font-black uppercase text-xs hover:bg-white/10 transition-all"
-                                    >
-                                        Cancel
-                                    </button>
-                                    <button
-                                        type="submit"
-                                        disabled={contactSubmitting}
-                                        className="flex-1 py-3 bg-brand-teal text-text-primary rounded-xl font-black uppercase text-xs shadow-glow-teal hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-                                    >
-                                        {contactSubmitting ? <Loader2 size={14} className="animate-spin" /> : 'Send & Open Chat'}
-                                    </button>
-                                </div>
-                            </form>
-                        </motion.div>
-                    </div>
-                )}
-            </AnimatePresence>
 
             {/* Sticky Mobile Action Bar */}
             <AnimatePresence>

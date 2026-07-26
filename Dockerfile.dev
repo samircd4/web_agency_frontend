@@ -1,0 +1,21 @@
+# Dev-only Dockerfile — runs `next dev` with hot module replacement.
+# Source is mounted as a volume by docker-compose.dev.yml so any file
+# change instantly triggers HMR without a rebuild.
+
+FROM node:20-alpine
+RUN apk add --no-cache libc6-compat
+
+WORKDIR /app
+
+# Copy only package files first so npm install is cached
+COPY package.json package-lock.json* ./
+RUN npm install --legacy-peer-deps
+
+# Expose Next.js dev server port
+EXPOSE 3000
+
+# NEXT_PUBLIC_* vars baked in at dev time via docker-compose environment
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_ENV=development
+
+CMD ["npm", "run", "dev"]
