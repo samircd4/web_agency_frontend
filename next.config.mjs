@@ -19,6 +19,10 @@ const nextConfig = {
         NEXT_PUBLIC_API_BASE_URL: API_BASE,
     },
     images: {
+        // In development, Next.js image optimization proxies requests server-side,
+        // which triggers a security block when the upstream is localhost (private IP).
+        // Disabling optimization in dev lets the browser fetch images directly.
+        unoptimized: process.env.NODE_ENV === 'development',
         remotePatterns: [
             {
                 protocol: "https",
@@ -27,6 +31,15 @@ const nextConfig = {
             {
                 protocol: "https",
                 hostname: "plus.unsplash.com",
+            },
+            {
+                protocol: "http",
+                hostname: "localhost",
+                port: "8000",
+            },
+            {
+                protocol: "https",
+                hostname: "api.drpythonsolutions.com",
             }
         ],
     },

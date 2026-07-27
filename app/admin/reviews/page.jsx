@@ -163,11 +163,23 @@ export default function AdminReviewsPage() {
                                     >
                                         {/* Client + Project */}
                                         <td className="px-4 py-4">
-                                            <div className="font-black text-sm text-text-primary group-hover:text-brand-teal transition-colors">
-                                                {review.client_name || review.client?.full_name || review.client?.username || '—'}
-                                            </div>
-                                            <div className="text-[10px] text-text-muted mt-0.5 font-mono">
-                                                {review.project_title || review.project?.title || `Project #${review.project}`}
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center shrink-0 overflow-hidden font-black text-brand-teal text-xs">
+                                                    {review.avatar || review.client_avatar ? (
+                                                        /* eslint-disable-next-line @next/next/no-img-element */
+                                                        <img src={review.avatar || review.client_avatar} alt="Avatar" className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        ((review.client_name || review.name || 'CL')[0] || 'C').toUpperCase()
+                                                    )}
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <div className="font-black text-sm text-text-primary group-hover:text-brand-teal transition-colors truncate">
+                                                        {review.client_name || review.name || review.client?.full_name || review.client?.username || '—'}
+                                                    </div>
+                                                    <div className="text-[10px] text-text-muted mt-0.5 font-mono truncate">
+                                                        {review.project_title || review.project?.title || `Project #${review.project}`}
+                                                    </div>
+                                                </div>
                                             </div>
                                         </td>
 
@@ -199,12 +211,18 @@ export default function AdminReviewsPage() {
                                             </div>
                                         </td>
 
-                                        {/* Comment */}
-                                        <td className="px-4 py-4 max-w-[200px]">
+                                        {/* Comment + Deliverable Image */}
+                                        <td className="px-4 py-4 max-w-[240px]">
                                             {review.comment ? (
-                                                <p className="text-xs text-text-muted italic line-clamp-3">"{review.comment}"</p>
+                                                <p className="text-xs text-text-muted italic line-clamp-3 mb-1.5">"{review.comment}"</p>
                                             ) : (
-                                                <span className="text-text-dim text-xs">No comment</span>
+                                                <span className="text-text-dim text-xs block mb-1.5">No comment</span>
+                                            )}
+                                            {(review.review_image || review.completion_image_url) && (
+                                                <div className="w-24 h-14 rounded-lg overflow-hidden border border-white/10 bg-slate-950">
+                                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                    <img src={review.review_image || review.completion_image_url} alt="Deliverable" className="w-full h-full object-cover" />
+                                                </div>
                                             )}
                                         </td>
 

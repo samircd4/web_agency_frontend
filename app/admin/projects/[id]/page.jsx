@@ -11,6 +11,7 @@ import ProjectMilestones from '@/components/dashboard/ProjectMilestones';
 import ProjectTags from '@/components/dashboard/ProjectTags';
 import ProjectActivityLog from '@/components/dashboard/ProjectActivityLog';
 import ProjectProtocolFooter from '@/components/dashboard/ProjectProtocolFooter';
+import ReviewSection from '@/components/dashboard/project-detail/ReviewSection';
 import AdminModal from '@/components/AdminModal';
 import ConfirmDangerModal from '@/components/ConfirmDangerModal';
 import {
@@ -584,6 +585,19 @@ export default function AdminProjectDetail() {
                         {activities.length > 0 && (
                             <ProjectActivityLog activities={activities} />
                         )}
+                        <ReviewSection
+                            projectId={project.id}
+                            projectStage={project.stage}
+                            projectStatus={project.status}
+                            completionImageUrl={
+                                project.completion_image_url ||
+                                project.completion_image ||
+                                project.portfolio_image ||
+                                project.portfolio_image_url ||
+                                ''
+                            }
+                            isAdmin={true}
+                        />
                     </div>
 
                     <ProjectProtocolFooter />

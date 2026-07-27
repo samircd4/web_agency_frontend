@@ -659,12 +659,19 @@ export default function ServiceDetailPage() {
                                                 const clientName = review.client_name || review.name || review.client?.full_name || 'Client';
                                                 const initials = clientName.split(' ').filter(Boolean).map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'CL';
                                                 const commentText = review.comment || review.text || review.feedback || '';
+                                                const clientAvatar = review.client_avatar || review.avatar || review.client?.avatar || null;
+                                                const reviewImage = review.review_image || review.completion_image_url || null;
 
                                                 return (
                                                     <div key={review.id || i} className="p-5 rounded-2xl bg-surface-900/40 border border-white/5 hover:border-brand-teal/20 transition-all">
                                                         <div className="flex items-start gap-4">
-                                                            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-brand-teal/20 to-brand-teal/5 border border-brand-teal/20 flex items-center justify-center shrink-0">
-                                                                <span className="text-sm font-black text-brand-teal">{initials}</span>
+                                                            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-brand-teal/20 to-brand-teal/5 border border-brand-teal/20 flex items-center justify-center shrink-0 overflow-hidden">
+                                                                {clientAvatar ? (
+                                                                    /* eslint-disable-next-line @next/next/no-img-element */
+                                                                    <img src={clientAvatar} alt={clientName} className="w-full h-full object-cover" />
+                                                                ) : (
+                                                                    <span className="text-sm font-black text-brand-teal">{initials}</span>
+                                                                )}
                                                             </div>
                                                             <div className="flex-1 min-w-0">
                                                                 <div className="flex items-center justify-between gap-2 flex-wrap mb-2">
@@ -693,7 +700,13 @@ export default function ServiceDetailPage() {
                                                                     ))}
                                                                 </div>
                                                                 {commentText && (
-                                                                    <p className="text-sm text-slate-400 italic">"{commentText}"</p>
+                                                                    <p className="text-sm text-slate-400 italic mb-3">"{commentText}"</p>
+                                                                )}
+                                                                {reviewImage && (
+                                                                    <div className="mt-3 rounded-xl border border-white/10 overflow-hidden max-w-sm bg-slate-950">
+                                                                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                                                                        <img src={reviewImage} alt="Project deliverable showcase" className="w-full h-36 object-cover hover:scale-105 transition-transform" />
+                                                                    </div>
                                                                 )}
                                                             </div>
                                                         </div>

@@ -84,7 +84,7 @@ export default function ReviewSection({ projectId, projectStage, projectStatus, 
     );
 
     useEffect(() => {
-        if (!projectId || isAdmin || !isCompleted) {
+        if (!projectId) {
             setCheckLoading(false);
             return;
         }
@@ -93,13 +93,13 @@ export default function ReviewSection({ projectId, projectStage, projectStatus, 
                 const review = await api.getProjectReview(projectId);
                 if (review && review.id) setExistingReview(review);
             } catch {
-                // 404 = not yet reviewed, or endpoint not yet built — silently ignore
+                // 404 = not yet reviewed — silently ignore
             } finally {
                 setCheckLoading(false);
             }
         };
         check();
-    }, [projectId, isAdmin, isCompleted]);
+    }, [projectId]);
 
     const overallRating = form.rating_communication && form.rating_quality && form.rating_timeliness
         ? ((form.rating_communication + form.rating_quality + form.rating_timeliness) / 3).toFixed(1)
@@ -146,9 +146,10 @@ export default function ReviewSection({ projectId, projectStage, projectStatus, 
         }
     };
 
-    // Don't show for admin or if project isn't complete
-    if (isAdmin || !isCompleted) return null;
     if (checkLoading) return null;
+
+    // If admin and no review submitted yet, hide form
+    if (isAdmin && !existingReview) return null;
 
     // Already submitted — show submitted state
     if (existingReview) {
