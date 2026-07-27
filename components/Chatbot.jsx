@@ -119,21 +119,18 @@ export default function Chatbot() {
         setUserIsAuth(authed);
 
         if (authed) {
-            // Pull thread ID from the stored JWT payload or localStorage
-            const stored = localStorage.getItem('chat_thread_id');
-            if (stored) {
-                setThreadId(stored);
-            } else {
-                // Fetch the user profile to get chat_thread_id
-                import('@/lib/api').then(({ api }) => {
-                    api.getMe().then(me => {
-                        if (me?.chat_thread_id) {
-                            setThreadId(me.chat_thread_id);
-                            localStorage.setItem('chat_thread_id', String(me.chat_thread_id));
-                        }
-                    }).catch(() => {});
+            import('@/lib/api').then(({ api }) => {
+                api.getMe().then(me => {
+                    if (me?.chat_thread_id) {
+                        const tId = String(me.chat_thread_id);
+                        setThreadId(tId);
+                        localStorage.setItem('chat_thread_id', tId);
+                    }
+                }).catch(() => {
+                    const stored = localStorage.getItem('chat_thread_id');
+                    if (stored) setThreadId(stored);
                 });
-            }
+            });
         } else {
             guestSessionId.current = getOrCreateGuestSessionId();
         }

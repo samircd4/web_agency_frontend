@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Star, MessageSquare, Send, CheckCircle2, Loader2, AlertCircle, Eye, X, Image as ImageIcon } from 'lucide-react';
-import { api } from '@/lib/api';
+import { api, getFullAvatarUrl } from '@/lib/api';
 
 function SubRating({ label, subText, value, onChange }) {
     return (
@@ -50,7 +50,7 @@ export default function ReviewSection({ projectId, projectStage, projectStatus, 
     const [acceptImage, setAcceptImage] = useState(true);
     const [showPreviewModal, setShowPreviewModal] = useState(false);
 
-    const displayImage = completionImageUrl || '';
+    const displayImage = getFullAvatarUrl(completionImageUrl) || '';
 
     const [form, setForm] = useState({
         rating_communication: 0,
@@ -150,6 +150,9 @@ export default function ReviewSection({ projectId, projectStage, projectStatus, 
 
     // If admin and no review submitted yet, hide form
     if (isAdmin && !existingReview) return null;
+
+    // Hide review form for non-completed projects (only show submitted reviews)
+    if (!isCompleted && !existingReview) return null;
 
     // Already submitted — show submitted state
     if (existingReview) {
