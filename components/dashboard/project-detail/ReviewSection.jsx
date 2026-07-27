@@ -62,26 +62,8 @@ export default function ReviewSection({ projectId, projectStage, projectStatus, 
     const [submitted, setSubmitted] = useState(false);
     const [error, setError] = useState('');
 
-    const stageLower = (projectStage || '').toLowerCase();
-    const statusLower = (projectStatus || '').toLowerCase();
-
-    const isExplicitlyNotCompleted = 
-        statusLower === 'active' || 
-        statusLower === 'in_progress' || 
-        statusLower === 'pending' || 
-        statusLower === 'cancelled' ||
-        stageLower === 'requirements' ||
-        stageLower === 'architecture' ||
-        stageLower === 'dev' ||
-        stageLower === 'qa' ||
-        stageLower === 'deploying';
-
-    const isCompleted = !isExplicitlyNotCompleted && (
-        stageLower === 'complete' || 
-        stageLower === 'completed' || 
-        statusLower === 'completed' || 
-        statusLower === 'complete'
-    );
+    const statusLower = (projectStatus || '').trim().toLowerCase();
+    const isCompleted = statusLower === 'completed' || statusLower === 'complete';
 
     useEffect(() => {
         if (!projectId) {
