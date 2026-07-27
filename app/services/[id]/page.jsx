@@ -8,7 +8,7 @@ import { Star, Heart, Share2, Clock, RotateCcw, Check, ShieldCheck, ChevronDown,
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import { fetchPublicServiceByIdentifier, isServiceSaved, toggleSavedService } from '@/lib/services';
-import { api } from '@/lib/api';
+import { api, getFullAvatarUrl } from '@/lib/api';
 import OrderModal from '@/components/ServiceMarketplace/OrderModal';
 import ScrollReveal from '@/components/ScrollReveal';
 import ShareModal from '@/components/ShareModal';
@@ -659,8 +659,8 @@ export default function ServiceDetailPage() {
                                                 const clientName = review.client_name || review.name || review.client?.full_name || 'Client';
                                                 const initials = clientName.split(' ').filter(Boolean).map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'CL';
                                                 const commentText = review.comment || review.text || review.feedback || '';
-                                                const clientAvatar = review.client_avatar || review.avatar || review.client?.avatar || null;
-                                                const reviewImage = review.review_image || review.completion_image_url || null;
+                                                const clientAvatar = getFullAvatarUrl(review.client_avatar || review.avatar || review.client?.avatar || null);
+                                                const reviewImage = getFullAvatarUrl(review.review_image || review.completion_image_url || null);
 
                                                 return (
                                                     <div key={review.id || i} className="p-5 rounded-2xl bg-surface-900/40 border border-white/5 hover:border-brand-teal/20 transition-all">

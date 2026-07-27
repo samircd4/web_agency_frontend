@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Star, Trash2, MessageSquare, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
-import { api } from '@/lib/api';
+import { api, getFullAvatarUrl } from '@/lib/api';
 
 function StarDisplay({ value, size = 12 }) {
     return (
@@ -221,7 +221,7 @@ export default function AdminReviewsPage() {
                                             {(review.review_image || review.completion_image_url) && (
                                                 <div className="w-24 h-14 rounded-lg overflow-hidden border border-white/10 bg-slate-950">
                                                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                                                    <img src={review.review_image || review.completion_image_url} alt="Deliverable" className="w-full h-full object-cover" />
+                                                    <img src={getFullAvatarUrl(review.review_image || review.completion_image_url)} alt="Deliverable" className="w-full h-full object-cover" />
                                                 </div>
                                             )}
                                         </td>
