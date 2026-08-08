@@ -591,9 +591,7 @@ export default function AdminProjectDetail() {
                             projectStatus={project.status}
                             completionImageUrl={
                                 project.completion_image_url ||
-                                project.completion_image ||
                                 project.portfolio_image ||
-                                project.portfolio_image_url ||
                                 ''
                             }
                             isAdmin={true}

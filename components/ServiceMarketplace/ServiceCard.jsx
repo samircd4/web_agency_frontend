@@ -4,6 +4,7 @@ import { Star, Heart, Clock, Eye, ChevronLeft, ChevronRight, Share2 } from 'luci
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { isServiceSaved, toggleSavedService } from '@/lib/services';
+import { getFullMediaUrl } from '@/lib/api';
 import ShareModal from '@/components/ShareModal';
 
 export default function ServiceCard({ service }) {
@@ -35,7 +36,8 @@ export default function ServiceCard({ service }) {
   }, [id]);
 
   const displayPrice = price || service.tiers?.basic?.price || service.tiers?.standard?.price || 0;
-  const displayImages = gallery.length > 0 ? gallery : [image];
+  const rawImages = gallery.length > 0 ? gallery : [image];
+  const displayImages = rawImages.map(getFullMediaUrl);
   const hasMultipleImages = displayImages.length > 1;
 
   useEffect(() => {
@@ -118,6 +120,7 @@ export default function ServiceCard({ service }) {
                   src={displayImages[activeImageIndex]}
                   alt={title}
                   fill
+                  unoptimized
                   sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   className="object-cover group-hover/card:scale-110 transition-transform duration-700"
                   priority={id < 3}
@@ -169,6 +172,7 @@ export default function ServiceCard({ service }) {
                       src={img} 
                       alt={`Thumb ${idx}`} 
                       fill 
+                      unoptimized
                       sizes="32px"
                       className="object-cover" 
                     />

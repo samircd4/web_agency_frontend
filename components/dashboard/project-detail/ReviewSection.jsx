@@ -50,7 +50,7 @@ export default function ReviewSection({ projectId, projectStage, projectStatus, 
     const [acceptImage, setAcceptImage] = useState(true);
     const [showPreviewModal, setShowPreviewModal] = useState(false);
 
-    const displayImage = getFullAvatarUrl(completionImageUrl) || '';
+    const displayImage = completionImageUrl ? (getFullAvatarUrl(completionImageUrl) || '') : '';
 
     const [form, setForm] = useState({
         rating_communication: 0,

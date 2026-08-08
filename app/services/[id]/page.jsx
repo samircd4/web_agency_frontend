@@ -8,7 +8,7 @@ import { Star, Heart, Share2, Clock, RotateCcw, Check, ShieldCheck, ChevronDown,
 import { motion, AnimatePresence } from 'framer-motion';
 import ReactMarkdown from 'react-markdown';
 import { fetchPublicServiceByIdentifier, isServiceSaved, toggleSavedService } from '@/lib/services';
-import { api, getFullAvatarUrl } from '@/lib/api';
+import { api, getFullAvatarUrl, getFullMediaUrl } from '@/lib/api';
 import OrderModal from '@/components/ServiceMarketplace/OrderModal';
 import ScrollReveal from '@/components/ScrollReveal';
 import ShareModal from '@/components/ShareModal';
@@ -76,7 +76,11 @@ export default function ServiceDetailPage() {
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
-    const gallery = service?.gallery || (service?.image ? [service.image] : []);
+    const rawGallery = service?.gallery && service.gallery.length > 0
+        ? service.gallery
+        : (service?.image ? [service.image] : []);
+
+    const gallery = rawGallery.map(getFullMediaUrl);
 
     useEffect(() => {
         if (!gallery || gallery.length <= 1) return;
@@ -236,6 +240,7 @@ export default function ServiceDetailPage() {
                                                     alt={service.title}
                                                     className="object-cover"
                                                     priority
+                                                    unoptimized
                                                     fill
                                                 />
                                             </motion.div>
@@ -294,7 +299,7 @@ export default function ServiceDetailPage() {
                                                     onClick={() => setActiveImage(idx)}
                                                     className={`relative w-20 md:w-28 aspect-video rounded-lg overflow-hidden border-2 transition-all flex-shrink-0 ${activeImage === idx ? 'border-brand-teal' : 'border-transparent opacity-50 hover:opacity-100'}`}
                                                 >
-                                                    <Image src={img} alt={`Gallery ${idx}`} fill className="object-cover" />
+                                                    <Image src={img} alt={`Gallery ${idx}`} fill unoptimized className="object-cover" />
                                                 </button>
                                             ))}
                                         </div>
@@ -446,9 +451,42 @@ export default function ServiceDetailPage() {
                                     </div>
                                 )}
 
+                                {/* Tier Comparison Matrix */}
+                                <div className="mb-12 overflow-hidden">
+                                    <h2 className="text-xl font-black text-white mb-6 uppercase tracking-tight">Technical Comparison</h2>
+                                    <div className="rounded-2xl border border-white/5 overflow-hidden glass">
+                                        <div className="grid grid-cols-4 bg-white/5 border-b border-white/5">
+                                            <div className="p-4 text-[10px] font-black uppercase text-slate-500 tracking-widest">Feature</div>
+                                            {['Basic', 'Standard', 'Premium'].map(tierName => (
+                                                <div key={tierName} className={`p-4 text-xs md:text-sm font-black uppercase text-center tracking-widest ${activeTier.toLowerCase() === tierName.toLowerCase() ? 'text-brand-teal bg-brand-teal/5' : 'text-white'}`}>
+                                                    {tierName}
+                                                </div>
+                                            ))}
+                                        </div>
+                                        {[
+                                            { label: 'Architecture', basic: 'Monolith', standard: 'Modular', premium: 'Microservices', icon: Layers },
+                                            { label: 'Scalability', basic: 'Vertical', standard: 'Elastic', premium: 'Auto-Scaling', icon: TrendingUp },
+                                            { label: 'SEO Package', basic: 'Essential', standard: 'Advanced', premium: 'Global Elite', icon: Search },
+                                            { label: 'Security', basic: 'SSL + Basic', standard: 'WAF + Hardened', premium: 'Military-Grade', icon: ShieldCheck },
+                                            { label: 'Deployment', basic: 'Manual', standard: 'CI/CD Pipeline', premium: 'Multi-Cloud IaC', icon: Cloud },
+                                            { label: 'Dr. Support', basic: 'Full Support', standard: 'Full Support', premium: 'Full Support', icon: MessageCircle },
+                                        ].map((row, i) => (
+                                            <div key={i} className="grid grid-cols-4 border-b border-white/[0.02] last:border-0 hover:bg-white/[0.02] transition-colors">
+                                                <div className="p-4 text-xs md:text-sm font-bold text-slate-400 flex items-center gap-2">
+                                                    <row.icon size={14} className="text-brand-teal flex-shrink-0" />
+                                                    <span>{row.label}</span>
+                                                </div>
+                                                <div className="p-4 text-xs md:text-sm font-medium text-slate-300 text-center">{row.basic}</div>
+                                                <div className="p-4 text-xs md:text-sm font-medium text-slate-300 text-center">{row.standard}</div>
+                                                <div className="p-4 text-xs md:text-sm font-medium text-slate-300 text-center">{row.premium}</div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
                                 {/* Client Reviews Section */}
                                 {service.clientReviews && (
-                                    <div className="mb-8">
+                                    <div className="mb-12">
                                         <div className="flex items-center justify-between mb-4">
                                             <h2 className="text-xl font-black text-white uppercase tracking-tight">Client Reviews</h2>
                                         </div>
@@ -609,39 +647,6 @@ export default function ServiceDetailPage() {
                                         })()}
                                     </div>
                                 )}
-
-                                {/* Tier Comparison Matrix */}
-                                 <div className="mb-12 overflow-hidden">
-                                     <h2 className="text-xl font-black text-white mb-6 uppercase tracking-tight">Technical Comparison</h2>
-                                     <div className="rounded-2xl border border-white/5 overflow-hidden glass">
-                                         <div className="grid grid-cols-4 bg-white/5 border-b border-white/5">
-                                             <div className="p-4 text-[10px] font-black uppercase text-slate-500 tracking-widest">Feature</div>
-                                             {['Basic', 'Standard', 'Premium'].map(tierName => (
-                                                 <div key={tierName} className={`p-4 text-xs md:text-sm font-black uppercase text-center tracking-widest ${activeTier.toLowerCase() === tierName.toLowerCase() ? 'text-brand-teal bg-brand-teal/5' : 'text-white'}`}>
-                                                     {tierName}
-                                                 </div>
-                                             ))}
-                                         </div>
-                                         {[
-                                             { label: 'Architecture', basic: 'Monolith', standard: 'Modular', premium: 'Microservices', icon: Layers },
-                                             { label: 'Scalability', basic: 'Vertical', standard: 'Elastic', premium: 'Auto-Scaling', icon: TrendingUp },
-                                             { label: 'SEO Package', basic: 'Essential', standard: 'Advanced', premium: 'Global Elite', icon: Search },
-                                             { label: 'Security', basic: 'SSL + Basic', standard: 'WAF + Hardened', premium: 'Military-Grade', icon: ShieldCheck },
-                                             { label: 'Deployment', basic: 'Manual', standard: 'CI/CD Pipeline', premium: 'Multi-Cloud IaC', icon: Cloud },
-                                             { label: 'Dr. Support', basic: 'Full Support', standard: 'Full Support', premium: 'Full Support', icon: MessageCircle },
-                                         ].map((row, i) => (
-                                             <div key={i} className="grid grid-cols-4 border-b border-white/[0.02] last:border-0 hover:bg-white/[0.02] transition-colors">
-                                                 <div className="p-4 text-xs md:text-sm font-bold text-slate-400 flex items-center gap-2">
-                                                     <row.icon size={14} className="text-brand-teal flex-shrink-0" />
-                                                     <span>{row.label}</span>
-                                                 </div>
-                                                 <div className="p-4 text-xs md:text-sm font-medium text-slate-300 text-center">{row.basic}</div>
-                                                 <div className="p-4 text-xs md:text-sm font-medium text-slate-300 text-center">{row.standard}</div>
-                                                 <div className="p-4 text-xs md:text-sm font-medium text-slate-300 text-center">{row.premium}</div>
-                                             </div>
-                                         ))}
-                                     </div>
-                                 </div>
 
                                 {/* Service-specific client reviews from real submissions */}
                                 {serviceReviews.length > 0 && (

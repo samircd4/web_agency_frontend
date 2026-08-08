@@ -356,7 +356,7 @@ function PortfolioImageCard({ project, isAdmin, isCompleted = false, onUpdatePro
     
     const getInitialImage = useCallback(() => {
         if (!project) return '';
-        return project.completion_image_url || project.portfolio_image || project.completion_image || project.portfolio_image_url || project.cover_image || project.cover_image_url || '';
+        return project.portfolio_image || project.completion_image_url || '';
     }, [project]);
 
     const [previewUrl, setPreviewUrl] = useState(getInitialImage());
@@ -398,8 +398,7 @@ function PortfolioImageCard({ project, isAdmin, isCompleted = false, onUpdatePro
             if (project?.id) {
                 await api.updateAdminProject(project.id, { 
                     completion_image_url: '',
-                    portfolio_image: '',
-                    completion_image: '' 
+                    portfolio_image: null,
                 });
             }
             if (onUpdateProjectImage) {

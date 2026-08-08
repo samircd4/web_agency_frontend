@@ -158,11 +158,7 @@ export default function ClientProjectDetail() {
                                 projectStatus={project.status}
                                 completionImageUrl={
                                     project.completion_image_url ||
-                                    project.completion_image ||
                                     project.portfolio_image ||
-                                    project.portfolio_image_url ||
-                                    project.cover_image ||
-                                    project.cover_image_url ||
                                     ''
                                 }
                                 isAdmin={currentUser?.is_staff}
