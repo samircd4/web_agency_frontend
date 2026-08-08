@@ -40,7 +40,7 @@ export default function useAuthAndUser() {
         } catch (error) {
             console.error('Logout error:', error);
         }
-        router.push('/admin/login');
+        router.push('/');
     };
 
     // Initial data fetch for user

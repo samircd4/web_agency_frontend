@@ -59,7 +59,7 @@ export default function DashboardView() {
 
     const handleLogout = async () => {
         await api.logout();
-        router.push('/admin/login');
+        router.push('/');
     };
 
     useEffect(() => {

@@ -158,7 +158,7 @@ export default function useAdminDashboard() {
     } catch (error) {
       console.error('Logout error:', error);
     }
-    router.push('/admin/login');
+    router.push('/');
   };
 
   return {

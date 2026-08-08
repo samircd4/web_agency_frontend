@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState, useEffect } from 'react';
+import { Suspense, useState, useEffect, useRef } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -52,6 +52,8 @@ function LoginForm() {
 
     // Google login state
     const [googleLoading, setGoogleLoading] = useState(false);
+    // Ref to the hidden div where Google renders its real button
+    const googleBtnRef = useRef(null);
 
     // Check if already logged in
     useEffect(() => {
@@ -104,14 +106,71 @@ function LoginForm() {
         }
     };
 
-    const handleGoogleLogin = async () => {
-        setGoogleLoading(true);
-        setError('');
-        // Simulated Google OAuth flow for demo
-        await new Promise(r => setTimeout(r, 2500));
-        setGoogleLoading(false);
-        setError('Google OAuth is not configured yet. Please use username/password.');
-    };
+    // Load Google Identity Services and render the official button
+    useEffect(() => {
+        if (checkingSession || existingUser || activeView !== 'login') return;
+
+        const clientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
+        if (!clientId) return;
+
+        const handleCredentialResponse = async (response) => {
+            setGoogleLoading(true);
+            setError('');
+            try {
+                const res = await api.googleLogin(response.credential);
+                const user = res.user || await api.getMe();
+                if (user.is_staff) {
+                    router.push(from.startsWith('/admin') ? from : '/admin');
+                } else {
+                    router.push('/dashboard');
+                }
+            } catch (err) {
+                setError(err.message || 'Google sign-in failed. Please try again.');
+            } finally {
+                setGoogleLoading(false);
+            }
+        };
+
+        const initGoogle = () => {
+            if (!window.google?.accounts?.id) return;
+            window.google.accounts.id.initialize({
+                client_id: clientId,
+                callback: handleCredentialResponse,
+                auto_select: false,
+                cancel_on_tap_outside: true,
+            });
+            if (googleBtnRef.current) {
+                googleBtnRef.current.innerHTML = '';
+                const containerWidth = googleBtnRef.current.parentElement?.clientWidth || 360;
+                window.google.accounts.id.renderButton(googleBtnRef.current, {
+                    type: 'standard',
+                    theme: 'outline',
+                    size: 'large',
+                    text: 'continue_with',
+                    shape: 'pill',
+                    logo_alignment: 'center',
+                    width: Math.min(containerWidth, 400),
+                });
+            }
+        };
+
+        if (window.google?.accounts?.id) {
+            initGoogle();
+        } else {
+            const existingScript = document.querySelector('script[src="https://accounts.google.com/gsi/client"]');
+            if (!existingScript) {
+                const script = document.createElement('script');
+                script.src = 'https://accounts.google.com/gsi/client';
+                script.async = true;
+                script.defer = true;
+                script.onload = initGoogle;
+                document.head.appendChild(script);
+            } else {
+                existingScript.addEventListener('load', initGoogle);
+            }
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [checkingSession, existingUser, activeView]);
 
     const handleForgotPassword = async (e) => {
         e.preventDefault();
@@ -528,24 +587,18 @@ function LoginForm() {
                                 <div className="flex-1 h-px bg-white/10" />
                             </div>
 
-                            {/* Google Login Button */}
-                            <button
-                                onClick={handleGoogleLogin}
-                                disabled={googleLoading || loading}
-                                className="w-full py-3 bg-white text-slate-800 rounded-xl font-bold text-sm transition-all hover:-translate-y-0.5 hover:shadow-lg hover:shadow-white/10 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-3 active:scale-[0.98]"
-                            >
+                            {/* Google Sign-In Button */}
+                            <div className="w-full flex items-center justify-center min-h-[44px]">
                                 {googleLoading ? (
-                                    <>
-                                        <Loader2 size={16} className="animate-spin text-slate-500" />
-                                        <span className="text-slate-500 text-xs font-black uppercase tracking-wider">Connecting to Google...</span>
-                                    </>
+                                    <div className="w-full py-3 bg-white/5 border border-border-light rounded-xl flex items-center justify-center gap-3 text-text-muted text-xs font-bold uppercase tracking-wider">
+                                        <Loader2 size={16} className="animate-spin text-brand-teal" />
+                                        <span>Connecting to Google...</span>
+                                    </div>
                                 ) : (
-                                    <>
-                                        <GoogleIcon size={18} />
-                                        Continue with Google
-                                    </>
+                                    <div ref={googleBtnRef} className="w-full flex justify-center" />
                                 )}
-                            </button>
+                            </div>
+
 
                             {/* Footer */}
                             <div className="mt-6 pt-5 border-t border-white/5 flex flex-col items-center gap-3">
