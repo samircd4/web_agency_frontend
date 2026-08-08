@@ -245,6 +245,7 @@ export default function AdminServicesPage() {
     const [saving, setSaving] = useState(false);
     const [saveError, setSaveError] = useState('');
     const [activeTab, setActiveTab] = useState('details'); // 'details' | 'tiers' | 'media'
+    const [categories, setCategories] = useState([]);
 
     const loadServices = async () => {
         setLoading(true);
@@ -259,7 +260,28 @@ export default function AdminServicesPage() {
         }
     };
 
-    useEffect(() => { loadServices(); }, []);
+    const loadCategories = async () => {
+        try {
+            const data = await api.getCategories('service');
+            setCategories(Array.isArray(data) ? data : data.results || []);
+        } catch {
+            // fallback to static list if API fails
+            setCategories([
+                { id: 1, name: 'Development' },
+                { id: 2, name: 'Data & Automation' },
+                { id: 3, name: 'Design' },
+                { id: 4, name: 'Infrastructure' },
+                { id: 5, name: 'Content' },
+                { id: 6, name: 'Security' },
+                { id: 7, name: 'Cloud' },
+            ]);
+        }
+    };
+
+    useEffect(() => {
+        loadServices();
+        loadCategories();
+    }, []);
 
     const handleCreateNew = () => {
         setSelectedService({ ...DEFAULT_SERVICE, isNew: true });
@@ -535,14 +557,20 @@ export default function AdminServicesPage() {
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
                                             <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Category</label>
-                                            <input
-                                                type="text"
-                                                value={selectedService.category_name || selectedService.category || ''}
-                                                onChange={e => setSelectedService(p => ({ ...p, category_name: e.target.value }))}
-                                                disabled={saving}
-                                                placeholder="Development"
-                                                className="w-full mt-1 p-3 bg-surface-900 border border-white/10 rounded-xl text-white text-sm focus:border-brand-teal outline-none"
-                                            />
+                                            <div className="relative mt-1">
+                                                <select
+                                                    value={selectedService.category_name || selectedService.category || ''}
+                                                    onChange={e => setSelectedService(p => ({ ...p, category_name: e.target.value }))}
+                                                    disabled={saving}
+                                                    className="w-full p-3 pr-9 bg-surface-900 border border-white/10 rounded-xl text-white text-sm focus:border-brand-teal outline-none appearance-none cursor-pointer hover:border-white/20 transition-colors"
+                                                >
+                                                    <option value="" className="bg-slate-900">— Select a category —</option>
+                                                    {categories.map(cat => (
+                                                        <option key={cat.id} value={cat.name} className="bg-slate-900">{cat.name}</option>
+                                                    ))}
+                                                </select>
+                                                <ChevronDown size={14} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+                                            </div>
                                         </div>
                                         <div>
                                             <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Base Delivery Time</label>
