@@ -113,13 +113,16 @@ export default function ServiceDetailPage() {
         );
     }
 
-    const tier = service.tiers?.[activeTier] || {
-        price: service.price,
-        title: 'Service Pack',
-        desc: 'Standard service offering',
-        delivery: service.delivery,
-        revisions: '2',
-        features: ["Standard Implementation", "Quality Audit", "Source Delivery"]
+    // Tier object: admin form saves {name, description, delivery_time, revisions, features[]}
+    // The page template uses {title, desc, delivery} — normalize here.
+    const rawTier = service.tiers?.[activeTier] || {};
+    const tier = {
+        title: rawTier.title || rawTier.name || 'Service Pack',
+        desc: rawTier.desc || rawTier.description || 'Standard service offering',
+        delivery: rawTier.delivery || rawTier.delivery_time || service.delivery || 'See details',
+        price: rawTier.price ?? service.price ?? 0,
+        revisions: rawTier.revisions ?? 2,
+        features: rawTier.features || [],
     };
 
     return (

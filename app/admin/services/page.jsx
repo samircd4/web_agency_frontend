@@ -5,7 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     Layers, Plus, Trash2, Save, Star, CheckCircle2,
     AlertCircle, Loader2, DollarSign, Upload, X, Image as ImageIcon,
-    Eye, EyeOff, Package, ChevronDown, ToggleLeft, ToggleRight, GripVertical
+    Eye, EyeOff, Package, ChevronDown, ToggleLeft, ToggleRight, GripVertical,
+    Tag, HelpCircle, Map, Zap
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import AdminModal from '@/components/AdminModal';
@@ -28,7 +29,6 @@ function ImageUploadField({ label, value, onChange, disabled }) {
             onChange(url);
             setPreview(url);
         } catch (err) {
-            // Fall back to object URL for preview if upload fails
             const localUrl = URL.createObjectURL(file);
             setPreview(localUrl);
             alert('Upload failed: ' + (err.message || 'Unknown error') + '\nUsing local preview only.');
@@ -145,9 +145,209 @@ function GalleryManager({ images = [], onChange, disabled }) {
     );
 }
 
+// ─── Simple List Editor (for features, badges) ───────────────────────────────
+
+function ListEditor({ label, hint, items = [], onChange, disabled, placeholder = 'Add item...' }) {
+    const [draft, setDraft] = useState('');
+
+    const add = () => {
+        const val = draft.trim();
+        if (!val) return;
+        onChange([...items, val]);
+        setDraft('');
+    };
+
+    const remove = (idx) => onChange(items.filter((_, i) => i !== idx));
+
+    return (
+        <div className="space-y-2">
+            <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">{label}</label>
+            {hint && <p className="text-[10px] text-slate-600">{hint}</p>}
+
+            {/* Existing items */}
+            {items.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                    {items.map((item, idx) => (
+                        <div key={idx} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10 text-xs text-white group">
+                            <span>{item}</span>
+                            <button
+                                type="button"
+                                onClick={() => remove(idx)}
+                                disabled={disabled}
+                                className="text-slate-500 hover:text-brand-red transition-colors disabled:opacity-30"
+                            >
+                                <X size={11} />
+                            </button>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {/* Add row */}
+            <div className="flex gap-2">
+                <input
+                    type="text"
+                    value={draft}
+                    onChange={e => setDraft(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); add(); } }}
+                    disabled={disabled}
+                    placeholder={placeholder}
+                    className="flex-1 p-2.5 bg-surface-900 border border-white/10 rounded-xl text-white text-sm focus:border-brand-teal outline-none placeholder:text-slate-600"
+                />
+                <button
+                    type="button"
+                    onClick={add}
+                    disabled={disabled || !draft.trim()}
+                    className="px-3 py-2 rounded-xl bg-brand-teal/10 border border-brand-teal/20 text-brand-teal text-xs font-black uppercase tracking-widest hover:bg-brand-teal/20 transition-all disabled:opacity-40 flex items-center gap-1.5"
+                >
+                    <Plus size={13} /> Add
+                </button>
+            </div>
+        </div>
+    );
+}
+
+// ─── FAQ Editor ───────────────────────────────────────────────────────────────
+
+function FaqEditor({ faqs = [], onChange, disabled }) {
+    const addFaq = () => onChange([...faqs, { q: '', a: '' }]);
+    const removeFaq = (idx) => onChange(faqs.filter((_, i) => i !== idx));
+    const updateFaq = (idx, field, val) => {
+        const updated = faqs.map((f, i) => i === idx ? { ...f, [field]: val } : f);
+        onChange(updated);
+    };
+
+    return (
+        <div className="space-y-3">
+            <div className="flex items-center justify-between">
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">FAQ Items</label>
+                <button
+                    type="button"
+                    onClick={addFaq}
+                    disabled={disabled}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-teal/10 border border-brand-teal/20 text-brand-teal text-[10px] font-black uppercase tracking-widest hover:bg-brand-teal/20 transition-all disabled:opacity-40"
+                >
+                    <Plus size={11} /> Add FAQ
+                </button>
+            </div>
+
+            {faqs.length === 0 && (
+                <p className="text-xs text-slate-600 py-4 text-center border border-dashed border-white/10 rounded-xl">
+                    No FAQs yet — click "Add FAQ" to get started.
+                </p>
+            )}
+
+            {faqs.map((faq, idx) => (
+                <div key={idx} className="p-4 rounded-xl bg-white/[0.02] border border-white/8 space-y-2.5 relative">
+                    <button
+                        type="button"
+                        onClick={() => removeFaq(idx)}
+                        disabled={disabled}
+                        className="absolute top-3 right-3 text-slate-600 hover:text-brand-red transition-colors"
+                    >
+                        <Trash2 size={13} />
+                    </button>
+                    <div>
+                        <label className="text-[9px] font-black uppercase tracking-widest text-slate-500">Question</label>
+                        <input
+                            type="text"
+                            value={faq.q || ''}
+                            onChange={e => updateFaq(idx, 'q', e.target.value)}
+                            disabled={disabled}
+                            placeholder="What is included in this service?"
+                            className="w-full mt-1 p-2.5 bg-surface-900 border border-white/10 rounded-lg text-white text-sm focus:border-brand-teal outline-none"
+                        />
+                    </div>
+                    <div>
+                        <label className="text-[9px] font-black uppercase tracking-widest text-slate-500">Answer</label>
+                        <textarea
+                            rows={2}
+                            value={faq.a || ''}
+                            onChange={e => updateFaq(idx, 'a', e.target.value)}
+                            disabled={disabled}
+                            placeholder="Detailed answer..."
+                            className="w-full mt-1 p-2.5 bg-surface-900 border border-white/10 rounded-lg text-white text-sm focus:border-brand-teal outline-none resize-none"
+                        />
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
+}
+
+// ─── Roadmap Editor ───────────────────────────────────────────────────────────
+
+function RoadmapEditor({ roadmap = [], onChange, disabled }) {
+    const addStep = () => onChange([...roadmap, { step: roadmap.length + 1, title: '', desc: '' }]);
+    const removeStep = (idx) => {
+        const updated = roadmap.filter((_, i) => i !== idx).map((item, i) => ({ ...item, step: i + 1 }));
+        onChange(updated);
+    };
+    const updateStep = (idx, field, val) => {
+        const updated = roadmap.map((s, i) => i === idx ? { ...s, [field]: val } : s);
+        onChange(updated);
+    };
+
+    return (
+        <div className="space-y-3">
+            <div className="flex items-center justify-between">
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400">Delivery Roadmap Steps</label>
+                <button
+                    type="button"
+                    onClick={addStep}
+                    disabled={disabled}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-teal/10 border border-brand-teal/20 text-brand-teal text-[10px] font-black uppercase tracking-widest hover:bg-brand-teal/20 transition-all disabled:opacity-40"
+                >
+                    <Plus size={11} /> Add Step
+                </button>
+            </div>
+
+            {roadmap.length === 0 && (
+                <p className="text-xs text-slate-600 py-4 text-center border border-dashed border-white/10 rounded-xl">
+                    No roadmap steps — click "Add Step" to describe your delivery process.
+                </p>
+            )}
+
+            {roadmap.map((step, idx) => (
+                <div key={idx} className="flex gap-3 p-4 rounded-xl bg-white/[0.02] border border-white/8 relative">
+                    <div className="w-7 h-7 rounded-full bg-brand-teal/10 border border-brand-teal/30 flex items-center justify-center text-xs font-black text-brand-teal shrink-0 mt-1">
+                        {step.step || idx + 1}
+                    </div>
+                    <div className="flex-1 space-y-2">
+                        <input
+                            type="text"
+                            value={step.title || ''}
+                            onChange={e => updateStep(idx, 'title', e.target.value)}
+                            disabled={disabled}
+                            placeholder="Step title (e.g. Requirement Gathering)"
+                            className="w-full p-2.5 bg-surface-900 border border-white/10 rounded-lg text-white text-sm focus:border-brand-teal outline-none"
+                        />
+                        <textarea
+                            rows={2}
+                            value={step.desc || ''}
+                            onChange={e => updateStep(idx, 'desc', e.target.value)}
+                            disabled={disabled}
+                            placeholder="Brief description of this step..."
+                            className="w-full p-2.5 bg-surface-900 border border-white/10 rounded-lg text-white text-sm focus:border-brand-teal outline-none resize-none"
+                        />
+                    </div>
+                    <button
+                        type="button"
+                        onClick={() => removeStep(idx)}
+                        disabled={disabled}
+                        className="text-slate-600 hover:text-brand-red transition-colors self-start mt-1"
+                    >
+                        <Trash2 size={13} />
+                    </button>
+                </div>
+            ))}
+        </div>
+    );
+}
+
 // ─── Tier Editor ──────────────────────────────────────────────────────────────
 
-function TierEditor({ tier, tierKey, onChange, disabled }) {
+function TierEditor({ tier, tierKey, onChange, disabled, suggestions = [] }) {
     return (
         <div className="p-4 rounded-xl bg-white/[0.02] border border-white/8 space-y-3">
             <div className="flex items-center gap-2 mb-1">
@@ -212,6 +412,94 @@ function TierEditor({ tier, tierKey, onChange, disabled }) {
                     className="w-full mt-1 p-2.5 bg-surface-900 border border-white/10 rounded-lg text-white text-sm focus:border-brand-teal outline-none resize-none"
                 />
             </div>
+
+            {/* Tier Features List */}
+            <div>
+                <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 block mb-2">
+                    Feature Checklist <span className="text-slate-600 normal-case font-normal">(shown on pricing card)</span>
+                </label>
+                <TierFeatureList
+                    features={tier?.features || []}
+                    onChange={features => onChange({ ...tier, features })}
+                    disabled={disabled}
+                    suggestions={suggestions}
+                />
+            </div>
+        </div>
+    );
+}
+
+// ─── Tier Feature List (inline mini list editor with suggestions) ─────────────
+
+function TierFeatureList({ features = [], onChange, disabled, suggestions = [] }) {
+    const [draft, setDraft] = useState('');
+    const add = (val) => {
+        const v = (val ?? draft).trim();
+        if (!v || features.includes(v)) return;
+        onChange([...features, v]);
+        setDraft('');
+    };
+    const remove = (idx) => onChange(features.filter((_, i) => i !== idx));
+
+    // Filter suggestions to only show ones not yet added
+    const available = suggestions.filter(s => !features.includes(s));
+
+    return (
+        <div className="space-y-2">
+            {/* Current tier features */}
+            {features.map((f, idx) => (
+                <div key={idx} className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg bg-white/[0.03] border border-white/5 text-xs text-slate-300 group">
+                    <div className="w-1.5 h-1.5 rounded-full bg-brand-teal shrink-0" />
+                    <span className="flex-1">{f}</span>
+                    <button type="button" onClick={() => remove(idx)} disabled={disabled} className="text-slate-600 hover:text-brand-red opacity-0 group-hover:opacity-100 transition-all">
+                        <X size={10} />
+                    </button>
+                </div>
+            ))}
+
+            {/* Clickable suggestion chips from Content tab features */}
+            {available.length > 0 && (
+                <div>
+                    <p className="text-[9px] font-black uppercase tracking-widest text-slate-600 mb-1.5">
+                        Click to add from Technical Highlights
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                        {available.map((suggestion, idx) => (
+                            <button
+                                key={idx}
+                                type="button"
+                                onClick={() => add(suggestion)}
+                                disabled={disabled}
+                                className="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-brand-teal/20 bg-brand-teal/5 text-brand-teal text-[10px] font-bold hover:bg-brand-teal/15 hover:border-brand-teal/40 transition-all disabled:opacity-40 cursor-pointer"
+                            >
+                                <Plus size={9} />
+                                {suggestion}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            {/* Free-text input for custom items not in the list */}
+            <div className="flex gap-1.5">
+                <input
+                    type="text"
+                    value={draft}
+                    onChange={e => setDraft(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); add(); } }}
+                    disabled={disabled}
+                    placeholder={suggestions.length > 0 ? 'Or type a custom feature...' : 'e.g. Custom domain setup'}
+                    className="flex-1 p-2 bg-surface-900 border border-white/10 rounded-lg text-white text-xs focus:border-brand-teal outline-none placeholder:text-slate-600"
+                />
+                <button
+                    type="button"
+                    onClick={() => add()}
+                    disabled={disabled || !draft.trim()}
+                    className="px-2.5 py-2 rounded-lg bg-brand-teal/10 border border-brand-teal/20 text-brand-teal hover:bg-brand-teal/20 transition-all disabled:opacity-40"
+                >
+                    <Plus size={12} />
+                </button>
+            </div>
         </div>
     );
 }
@@ -229,10 +517,14 @@ const DEFAULT_SERVICE = {
     is_featured: false,
     cover_image_url: '',
     gallery: [],
+    features: [],
+    badges: [],
+    faqs: [],
+    roadmap: [],
     tiers: {
-        basic: { name: 'Basic Pack', price: 150, description: 'Core features', delivery_time: 'Up to 3 days', revisions: 2 },
-        standard: { name: 'Standard Pack', price: 300, description: 'Advanced features', delivery_time: 'Up to 7 days', revisions: 3 },
-        premium: { name: 'Enterprise Pack', price: 600, description: 'Full solution', delivery_time: 'Up to 14 days', revisions: 5 }
+        basic: { name: 'Basic Pack', price: 150, description: 'Core features', delivery_time: 'Up to 3 days', revisions: 2, features: ['Dr. Support'] },
+        standard: { name: 'Standard Pack', price: 300, description: 'Advanced features', delivery_time: 'Up to 7 days', revisions: 3, features: ['Dr. Support'] },
+        premium: { name: 'Enterprise Pack', price: 600, description: 'Full solution', delivery_time: 'Up to 14 days', revisions: 5, features: ['Dr. Support'] }
     }
 };
 
@@ -244,7 +536,7 @@ export default function AdminServicesPage() {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [saving, setSaving] = useState(false);
     const [saveError, setSaveError] = useState('');
-    const [activeTab, setActiveTab] = useState('details'); // 'details' | 'tiers' | 'media'
+    const [activeTab, setActiveTab] = useState('details');
     const [categories, setCategories] = useState([]);
 
     const loadServices = async () => {
@@ -265,7 +557,6 @@ export default function AdminServicesPage() {
             const data = await api.getCategories('service');
             setCategories(Array.isArray(data) ? data : data.results || []);
         } catch {
-            // fallback to static list if API fails
             setCategories([
                 { id: 1, name: 'Development' },
                 { id: 2, name: 'Data & Automation' },
@@ -291,9 +582,22 @@ export default function AdminServicesPage() {
     };
 
     const handleEdit = (svc) => {
+        // The read serializer (GET /admin/services/) returns camelCase aliases:
+        // longDescription, aboutService, isNew, delivery, views.
+        // Normalize them to snake_case so the form and write serializer are consistent.
         setSelectedService({
             ...svc,
+            // snake_case normalization from read-serializer camelCase aliases
+            long_description: svc.long_description || svc.longDescription || '',
+            about_service: svc.about_service || svc.aboutService || '',
+            delivery_time: svc.delivery_time || svc.delivery || '',
+            is_new: svc.is_new ?? svc.isNew ?? false,
+            // JSON fields — always arrays/objects
             gallery: svc.gallery || [],
+            features: svc.features || [],
+            badges: svc.badges || [],
+            faqs: svc.faqs || [],
+            roadmap: svc.roadmap || [],
             tiers: svc.tiers || DEFAULT_SERVICE.tiers,
             isNew: false,
         });
@@ -311,12 +615,34 @@ export default function AdminServicesPage() {
         setSaving(true);
         setSaveError('');
         try {
-            const payload = { ...selectedService };
-            delete payload.isNew;
-            if (selectedService.isNew || !selectedService.id) {
+            // Build a clean snake_case payload matching ServiceWriteSerializer fields.
+            // Strip out read-only, computed, and UI-only fields that the write serializer doesn't accept.
+            const s = selectedService;
+            const payload = {
+                title: s.title,
+                category_name: s.category_name || s.category || 'Development',
+                seller_name: s.seller_name || s.seller?.name || 'Dr. Python',
+                seller_level: s.seller_level || s.seller?.level || 'Top Rated Seller',
+                description: s.description || '',
+                long_description: s.long_description || s.longDescription || '',
+                about_service: s.about_service || s.aboutService || '',
+                delivery_time: s.delivery_time || s.delivery || 'Up to 7 days',
+                cover_image_url: s.cover_image_url || '',
+                gallery: Array.isArray(s.gallery) ? s.gallery : [],
+                features: Array.isArray(s.features) ? s.features : [],
+                badges: Array.isArray(s.badges) ? s.badges : [],
+                faqs: Array.isArray(s.faqs) ? s.faqs : [],
+                roadmap: Array.isArray(s.roadmap) ? s.roadmap : [],
+                tiers: s.tiers || {},
+                is_featured: s.is_featured ?? false,
+                is_published: s.is_published ?? true,
+                is_new: s.is_new ?? s.isNew ?? false,
+            };
+
+            if (s.isNew || !s.id) {
                 await api.createAdminService(payload);
             } else {
-                await api.updateAdminService(selectedService.id, payload);
+                await api.updateAdminService(s.id, payload);
             }
             setIsEditModalOpen(false);
             await loadServices();
@@ -350,10 +676,29 @@ export default function AdminServicesPage() {
         setSelectedService(p => ({ ...p, tiers: { ...p.tiers, [tierKey]: val } }));
     };
 
+    const addDrSupportToAllTiers = () => {
+        setSelectedService(p => {
+            const currentTiers = p.tiers || DEFAULT_SERVICE.tiers;
+            const updatedTiers = {};
+            ['basic', 'standard', 'premium'].forEach(key => {
+                const existingTier = currentTiers[key] || {};
+                const features = existingTier.features || [];
+                const hasSupport = features.some(f => f.toLowerCase() === 'dr. support');
+                updatedTiers[key] = {
+                    ...existingTier,
+                    features: hasSupport ? features : [...features, 'Dr. Support']
+                };
+            });
+            return { ...p, tiers: updatedTiers };
+        });
+    };
+
     const TABS = [
-        { id: 'details', label: 'Details' },
-        { id: 'tiers', label: 'Pricing Tiers' },
-        { id: 'media', label: 'Images & Gallery' },
+        { id: 'details', label: 'Details', icon: Layers },
+        { id: 'content', label: 'Content', icon: Zap },
+        { id: 'tiers', label: 'Pricing Tiers', icon: Package },
+        { id: 'faq', label: 'FAQ & Roadmap', icon: HelpCircle },
+        { id: 'media', label: 'Images', icon: ImageIcon },
     ];
 
     return (
@@ -432,9 +777,17 @@ export default function AdminServicesPage() {
                                                     <div>
                                                         <div className="text-sm font-black text-white group-hover:text-brand-teal transition-colors">{svc.title}</div>
                                                         <div className="text-xs text-slate-400 line-clamp-1 mt-0.5 max-w-[240px]">{svc.description}</div>
-                                                        {svc.gallery?.length > 0 && (
-                                                            <div className="text-[9px] text-brand-teal/60 font-bold mt-0.5">{svc.gallery.length} gallery images</div>
-                                                        )}
+                                                        <div className="flex items-center gap-2 mt-0.5">
+                                                            {svc.gallery?.length > 0 && (
+                                                                <div className="text-[9px] text-brand-teal/60 font-bold">{svc.gallery.length} gallery</div>
+                                                            )}
+                                                            {svc.features?.length > 0 && (
+                                                                <div className="text-[9px] text-slate-500 font-bold">{svc.features.length} features</div>
+                                                            )}
+                                                            {svc.faqs?.length > 0 && (
+                                                                <div className="text-[9px] text-slate-500 font-bold">{svc.faqs.length} FAQs</div>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </td>
@@ -519,13 +872,14 @@ export default function AdminServicesPage() {
                 {selectedService && (
                     <div className="flex flex-col h-full">
                         {/* Tab bar */}
-                        <div className="flex border-b border-white/10 px-5 pt-4">
+                        <div className="flex border-b border-white/10 px-5 pt-4 overflow-x-auto">
                             {TABS.map(tab => (
                                 <button
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id)}
-                                    className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all border-b-2 -mb-px ${activeTab === tab.id ? 'border-brand-teal text-brand-teal' : 'border-transparent text-slate-500 hover:text-white'}`}
+                                    className={`flex items-center gap-1.5 px-4 py-2.5 text-[10px] font-black uppercase tracking-widest transition-all border-b-2 -mb-px whitespace-nowrap ${activeTab === tab.id ? 'border-brand-teal text-brand-teal' : 'border-transparent text-slate-500 hover:text-white'}`}
                                 >
+                                    <tab.icon size={11} />
                                     {tab.label}
                                 </button>
                             ))}
@@ -604,7 +958,7 @@ export default function AdminServicesPage() {
                                             value={selectedService.long_description || selectedService.longDescription || ''}
                                             onChange={e => setSelectedService(p => ({ ...p, long_description: e.target.value }))}
                                             disabled={saving}
-                                            placeholder="## What's Included&#10;&#10;Full markdown content for the service detail page..."
+                                            placeholder={"## What's Included\n\nFull markdown content for the service detail page..."}
                                             className="w-full mt-1 p-3 bg-surface-900 border border-white/10 rounded-xl text-white text-sm focus:border-brand-teal outline-none font-mono resize-none"
                                         />
                                     </div>
@@ -634,10 +988,45 @@ export default function AdminServicesPage() {
                                 </div>
                             )}
 
+                            {/* ── CONTENT TAB ── */}
+                            {activeTab === 'content' && (
+                                <div className="space-y-6">
+                                    <ListEditor
+                                        label="Technical Highlights (Features)"
+                                        hint='Shown in the "Technical Highlights" grid on the service page. Each item is a bullet point.'
+                                        items={selectedService.features || []}
+                                        onChange={features => setSelectedService(p => ({ ...p, features }))}
+                                        disabled={saving}
+                                        placeholder="e.g. REST API Integration"
+                                    />
+
+                                    <div className="border-t border-white/10" />
+
+                                    <ListEditor
+                                        label="Badges"
+                                        hint='Shown as tag badges on the service card (e.g. "Certified", "Pro", "New").'
+                                        items={selectedService.badges || []}
+                                        onChange={badges => setSelectedService(p => ({ ...p, badges }))}
+                                        disabled={saving}
+                                        placeholder="e.g. Certified"
+                                    />
+                                </div>
+                            )}
+
                             {/* ── TIERS TAB ── */}
                             {activeTab === 'tiers' && (
                                 <div className="space-y-4">
-                                    <p className="text-xs text-slate-400">Configure pricing, delivery times, and revisions for each service tier.</p>
+                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                        <p className="text-xs text-slate-400">Configure pricing, delivery times, revisions, and feature checklists for each service tier.</p>
+                                        <button
+                                            type="button"
+                                            onClick={addDrSupportToAllTiers}
+                                            disabled={saving}
+                                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-brand-teal/10 border border-brand-teal/20 text-brand-teal text-[10px] font-black uppercase tracking-widest hover:bg-brand-teal/20 transition-all shrink-0 self-start sm:self-auto disabled:opacity-40"
+                                        >
+                                            <Plus size={11} /> Add "Dr. Support" to All Tiers
+                                        </button>
+                                    </div>
                                     {['basic', 'standard', 'premium'].map(tierKey => (
                                         <TierEditor
                                             key={tierKey}
@@ -645,8 +1034,28 @@ export default function AdminServicesPage() {
                                             tierKey={tierKey}
                                             onChange={val => updateTier(tierKey, val)}
                                             disabled={saving}
+                                            suggestions={selectedService.features || []}
                                         />
                                     ))}
+                                </div>
+                            )}
+
+                            {/* ── FAQ & ROADMAP TAB ── */}
+                            {activeTab === 'faq' && (
+                                <div className="space-y-6">
+                                    <FaqEditor
+                                        faqs={selectedService.faqs || []}
+                                        onChange={faqs => setSelectedService(p => ({ ...p, faqs }))}
+                                        disabled={saving}
+                                    />
+
+                                    <div className="border-t border-white/10" />
+
+                                    <RoadmapEditor
+                                        roadmap={selectedService.roadmap || []}
+                                        onChange={roadmap => setSelectedService(p => ({ ...p, roadmap }))}
+                                        disabled={saving}
+                                    />
                                 </div>
                             )}
 
