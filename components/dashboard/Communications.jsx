@@ -121,14 +121,11 @@ export default function Communications({ missions = [] }) {
                 setIsAdminTyping(data.is_typing);
             } else if (data.type === 'presence' && data.is_staff) {
                 setIsAdminOnline(data.status === 'online');
-                if (data.status === 'online') {
-                    ws.current?.send(JSON.stringify({ type: 'presence', status: 'online' }));
-                }
             }
         };
 
         ws.current.onerror = (err) => console.error('WebSocket error:', err);
-        ws.current.onclose = () => console.log('WebSocket disconnected for thread:', threadId);
+        ws.current.onclose = () => {};
 
         return () => {
             if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);

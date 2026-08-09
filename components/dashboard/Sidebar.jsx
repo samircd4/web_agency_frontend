@@ -11,6 +11,7 @@ export default function DashboardSidebar({
     handleLogout,
     pendingInvoiceCount,
     pendingProposalCount,
+    hasUnreadComms,
 }) {
     const pathname = usePathname();
     const currentTab = pathname?.split('/dashboard/')[1] || 'projects';
@@ -18,7 +19,12 @@ export default function DashboardSidebar({
     const items = [
         { id: 'projects', name: 'Projects', icon: <Zap size={16} /> },
         { id: 'vault', name: 'Secure Vault', icon: <Box size={16} /> },
-        { id: 'comms', name: 'Communications', icon: <MessageSquare size={16} /> },
+        {
+            id: 'comms',
+            name: 'Communications',
+            icon: <MessageSquare size={16} />,
+            notificationDot: hasUnreadComms,
+        },
         {
             id: 'billing',
             name: 'Billing',

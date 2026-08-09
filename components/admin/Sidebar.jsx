@@ -23,19 +23,40 @@ export default function AdminSidebar({
     sidebarOpen,
     setSidebarOpen,
     handleLogout,
+    hasUnreadComms,
+    hasUnreadLeads,
+    hasUnreadReviews,
 }) {
     const pathname = usePathname();
 
     const items = [
         { id: 'dashboard', href: '/admin', label: 'Dashboard', icon: <LayoutDashboard size={16} /> },
         { id: 'services', href: '/admin/services', label: 'Services', icon: <Layers size={16} /> },
-        { id: 'leads', href: '/admin/leads', label: 'Leads', icon: <Zap size={16} /> },
+        {
+            id: 'leads',
+            href: '/admin/leads',
+            label: 'Leads',
+            icon: <Zap size={16} />,
+            notificationDot: hasUnreadLeads,
+        },
         { id: 'projects', href: '/admin/projects', label: 'Projects', icon: <Briefcase size={16} /> },
         { id: 'clients', href: '/admin/clients', label: 'Clients', icon: <Users size={16} /> },
         { id: 'billing', href: '/admin/billing', label: 'Billing', icon: <DollarSign size={16} /> },
         { id: 'cms', href: '/admin/cms', label: 'Content (CMS)', icon: <FileEdit size={16} /> },
-        { id: 'reviews', href: '/admin/reviews', label: 'Reviews', icon: <Star size={16} /> },
-        { id: 'communications', href: '/admin/communications', label: 'Communications', icon: <MessageSquare size={16} /> },
+        {
+            id: 'reviews',
+            href: '/admin/reviews',
+            label: 'Reviews',
+            icon: <Star size={16} />,
+            notificationDot: hasUnreadReviews,
+        },
+        {
+            id: 'communications',
+            href: '/admin/communications',
+            label: 'Communications',
+            icon: <MessageSquare size={16} />,
+            notificationDot: hasUnreadComms,
+        },
         { id: 'settings', href: '/admin/settings', label: 'Settings', icon: <Settings size={16} /> },
     ];
 
@@ -90,6 +111,9 @@ export default function AdminSidebar({
                     >
                         {item.icon}
                         {item.label}
+                        {item.notificationDot && (
+                            <span className="absolute right-3 w-2 h-2 rounded-full bg-brand-red animate-pulse" />
+                        )}
                     </Link>
                 ))}
 

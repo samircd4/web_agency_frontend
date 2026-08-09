@@ -184,12 +184,10 @@ export default function Chatbot() {
             return; // Nothing to connect to yet
         }
 
-        console.log('[Chatbot] Connecting WebSocket:', url);
         const socket = new WebSocket(url);
         ws.current = socket;
 
         socket.onopen = () => {
-            console.log('[Chatbot] WebSocket connected');
             setIsConnected(true);
             reconnectAttemptRef.current = 0;
 
@@ -212,7 +210,6 @@ export default function Chatbot() {
 
         socket.onmessage = (event) => {
             const data = JSON.parse(event.data);
-            console.log('[Chatbot] Message:', data);
 
             if (data.type === 'history') {
                 // Full message history received on connect
@@ -313,9 +310,6 @@ export default function Chatbot() {
                         setIsAdminTyping(false);
                         if (adminTypingTimerRef.current) clearTimeout(adminTypingTimerRef.current);
                     }
-                    if (data.status === 'online' && socket.readyState === WebSocket.OPEN) {
-                        socket.send(JSON.stringify({ type: 'presence', status: 'online' }));
-                    }
                 }
                 return;
             }
@@ -326,7 +320,6 @@ export default function Chatbot() {
         };
 
         socket.onclose = () => {
-            console.log('[Chatbot] WebSocket closed');
             setIsConnected(false);
             setIsAdminOnline(false);
             setIsAdminTyping(false);
@@ -450,7 +443,7 @@ export default function Chatbot() {
     const statusLabel = isAdminTyping
         ? 'Team is typing…'
         : isAdminOnline
-            ? 'Support online'
+            ? 'Online'
             : isConnected
                 ? 'Connected — reply soon'
                 : 'Connecting…';
@@ -496,7 +489,7 @@ export default function Chatbot() {
                                     <div className={`absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border border-[#060d1a] ${dotColor}`} />
                                 </div>
                                 <div>
-                                    <h3 className="text-white font-bold text-sm leading-tight">Support Team</h3>
+                                    <h3 className="text-white font-bold text-sm leading-tight">Dr. Support</h3>
                                     <div className={`flex items-center gap-1 mt-0.5 ${statusColor}`}>
                                         <motion.div
                                             animate={isAdminTyping ? { opacity: [0.5, 1, 0.5] } : {}}

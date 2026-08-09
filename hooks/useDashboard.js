@@ -5,6 +5,7 @@ import useAuthAndUser from './useAuthAndUser';
 import useProjectsData from './useProjectsData';
 import useBillingData from './useBillingData';
 import useDashboardNavigation from './useDashboardNavigation';
+import useBuyerCommsUnread from './useBuyerCommsUnread';
 
 // ─── Context ────────────────────────────────────────────────────────────────
 
@@ -47,6 +48,9 @@ function useDashboardState() {
     // Navigation state
     const navigationData = useDashboardNavigation();
 
+    // Comms unread state
+    const hasUnreadComms = useBuyerCommsUnread(currentUser);
+
     return {
         // Auth/User Settings
         currentUser,
@@ -62,5 +66,8 @@ function useDashboardState() {
 
         // Navigation State
         ...navigationData,
+
+        // Comms Unread
+        hasUnreadComms,
     };
 }

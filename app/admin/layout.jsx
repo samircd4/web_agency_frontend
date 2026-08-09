@@ -17,6 +17,9 @@ export default function AdminLayout({ children }) {
         currentUser,
         loading,
         handleLogout,
+        hasUnreadComms,
+        hasUnreadLeads,
+        hasUnreadReviews,
     } = useAdminDashboard();
 
     if (pathname === '/admin/login' || pathname === '/admin/register') {
@@ -42,6 +45,9 @@ export default function AdminLayout({ children }) {
                 sidebarOpen={sidebarOpen}
                 setSidebarOpen={setSidebarOpen}
                 handleLogout={handleLogout}
+                hasUnreadComms={hasUnreadComms}
+                hasUnreadLeads={hasUnreadLeads}
+                hasUnreadReviews={hasUnreadReviews}
             />
 
             {/* Fixed Topbar */}

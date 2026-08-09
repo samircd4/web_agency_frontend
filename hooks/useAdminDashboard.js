@@ -3,6 +3,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { api } from '@/lib/api';
+import useAdminCommsUnread from './useAdminCommsUnread';
+import useAdminLeadsUnread from './useAdminLeadsUnread';
+import useAdminReviewsUnread from './useAdminReviewsUnread';
 
 export default function useAdminDashboard() {
   const router = useRouter();
@@ -161,6 +164,10 @@ export default function useAdminDashboard() {
     router.push('/');
   };
 
+  const hasUnreadComms = useAdminCommsUnread(currentUser);
+  const hasUnreadLeads = useAdminLeadsUnread(currentUser);
+  const hasUnreadReviews = useAdminReviewsUnread(currentUser);
+
   return {
     pathname,
     sidebarOpen,
@@ -172,6 +179,9 @@ export default function useAdminDashboard() {
     setCurrentUser,
     loading,
     handleLogout,
+    hasUnreadComms,
+    hasUnreadLeads,
+    hasUnreadReviews,
     // Settings
     settingsView,
     setSettingsView,

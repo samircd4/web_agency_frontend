@@ -10,13 +10,13 @@ export default function ChatHeader({ isAdminOnline = false }) {
                     <span className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-[#060814] ${isAdminOnline ? 'bg-green-500' : 'bg-slate-500'}`} />
                 </div>
                 <div>
-                    <div className="text-xs font-black text-white uppercase tracking-widest">Lead Engineer</div>
+                    <div className="text-xs font-black text-white uppercase tracking-widest">Dr. Support</div>
                     <div className="text-[9px] font-bold uppercase tracking-widest mt-0.5 flex items-center gap-1.5">
                         <span className={isAdminOnline ? 'text-brand-teal' : 'text-slate-500'}>
                             {isAdminOnline ? 'Online' : 'Offline'}
                         </span>
                         <span className="text-slate-600">•</span>
-                        <span className="text-slate-500">Active Node</span>
+                        <span className="text-slate-500">Active</span>
                     </div>
                 </div>
             </div>

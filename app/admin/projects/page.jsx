@@ -77,46 +77,105 @@ const getStatusClasses = (status) => {
 };
 
 // ─── Kanban Column ───────────────────────────────────────────────────────────
-function KanbanColumn({ stage, projects }) {
+function KanbanColumn({ stage, projects, onMoveProject, draggedProjectId, setDraggedProjectId, dragOverStage, setDragOverStage }) {
     const meta = STAGE_META[stage] || { color: 'text-text-muted', bg: 'bg-white/5', border: 'border-white/5' };
+    const isDragTarget = dragOverStage === stage;
+
+    const handleDragOver = (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        if (dragOverStage !== stage) {
+            setDragOverStage(stage);
+        }
+    };
+
+    const handleDragLeave = (e) => {
+        e.preventDefault();
+        if (e.currentTarget.contains(e.relatedTarget)) return;
+        if (dragOverStage === stage) {
+            setDragOverStage(null);
+        }
+    };
+
+    const handleDrop = (e) => {
+        e.preventDefault();
+        setDragOverStage(null);
+        const projectId = e.dataTransfer.getData('text/plain');
+        if (projectId) {
+            onMoveProject(projectId, stage);
+        }
+    };
+
     return (
-        <div className="w-full min-w-0 sm:min-w-[240px] sm:flex-1">
+        <div
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            className={`w-full min-w-0 sm:min-w-[240px] sm:flex-1 rounded-2xl p-2 transition-all border ${
+                isDragTarget
+                    ? 'border-brand-teal/50 bg-brand-teal/[0.04] ring-2 ring-brand-teal/30 scale-[1.01]'
+                    : 'border-transparent bg-transparent'
+            }`}
+        >
             <div className={`flex items-center gap-2 mb-3 px-3 py-1.5 rounded-xl ${meta.bg} border ${meta.border}`}>
                 <span className={`text-[10px] font-black uppercase tracking-widest ${meta.color}`}>{stage}</span>
                 <span className={`ml-auto text-[10px] font-black ${meta.color}`}>{projects.length}</span>
             </div>
-            <div className="space-y-2">
-                {projects.map(p => (
-                    <Link key={p.id} href={`/admin/projects/${p.id}`}
-                        className="p-3 rounded-xl bg-white/[0.02] border border-white/5 hover:border-white/15 cursor-pointer group transition-all block">
-                        <div className="flex items-center justify-between gap-2 mb-2">
-                            <div className="flex items-center gap-1.5 min-w-0">
-                                <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${PRIORITY_DOT[p.priority] || 'bg-slate-600'}`} />
-                                <span className="text-[9px] font-black text-text-muted uppercase tracking-widest truncate">{p.priority || 'Medium'}</span>
-                            </div>
-                            <span className="text-[9px] font-black text-text-dim uppercase shrink-0 flex items-center gap-1">
-                                <span>{p.id}</span>
-                                <span className={`px-1.5 py-0.5 rounded-md text-[7px] font-black uppercase tracking-widest ${getStatusClasses(p.status)}`}>
-                                    {p.status}
-                                </span>
-                            </span>
+            <div className="space-y-2 min-h-[120px]">
+                {projects.map(p => {
+                    const isBeingDragged = p.id === draggedProjectId;
+                    return (
+                        <div
+                            key={p.id}
+                            draggable={true}
+                            onDragStart={(e) => {
+                                e.dataTransfer.setData('text/plain', p.id);
+                                e.dataTransfer.effectAllowed = 'move';
+                                setDraggedProjectId(p.id);
+                            }}
+                            onDragEnd={() => {
+                                setDraggedProjectId(null);
+                                setDragOverStage(null);
+                            }}
+                            className={`transition-all ${isBeingDragged ? 'opacity-30 scale-95' : 'opacity-100'}`}
+                        >
+                            <Link href={`/admin/projects/${p.id}`}
+                                className="p-3 rounded-xl bg-white/[0.02] border border-white/5 hover:border-white/15 cursor-grab active:cursor-grabbing group transition-all block">
+                                <div className="flex items-center justify-between gap-2 mb-2">
+                                    <div className="flex items-center gap-1.5 min-w-0">
+                                        <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${PRIORITY_DOT[p.priority] || 'bg-slate-600'}`} />
+                                        <span className="text-[9px] font-black text-text-muted uppercase tracking-widest truncate">{p.priority || 'Medium'}</span>
+                                    </div>
+                                    <span className="text-[9px] font-black text-text-dim uppercase shrink-0 flex items-center gap-1">
+                                        <span>{p.id}</span>
+                                        <span className={`px-1.5 py-0.5 rounded-md text-[7px] font-black uppercase tracking-widest ${getStatusClasses(p.status)}`}>
+                                            {p.status}
+                                        </span>
+                                    </span>
+                                </div>
+                                <p className="text-xs font-black text-text-primary group-hover:text-brand-teal transition-colors leading-tight mb-2">{p.title}</p>
+                                <div className="flex items-center gap-1.5 mb-2.5">
+                                    <User size={10} className="text-text-muted" />
+                                    <span className="text-[10px] text-text-muted font-bold">{p.client_name || '—'}</span>
+                                </div>
+                                <div className="h-1 bg-white/5 rounded-full overflow-hidden">
+                                    <div style={{ width: `${p.progress || 0}%` }}
+                                        className={`h-full rounded-full transition-all duration-500 ease-out ${p.progress === 100 ? 'bg-emerald-400' : 'bg-brand-teal'}`} />
+                                </div>
+                                <div className="flex justify-between mt-1.5">
+                                    <span className="text-[9px] font-black text-text-dim">{p.progress || 0}%</span>
+                                    <span className="text-[9px] font-black text-brand-teal">${Number(p.value || 0).toLocaleString()}</span>
+                                </div>
+                            </Link>
                         </div>
-                        <p className="text-xs font-black text-text-primary group-hover:text-brand-teal transition-colors leading-tight mb-2">{p.title}</p>
-                        <div className="flex items-center gap-1.5 mb-2.5">
-                            <User size={10} className="text-text-muted" />
-                            <span className="text-[10px] text-text-muted font-bold">{p.client_name || '—'}</span>
-                        </div>
-                        <div className="h-1 bg-white/5 rounded-full overflow-hidden">
-                            <div style={{ width: `${p.progress || 0}%` }}
-                                className={`h-full rounded-full transition-all duration-500 ease-out ${p.progress === 100 ? 'bg-emerald-400' : 'bg-brand-teal'}`} />
-                        </div>
-                        <div className="flex justify-between mt-1.5">
-                            <span className="text-[9px] font-black text-text-dim">{p.progress || 0}%</span>
-                            <span className="text-[9px] font-black text-brand-teal">${Number(p.value || 0).toLocaleString()}</span>
-                        </div>
-                    </Link>
-                ))}
-                {projects.length === 0 && (
+                    );
+                })}
+                {isDragTarget && (
+                    <div className="h-16 rounded-xl border-2 border-dashed border-brand-teal/40 bg-brand-teal/5 flex items-center justify-center text-[10px] font-black uppercase text-brand-teal tracking-widest animate-pulse">
+                        Drop to move to {stage}
+                    </div>
+                )}
+                {projects.length === 0 && !isDragTarget && (
                     <div className="flex items-center justify-center h-16 rounded-xl border border-dashed border-white/5 text-[10px] text-text-dim font-black uppercase tracking-widest">
                         Empty
                     </div>
@@ -1241,6 +1300,8 @@ export default function AdminProjectsPage() {
     const [error, setError] = useState(null);
     const [dangerConfirm, setDangerConfirm] = useState({ open: false, kind: null, projectId: null, id: null, label: '' });
     const [dangerLoading, setDangerLoading] = useState(false);
+    const [draggedProjectId, setDraggedProjectId] = useState(null);
+    const [dragOverStage, setDragOverStage] = useState(null);
 
     useEffect(() => {
         // Default to list view on mobile to reduce horizontal density.
@@ -1388,6 +1449,26 @@ export default function AdminProjectsPage() {
             showToast('Project updated successfully');
         } catch (err) {
             showToast(err.message || 'Failed to update project', 'error');
+        }
+    }
+
+    async function handleMoveProjectStage(projectId, newStage) {
+        const project = projects.find(p => p.id === projectId);
+        if (!project || project.stage === newStage) return;
+
+        const oldStage = project.stage;
+
+        // Optimistically update stage in local UI state
+        setProjects(prev => prev.map(p => p.id === projectId ? { ...p, stage: newStage } : p));
+
+        try {
+            await api.updateAdminProject(projectId, { stage: newStage });
+            showToast(`Project ${projectId} moved to ${newStage}`);
+            await fetchProjects(true);
+        } catch (err) {
+            // Revert on failure
+            setProjects(prev => prev.map(p => p.id === projectId ? { ...p, stage: oldStage } : p));
+            showToast(`Failed to update stage: ${err.message || 'Error'}`, 'error');
         }
     }
 
@@ -1603,9 +1684,16 @@ export default function AdminProjectsPage() {
             {view === 'kanban' && (
                 <div className="flex flex-col sm:flex-row gap-3 sm:overflow-x-auto pb-4">
                     {STAGES.map(s => (
-                        <KanbanColumn key={s} stage={s}
+                        <KanbanColumn
+                            key={s}
+                            stage={s}
                             projects={filtered.filter(p => p.stage === s)}
-                            onSelect={handleSelectForDetail} />
+                            onMoveProject={handleMoveProjectStage}
+                            draggedProjectId={draggedProjectId}
+                            setDraggedProjectId={setDraggedProjectId}
+                            dragOverStage={dragOverStage}
+                            setDragOverStage={setDragOverStage}
+                        />
                     ))}
                 </div>
             )}

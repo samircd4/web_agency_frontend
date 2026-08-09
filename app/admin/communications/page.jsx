@@ -509,17 +509,14 @@ export default function AdminCommunications() {
         const accessToken = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
         const socketUrl = `${getGuestWatchWebSocketUrl()}?token=${accessToken}`;
         
-        console.log('[GuestWatchWS] Connecting:', socketUrl);
         const wsSocket = new WebSocket(socketUrl);
         guestWatchWs.current = wsSocket;
 
         wsSocket.onopen = () => {
-            console.log('[GuestWatchWS] Connected');
         };
 
         wsSocket.onmessage = (event) => {
             const data = JSON.parse(event.data);
-            console.log('[GuestWatchWS] Message received:', data);
 
             // ─── Guest / Visitor Events ──────────────────────────────────────
             if (data.type === 'presence') {
@@ -744,7 +741,7 @@ export default function AdminCommunications() {
         };
 
         wsSocket.onerror = (e) => console.error('[GuestWatchWS] Error:', e);
-        wsSocket.onclose = () => console.log('[GuestWatchWS] Connection closed');
+        wsSocket.onclose = () => {};
 
         return () => {
             if (guestWatchWs.current) {
@@ -813,7 +810,6 @@ export default function AdminCommunications() {
         ws.current = new WebSocket(socketUrl);
 
         ws.current.onopen = () => {
-            console.log('[Admin WS] Connected');
             wsReconnectAttempts.current = 0;
             ws.current.send(JSON.stringify({ type: 'presence', status: 'online' }));
             ws.current.send(JSON.stringify({ type: 'read_receipt' }));
@@ -855,9 +851,6 @@ export default function AdminCommunications() {
                 }
             } else if (data.type === 'presence' && !data.is_staff) {
                 setIsClientOnline(data.status === 'online');
-                if (data.status === 'online') {
-                    ws.current?.send(JSON.stringify({ type: 'presence', status: 'online' }));
-                }
             }
         };
 
@@ -866,11 +859,9 @@ export default function AdminCommunications() {
         };
 
         ws.current.onclose = () => {
-            console.log('[Admin WS] Closed');
             // Auto-reconnect with exponential backoff (up to 5 attempts)
             if (wsReconnectAttempts.current < 5) {
                 const delay = Math.min(2000 * (wsReconnectAttempts.current + 1), 10000);
-                console.log(`[Admin WS] Reconnecting in ${delay}ms (attempt ${wsReconnectAttempts.current + 1})`);
                 wsReconnectTimer.current = setTimeout(() => {
                     wsReconnectAttempts.current += 1;
                     // Trigger re-run of the entire effect to get fresh closures

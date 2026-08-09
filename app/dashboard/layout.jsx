@@ -16,6 +16,7 @@ function DashboardLayoutInner({ children }) {
         handleLogout,
         pendingInvoiceCount,
         pendingProposalCount,
+        hasUnreadComms,
     } = useDashboard();
 
     return (
@@ -35,6 +36,7 @@ function DashboardLayoutInner({ children }) {
                 handleLogout={handleLogout}
                 pendingInvoiceCount={pendingInvoiceCount}
                 pendingProposalCount={pendingProposalCount}
+                hasUnreadComms={hasUnreadComms}
             />
 
             <div className="fixed top-0 right-0 left-0 lg:left-[256px] z-30 bg-[#020617] px-3 lg:px-6 py-3">
