@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Layers, Plus, Trash2, Save, Star, CheckCircle2,
@@ -529,6 +530,7 @@ const DEFAULT_SERVICE = {
 };
 
 export default function AdminServicesPage() {
+    const router = useRouter();
     const [services, setServices] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -575,35 +577,11 @@ export default function AdminServicesPage() {
     }, []);
 
     const handleCreateNew = () => {
-        setSelectedService({ ...DEFAULT_SERVICE, isNew: true });
-        setActiveTab('details');
-        setSaveError('');
-        setIsEditModalOpen(true);
+        router.push('/admin/services/new');
     };
 
     const handleEdit = (svc) => {
-        // The read serializer (GET /admin/services/) returns camelCase aliases:
-        // longDescription, aboutService, isNew, delivery, views.
-        // Normalize them to snake_case so the form and write serializer are consistent.
-        setSelectedService({
-            ...svc,
-            // snake_case normalization from read-serializer camelCase aliases
-            long_description: svc.long_description || svc.longDescription || '',
-            about_service: svc.about_service || svc.aboutService || '',
-            delivery_time: svc.delivery_time || svc.delivery || '',
-            is_new: svc.is_new ?? svc.isNew ?? false,
-            // JSON fields — always arrays/objects
-            gallery: svc.gallery || [],
-            features: svc.features || [],
-            badges: svc.badges || [],
-            faqs: svc.faqs || [],
-            roadmap: svc.roadmap || [],
-            tiers: svc.tiers || DEFAULT_SERVICE.tiers,
-            isNew: false,
-        });
-        setActiveTab('details');
-        setSaveError('');
-        setIsEditModalOpen(true);
+        router.push(`/admin/services/${svc.id}/edit`);
     };
 
     const handleSave = async (e) => {
@@ -831,7 +809,7 @@ export default function AdminServicesPage() {
                                                 <div className="flex items-center gap-2">
                                                     <button
                                                         onClick={() => handleEdit(svc)}
-                                                        className="px-3 py-1.5 rounded-lg glass text-xs font-bold text-white hover:bg-white/10 transition-colors"
+                                                        className="px-3 py-1.5 rounded-lg glass text-xs font-bold text-white hover:bg-white/10 transition-colors cursor-pointer"
                                                     >
                                                         Edit
                                                     </button>

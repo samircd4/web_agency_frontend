@@ -61,7 +61,11 @@ export default function useAuthAndUser() {
 
             try {
                 const me = await api.getMe();
+                if (typeof window !== 'undefined' && me?.active_role) {
+                    localStorage.setItem('active_role', me.active_role);
+                }
                 setCurrentUser(me);
+
             } catch (err) {
                 console.error('Failed to fetch user data:', err);
                 router.push('/admin/login?from=/dashboard');
@@ -73,10 +77,75 @@ export default function useAuthAndUser() {
         initUser();
     }, [router]);
 
+    const handleSwitchRole = async (targetRole) => {
+        try {
+            const res = await api.switchRole(targetRole);
+            if (res && res.user) {
+                // Persist immediately to localStorage so Sidebar reads it right away
+                if (typeof window !== 'undefined') {
+                    localStorage.setItem('active_role', res.user.active_role || targetRole);
+                }
+                setCurrentUser(res.user);
+            } else {
+                const me = await api.getMe();
+                if (typeof window !== 'undefined') {
+                    localStorage.setItem('active_role', me.active_role || targetRole);
+                }
+                setCurrentUser(me);
+            }
+            return true;
+        } catch (err) {
+            console.error('Failed to switch role:', err);
+            throw err;
+        }
+    };
+
+
+    const handleBecomeSeller = async (data = {}) => {
+        try {
+            const res = await api.becomeSeller(data);
+            if (res && res.user) {
+                setCurrentUser(res.user);
+            } else {
+                const me = await api.getMe();
+                setCurrentUser(me);
+            }
+            return res;
+        } catch (err) {
+            console.error('Failed to activate seller profile:', err);
+            throw err;
+        }
+    };
+
+    const handleBecomeBuyer = async (data = {}) => {
+        try {
+            const res = await api.becomeBuyer(data);
+            if (res && res.user) {
+                setCurrentUser(res.user);
+            } else {
+                const me = await api.getMe();
+                setCurrentUser(me);
+            }
+            return res;
+        } catch (err) {
+            console.error('Failed to activate buyer profile:', err);
+            throw err;
+        }
+    };
+
     return {
         currentUser,
+        setCurrentUser,
         loading,
         handleLogout,
+        handleSwitchRole,
+        handleBecomeSeller,
+        handleBecomeBuyer,
+        activeRole: currentUser?.active_role || 'buyer',
+        userRole: currentUser?.user_role || 'normal',
+        isBuyer: currentUser?.is_buyer || false,
+        isSeller: currentUser?.is_seller || false,
+        isBoth: currentUser?.is_both || false,
         settingsView,
         setSettingsView,
         firstName,
@@ -95,3 +164,4 @@ export default function useAuthAndUser() {
         usernameCheckLoading,
     };
 }
+

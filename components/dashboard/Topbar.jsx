@@ -75,7 +75,13 @@ export default function DashboardTopbar({
                 <div className="flex items-center gap-3 ml-1">
                     <div className="text-right hidden sm:block">
                         <div className="text-[10px] font-black text-white uppercase tracking-tight">{userDisplayName}</div>
-                        <div className="text-[7px] font-bold text-brand-teal uppercase tracking-widest">Client Node</div>
+                        <div className={`text-[7px] font-bold uppercase tracking-widest ${
+                            currentUser?.is_staff ? 'text-amber-400' :
+                            currentUser?.active_role === 'seller' ? 'text-purple-400' :
+                            'text-brand-teal'
+                        }`}>
+                            {currentUser?.is_staff ? 'Admin Node' : currentUser?.active_role === 'seller' ? 'Seller Node' : 'Buyer Node'}
+                        </div>
                     </div>
                     <UserAvatarDropdown
                         currentUser={currentUser}
@@ -86,6 +92,7 @@ export default function DashboardTopbar({
                     />
                 </div>
             </div>
+
         </header>
     );
 }

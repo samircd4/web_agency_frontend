@@ -53,7 +53,7 @@ export default function AdminSidebar({
         {
             id: 'communications',
             href: '/admin/communications',
-            label: 'Communications',
+            label: 'Messages',
             icon: <MessageSquare size={16} />,
             notificationDot: hasUnreadComms,
         },

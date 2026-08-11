@@ -8,7 +8,7 @@ import DashboardModals from '@/components/dashboard/Modals';
 import BillingNotice from '@/components/dashboard/BillingNotice';
 import DashboardLoadingState from '@/components/dashboard/DashboardLoadingState';
 
-const VALID_TABS = ['projects', 'vault', 'comms', 'billing', 'settings'];
+const VALID_TABS = ['projects', 'services', 'portfolio', 'blog', 'vault', 'comms', 'billing', 'settings'];
 
 export default function DashboardTabPage() {
     const { tab } = useParams() || {};

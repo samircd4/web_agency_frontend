@@ -1,16 +1,17 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { api, getWebSocketUrl } from '@/lib/api';
 import useAuthAndUser from '@/hooks/useAuthAndUser';
 import ChatHeader from './ChatHeader';
 import ChatBody from './ChatBody';
 import ChatFooter from './ChatFooter';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Users, Store, ShieldCheck } from 'lucide-react';
 
-export default function Communications({ missions = [] }) {
+export default function Communications({ missions = [], isSellerMode = false }) {
     const { currentUser, loading: userLoading } = useAuthAndUser();
+    const [activeChannel, setActiveChannel] = useState('support'); // 'support' | 'direct'
     const [messageText, setMessageText] = useState('');
     const [files, setFiles] = useState([]);
     const [isSending, setIsSending] = useState(false);
@@ -24,6 +25,79 @@ export default function Communications({ missions = [] }) {
     const ws = useRef(null);
     const typingTimeoutRef = useRef(null);
     const isCurrentlyTypingRef = useRef(false);
+
+    // ── Generate profile list for Client / Seller tabs ─────────────────────
+    const profileList = useMemo(() => {
+        if (isSellerMode) {
+            // Seller Mode -> Clients List
+            const list = [];
+            const seen = new Set();
+            (missions || []).forEach((m, idx) => {
+                const name = m.client_name || m.client?.full_name || m.client?.username;
+                if (name && !seen.has(name)) {
+                    seen.add(name);
+                    const initials = name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'CL';
+                    list.push({
+                        id: m.client_id || m.client?.id || `client-${idx}`,
+                        name: name,
+                        subtitle: m.title ? `Order: ${m.title}` : 'Project Client Direct',
+                        initials,
+                        isOnline: true,
+                    });
+                }
+            });
+            if (list.length === 0) {
+                list.push({
+                    id: 'client-default',
+                    name: 'Client Account',
+                    subtitle: 'Project Client Direct',
+                    initials: 'CA',
+                    isOnline: true,
+                });
+            }
+            return list;
+        } else {
+            // Buyer Mode -> Sellers List
+            const list = [];
+            const seen = new Set();
+            (missions || []).forEach((m, idx) => {
+                const name = m.assigned_to_name || m.seller?.full_name;
+                if (name && !seen.has(name)) {
+                    seen.add(name);
+                    const initials = name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase() || 'SE';
+                    list.push({
+                        id: m.assigned_to_id || m.seller?.id || `seller-${idx}`,
+                        name: name,
+                        subtitle: m.title ? `Assigned to: ${m.title}` : 'Assigned Seller / Engineer',
+                        initials,
+                        isOnline: true,
+                    });
+                }
+            });
+            // Ensure standard seller profiles exist for selection
+            const defaultSellers = [
+                { id: 'seller-team', name: 'Dr. Python Team', subtitle: 'Platform Core Team', initials: 'DP', isOnline: true },
+                { id: 'seller-lead', name: 'Lead Python Engineer', subtitle: 'Senior Backend Specialist', initials: 'PE', isOnline: true },
+                { id: 'seller-ai', name: 'AI & Data Specialist', subtitle: 'Machine Learning Lead', initials: 'AI', isOnline: true },
+            ];
+            defaultSellers.forEach(ds => {
+                if (!seen.has(ds.name)) {
+                    list.push(ds);
+                }
+            });
+            return list;
+        }
+    }, [missions, isSellerMode]);
+
+    const [selectedProfile, setSelectedProfile] = useState(null);
+
+    useEffect(() => {
+        if (activeChannel === 'direct' && profileList.length > 0) {
+            if (!selectedProfile || !profileList.some(p => p.id === selectedProfile.id)) {
+                setSelectedProfile(profileList[0]);
+            }
+        }
+    }, [activeChannel, profileList]);
 
     // Send typing status to WebSocket
     const sendTypingStatus = (isTyping) => {
@@ -162,17 +236,22 @@ export default function Communications({ missions = [] }) {
         }
     };
 
-    // ─── Layout approach: fixed positioning ──────────────────────────────────
-    //
-    // The dashboard layout.jsx uses `min-h-screen` (not a bounded height), which
-    // means flex children with `h-full` have no reference point and grow infinitely,
-    // causing a full-page scrollbar. Using `position: fixed` with explicit viewport
-    // anchors bypasses this entirely — identical to how the admin comms page works.
-    //
-    //   top-[100px]   → below the fixed topbar (height ~100px)
-    //   left-0 lg:left-64 → beside the sidebar on desktop (256px = 64 * 4)
-    //   bottom-0 right-0  → fills to screen edges
-    //
+    // Calculate participant info for header based on selection
+    let participantTitle = 'Dr. Support';
+    let participantSubtitle = 'Platform Admin Support';
+    let participantInitials = 'DP';
+    let participantOnline = isAdminOnline;
+
+    if (activeChannel === 'direct') {
+        const current = selectedProfile || profileList[0];
+        if (current) {
+            participantTitle = current.name;
+            participantSubtitle = current.subtitle;
+            participantInitials = current.initials;
+            participantOnline = current.isOnline ?? true;
+        }
+    }
+
     return (
         <motion.div
             key="comms"
@@ -183,43 +262,136 @@ export default function Communications({ missions = [] }) {
         >
             {/* Padded inner wrapper */}
             <div className="flex-1 flex flex-col min-h-0 overflow-hidden p-3 lg:p-6 pt-0 lg:pt-4">
-                <div className="glass border border-white/5 rounded-xl flex-1 flex flex-col min-h-0 overflow-hidden bg-[#060814]/40">
+                {/* Communications Header Tab Bar */}
+                <div className="flex-shrink-0 flex items-center gap-1 px-1 pb-0 mb-1 border-b border-white/10">
+                    <button
+                        type="button"
+                        onClick={() => setActiveChannel('support')}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-t-lg text-xs font-black uppercase tracking-wider transition-all relative ${
+                            activeChannel === 'support'
+                                ? 'bg-teal-950/60 text-brand-teal border-t border-x border-brand-teal/30'
+                                : 'text-slate-500 hover:text-slate-300'
+                        }`}
+                    >
+                        <ShieldCheck size={14} className="text-brand-teal" />
+                        <span>Dr. Support</span>
+                    </button>
 
-                    {/* Header — always visible at top */}
-                    <ChatHeader isAdminOnline={isAdminOnline} />
+                    <button
+                        type="button"
+                        onClick={() => setActiveChannel('direct')}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-t-lg text-xs font-black uppercase tracking-wider transition-all relative ${
+                            activeChannel === 'direct'
+                                ? isSellerMode
+                                    ? 'bg-purple-950/60 text-purple-300 border-t border-x border-purple-500/30'
+                                    : 'bg-teal-950/60 text-brand-teal border-t border-x border-brand-teal/30'
+                                : 'text-slate-500 hover:text-slate-300'
+                        }`}
+                    >
+                        {isSellerMode ? (
+                            <>
+                                <Users size={14} className="text-purple-400" />
+                                <span>Clients</span>
+                            </>
+                        ) : (
+                            <>
+                                <Store size={14} className="text-brand-teal" />
+                                <span>Sellers</span>
+                            </>
+                        )}
+                    </button>
+                </div>
 
-                    {/* Messages area — only this section scrolls */}
-                    <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
-                        <AnimatePresence mode="wait">
-                            {messagesLoading ? (
-                                <motion.div
-                                    key="loading"
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    exit={{ opacity: 0 }}
-                                    className="flex-1 flex items-center justify-center"
-                                >
-                                    <Loader2 size={32} className="animate-spin text-brand-teal" />
-                                </motion.div>
-                            ) : (
-                                <ChatBody
-                                    key="messages"
-                                    messages={messages}
-                                    isAdminTyping={isAdminTyping}
-                                />
-                            )}
-                        </AnimatePresence>
+                <div className="glass border border-white/5 rounded-xl flex-1 flex flex-row min-h-0 overflow-hidden bg-[#060814]/40">
+                    {/* Left Side Panel for Direct Chat (Clients / Sellers) */}
+                    {activeChannel === 'direct' && (
+                        <div className="w-full sm:w-64 md:w-72 border-r border-white/10 flex flex-col min-h-0 shrink-0 bg-[#040612]/60">
+                            <div className="p-3 border-b border-white/10 flex items-center justify-between">
+                                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                                    {isSellerMode ? 'Client List' : 'Seller List'}
+                                </span>
+                                <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-white/5 text-slate-500">
+                                    {profileList.length}
+                                </span>
+                            </div>
+                            <div className="flex-1 overflow-y-auto divide-y divide-white/5 custom-scrollbar">
+                                {profileList.map((item) => {
+                                    const isSelected = selectedProfile?.id === item.id;
+                                    return (
+                                        <button
+                                            key={item.id}
+                                            type="button"
+                                            onClick={() => setSelectedProfile(item)}
+                                            className={`w-full p-3 flex items-center gap-3 text-left transition-all hover:bg-white/5 ${
+                                                isSelected
+                                                    ? isSellerMode
+                                                        ? 'bg-purple-500/15 border-l-2 border-l-purple-400'
+                                                        : 'bg-teal-500/15 border-l-2 border-l-brand-teal'
+                                                    : ''
+                                            }`}
+                                        >
+                                            <div className={`w-9 h-9 rounded-lg flex items-center justify-center font-black text-xs shrink-0 border ${
+                                                isSelected
+                                                    ? isSellerMode ? 'bg-purple-500/20 text-purple-300 border-purple-500/40' : 'bg-brand-teal/20 text-brand-teal border-brand-teal/40'
+                                                    : 'bg-white/5 text-slate-300 border-white/10'
+                                            }`}>
+                                                {item.initials}
+                                            </div>
+                                            <div className="min-w-0 flex-1">
+                                                <div className="text-xs font-bold text-white truncate">{item.name}</div>
+                                                <div className="text-[10px] text-slate-400 truncate mt-0.5">{item.subtitle}</div>
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Right Chat Area */}
+                    <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+                        {/* Header — displays active participant name */}
+                        <ChatHeader
+                            title={participantTitle}
+                            subtitle={participantSubtitle}
+                            initials={participantInitials}
+                            isOnline={participantOnline}
+                            isSellerMode={isSellerMode && activeChannel === 'direct'}
+                        />
+
+                        {/* Messages area — only this section scrolls */}
+                        <div className="flex-1 min-h-0 overflow-hidden flex flex-col">
+                            <AnimatePresence mode="wait">
+                                {messagesLoading ? (
+                                    <motion.div
+                                        key="loading"
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        exit={{ opacity: 0 }}
+                                        className="flex-1 flex items-center justify-center"
+                                    >
+                                        <Loader2 size={32} className="animate-spin text-brand-teal" />
+                                    </motion.div>
+                                ) : (
+                                    <ChatBody
+                                        key="messages"
+                                        messages={messages}
+                                        isAdminTyping={isAdminTyping}
+                                    />
+                                )}
+                            </AnimatePresence>
+                        </div>
+
+                        {/* Footer — always visible at bottom */}
+                        <ChatFooter
+                            messageText={messageText}
+                            setMessageText={handleInputChange}
+                            files={files}
+                            setFiles={setFiles}
+                            isSending={isSending}
+                            onSubmit={handleSendMessage}
+                        />
                     </div>
-
-                    {/* Footer — always visible at bottom */}
-                    <ChatFooter
-                        messageText={messageText}
-                        setMessageText={handleInputChange}
-                        files={files}
-                        setFiles={setFiles}
-                        isSending={isSending}
-                        onSubmit={handleSendMessage}
-                    />
                 </div>
             </div>
         </motion.div>

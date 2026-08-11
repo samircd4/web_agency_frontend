@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useSearchParams, usePathname } from 'next/navigation';
+import React from 'react';
 import { AnimatePresence } from 'framer-motion';
+
 import useDashboard from '@/hooks/useDashboard';
 import DashboardSidebar from '@/components/dashboard/Sidebar';
 import DashboardTopbar from '@/components/dashboard/Topbar';
@@ -17,6 +17,7 @@ export default function DashboardView() {
         currentUser,
         userLoading,
         handleLogout,
+        handleSwitchRole,
         // Projects Data
         projects,
         projectsLoading,
@@ -51,6 +52,8 @@ export default function DashboardView() {
         handlePrintInvoice,
         pendingInvoiceCount,
         pendingProposalCount,
+        // Comms
+        hasUnreadComms,
         // Settings (from authAndUserSettings)
         settingsView,
         setSettingsView,
@@ -77,33 +80,8 @@ export default function DashboardView() {
 
     const loading = userLoading || projectsLoading || billingDocsLoading;
 
-    const searchParams = useSearchParams();
-    const pathname = usePathname();
 
-    // Update activeTab when URL search params change
-    useEffect(() => {
-        const tabFromUrl = searchParams.get('tab');
-        if (tabFromUrl && ['projects', 'vault', 'comms', 'billing', 'settings'].includes(tabFromUrl)) {
-            setActiveTab(tabFromUrl);
-        }
-    }, [searchParams, setActiveTab]);
 
-    const [isDesktop, setIsDesktop] = useState(false);
-
-    useEffect(() => {
-        const checkIsDesktop = () => setIsDesktop(window.innerWidth >= 1024);
-        checkIsDesktop();
-        window.addEventListener('resize', checkIsDesktop);
-        return () => window.removeEventListener('resize', checkIsDesktop);
-    }, []);
-
-    // Update URL when activeTab changes
-    useEffect(() => {
-        if (typeof window !== 'undefined') {
-            const newUrl = `/dashboard?tab=${activeTab}`;
-            window.history.replaceState({}, '', newUrl);
-        }
-    }, [activeTab]);
 
     if (loading || !currentUser) {
         return (
@@ -140,7 +118,12 @@ export default function DashboardView() {
                 handleLogout={handleLogout}
                 pendingInvoiceCount={pendingInvoiceCount}
                 pendingProposalCount={pendingProposalCount}
+                hasUnreadComms={hasUnreadComms}
+                currentUser={currentUser}
+                onSwitchRole={handleSwitchRole}
             />
+
+
 
             {/* Fixed Topbar */}
             <div className="fixed top-0 right-0 left-0 lg:left-[256px] z-30 bg-[#020617] px-3 lg:px-6 py-3">

@@ -3,9 +3,11 @@
 import { Check, CheckCheck, Trash2 } from 'lucide-react';
 
 export default function ClientRow({ client, isActive, onClick, onDelete }) {
-    const initials = client.first_name && client.last_name
-        ? `${client.first_name[0]}${client.last_name[0]}`.toUpperCase()
-        : (client.username || 'CL').slice(0, 2).toUpperCase();
+    const nameStr = client.display_name || client.name || (client.first_name && client.last_name
+        ? `${client.first_name} ${client.last_name}`
+        : client.username || 'User');
+
+    const initials = (nameStr || 'US').slice(0, 2).toUpperCase();
 
     const lastMsg = client.last_message;
     const formattedTime = lastMsg && lastMsg.timestamp
@@ -30,9 +32,7 @@ export default function ClientRow({ client, isActive, onClick, onDelete }) {
                 <div className="flex-grow min-w-0">
                     <div className="flex items-center justify-between">
                         <span className="text-xs font-black text-white truncate">
-                            {client.first_name && client.last_name
-                                ? `${client.first_name} ${client.last_name}`
-                                : client.username}
+                            {nameStr}
                         </span>
                         <div className="flex items-center gap-2 shrink-0">
                             {formattedTime && (

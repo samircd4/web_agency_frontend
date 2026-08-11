@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation';
 
-const VALID_TABS = ['projects', 'vault', 'comms', 'billing', 'settings'];
+const VALID_TABS = ['projects', 'services', 'portfolio', 'blog', 'vault', 'comms', 'billing', 'settings'];
 
 export default async function DashboardPage({ searchParams }) {
     const resolvedSearchParams = await searchParams;

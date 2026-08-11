@@ -8,7 +8,7 @@ import useAuthAndUser from '@/hooks/useAuthAndUser';
 import ClientListPanel from '@/components/admin/ClientListPanel';
 import ChatWindow from '@/components/admin/ChatWindow';
 import EmptyChatState from '@/components/admin/EmptyChatState';
-import { Users, Globe, Wifi, MessageSquare, Send, X, ArrowLeft, Circle, Check, CheckCheck, Trash2, AlertTriangle } from 'lucide-react';
+import { Users, Store, Globe, Wifi, MessageSquare, Send, X, ArrowLeft, Circle, Check, CheckCheck, Trash2, AlertTriangle } from 'lucide-react';
 
 // ─── Guest Session List Row ──────────────────────────────────────────────────
 
@@ -355,6 +355,37 @@ export default function AdminCommunications() {
         const total = clients.reduce((sum, c) => sum + (c.unread_count || 0), 0);
         setTotalClientUnread(total);
     }, [clients]);
+
+    // ── Seller chat state ────────────────────────────────────────────────────
+    const [sellers, setSellers] = useState([]);
+    const [sellersLoading, setSellersLoading] = useState(true);
+    const [sellerSearchQuery, setSellerSearchQuery] = useState('');
+    const [totalSellerUnread, setTotalSellerUnread] = useState(0);
+
+    useEffect(() => {
+        async function fetchSellers() {
+            try {
+                const data = await api.getAdminSellers();
+                const sellerList = Array.isArray(data) ? data : data.results || [];
+                setSellers(sellerList);
+            } catch (err) {
+                console.error('Failed to fetch sellers:', err);
+            } finally {
+                setSellersLoading(false);
+            }
+        }
+        fetchSellers();
+    }, []);
+
+    useEffect(() => {
+        const total = sellers.reduce((sum, s) => sum + (s.unread_count || 0), 0);
+        setTotalSellerUnread(total);
+    }, [sellers]);
+
+    const filteredSellers = sellers.filter(s =>
+        `${s.display_name || ''} ${s.first_name || ''} ${s.last_name || ''} ${s.username || ''}`
+            .toLowerCase().includes(sellerSearchQuery.toLowerCase())
+    );
 
 
     // ── Guest session state ──────────────────────────────────────────────────
@@ -968,6 +999,22 @@ export default function AdminCommunications() {
                     )}
                 </button>
                 <button
+                    onClick={() => { setActiveTab('sellers'); setSelectedGuest(null); }}
+                    className={`flex items-center gap-2 px-4 py-2.5 rounded-t-lg text-sm font-medium transition-all relative ${
+                        activeTab === 'sellers'
+                            ? 'bg-white/5 text-white border-t border-x border-white/10'
+                            : 'text-slate-500 hover:text-slate-300'
+                    }`}
+                >
+                    <Store size={15} />
+                    Sellers
+                    {totalSellerUnread > 0 && (
+                        <span className="w-4 h-4 bg-purple-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                            {totalSellerUnread > 9 ? '9+' : totalSellerUnread}
+                        </span>
+                    )}
+                </button>
+                <button
                     onClick={() => { setActiveTab('guests'); setSelectedClient(null); }}
                     className={`flex items-center gap-2 px-4 py-2.5 rounded-t-lg text-sm font-medium transition-all relative ${
                         activeTab === 'guests'
@@ -997,6 +1044,38 @@ export default function AdminCommunications() {
                             setSelectedClient={setSelectedClient}
                             searchQuery={searchQuery}
                             setSearchQuery={setSearchQuery}
+                            onDelete={promptDeleteClient}
+                        />
+                        <AnimatePresence mode="wait">
+                            {selectedClient ? (
+                                <ChatWindow
+                                    key={selectedClient.id}
+                                    selectedClient={selectedClient}
+                                    setSelectedClient={setSelectedClient}
+                                    messages={messages}
+                                    messagesLoading={messagesLoading}
+                                    onSendMessage={handleSendMessage}
+                                    isClientOnline={isClientOnline}
+                                    isClientTyping={isClientTyping}
+                                    onTypingStatusChange={handleTypingStatusChange}
+                                />
+                            ) : (
+                                <EmptyChatState />
+                            )}
+                        </AnimatePresence>
+                    </>
+                )}
+
+                {/* ── Seller Tab ── */}
+                {activeTab === 'sellers' && (
+                    <>
+                        <ClientListPanel
+                            clients={filteredSellers}
+                            loading={sellersLoading}
+                            selectedClient={selectedClient}
+                            setSelectedClient={setSelectedClient}
+                            searchQuery={sellerSearchQuery}
+                            setSearchQuery={setSellerSearchQuery}
                             onDelete={promptDeleteClient}
                         />
                         <AnimatePresence mode="wait">
