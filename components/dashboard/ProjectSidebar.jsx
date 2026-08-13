@@ -170,12 +170,13 @@ function PaymentStatusCard({ project, clientInvoices = [] }) {
     );
 }
 
-function GeneralDetailsCard({ project, clientInvoices = [], clientProposals = [], isAdmin, isCompleted, onAddInvoice, onAddProposal }) {
+function GeneralDetailsCard({ project, clientInvoices = [], clientProposals = [], isAdmin, isSeller, isCompleted, onAddInvoice, onAddProposal }) {
     const [timeLeft, setTimeLeft] = useState(null);
 
     const pendingInvoices = useMemo(() => clientInvoices.filter(inv => inv.status !== 'paid' && inv.status !== 'void'), [clientInvoices]);
     const pendingProposals = useMemo(() => clientProposals.filter(prop => prop.status === 'sent'), [clientProposals]);
     const latestInvoice = pendingInvoices[0];
+    const canManageBilling = (isAdmin || isSeller) && !isCompleted;
 
     useEffect(() => {
         if (isCompleted || !project?.deadline) {
@@ -251,7 +252,7 @@ function GeneralDetailsCard({ project, clientInvoices = [], clientProposals = []
                     <span>Invoices Pending</span>
                     <div className="flex items-center gap-2">
                         <span className="text-brand-teal">{pendingInvoices.length}</span>
-                        {isAdmin && !isCompleted && onAddInvoice && (
+                        {canManageBilling && onAddInvoice && (
                             <button onClick={onAddInvoice} className="p-1 rounded-lg bg-brand-teal/10 text-brand-teal hover:bg-brand-teal hover:text-white transition-all"><Plus size={12} /></button>
                         )}
                     </div>
@@ -260,7 +261,7 @@ function GeneralDetailsCard({ project, clientInvoices = [], clientProposals = []
                     <span>Proposals Pending</span>
                     <div className="flex items-center gap-2">
                         <span className="text-brand-teal">{pendingProposals.length}</span>
-                        {isAdmin && !isCompleted && onAddProposal && (
+                        {canManageBilling && onAddProposal && (
                             <button onClick={onAddProposal} className="p-1 rounded-lg bg-brand-teal/10 text-brand-teal hover:bg-brand-teal hover:text-white transition-all"><Plus size={12} /></button>
                         )}
                     </div>
@@ -285,9 +286,10 @@ function GeneralDetailsCard({ project, clientInvoices = [], clientProposals = []
     );
 }
 
-function DeliverablesCard({ files = [], isAdmin = false, isCompleted = false, onUpload, onDelete }) {
+function DeliverablesCard({ files = [], isAdmin = false, isSeller = false, isCompleted = false, onUpload, onDelete }) {
     const fileInputRef = useRef(null);
     const [fileUploading, setFileUploading] = useState(false);
+    const canManageFiles = (isAdmin || isSeller) && !isCompleted;
 
     const handleFileSelected = useCallback(async (e) => {
         const file = e.target.files?.[0];
@@ -302,7 +304,7 @@ function DeliverablesCard({ files = [], isAdmin = false, isCompleted = false, on
         <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5 space-y-3">
             <div className="flex items-center justify-between gap-2">
                 <div className="text-xs font-black text-muted uppercase tracking-widest">Deliverables</div>
-                {isAdmin && !isCompleted && (
+                {canManageFiles && (
                     <>
                         <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileSelected} />
                         <button
@@ -320,20 +322,20 @@ function DeliverablesCard({ files = [], isAdmin = false, isCompleted = false, on
             {files.length > 0 ? (
                 <div className="space-y-2 max-h-[200px] overflow-y-auto custom-scrollbar pr-1">
                     {files.map((f) => (
-                        <div key={f.id} className="flex items-center gap-3 p-2.5 rounded-xl bg-white/[0.01] border border-white/5">
+                        <div key={f.id} className="flex items-center gap-3 p-2.5 rounded-xl bg-white/[0.01] border border-white/5 group">
                             <div className="w-10 h-10 rounded-xl bg-brand-teal/10 flex items-center justify-center text-brand-teal shrink-0">
                                 <span className="text-[10px] font-black uppercase">
-                                    {f.name?.split('.').pop()?.slice(0, 3).toUpperCase() || 'FILE'}
+                                    {f.name?.split('.').pop()?.slice(0, 3).toUpperCase() || f.label?.split('.').pop()?.slice(0, 3).toUpperCase() || 'FILE'}
                                 </span>
                             </div>
                             <div className="flex-grow min-w-0">
-                                <div className="text-xs font-bold text-white truncate">{f.name}</div>
+                                <div className="text-xs font-bold text-white truncate">{f.name || f.label || f.file?.split('/').pop() || f.filename}</div>
                                 <div className="text-[10px] font-bold text-muted mt-0.5">{formatBytes(f.size)}</div>
                             </div>
                             <div className="flex items-center gap-1 shrink-0">
-                                <a href={f.file_url} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded-lg bg-white/5 text-muted hover:text-white hover:bg-white/10 transition-all" title="Download"><Download size={14} /></a>
-                                {isAdmin && !isCompleted && onDelete && (
-                                    <button onClick={() => onDelete(f.id)} className="p-1.5 rounded-lg bg-white/5 text-muted hover:text-brand-red hover:bg-brand-red/10 transition-all" title="Delete"><Trash2 size={14} /></button>
+                                <a href={f.file_url || f.file} target="_blank" rel="noopener noreferrer" className="p-1.5 rounded-lg bg-white/5 text-muted hover:text-white hover:bg-white/10 transition-all" title="Download"><Download size={14} /></a>
+                                {canManageFiles && onDelete && (
+                                    <button onClick={() => onDelete(f.id)} className="p-1.5 rounded-lg bg-white/5 text-muted hover:text-brand-red hover:bg-brand-red/10 transition-all opacity-0 group-hover:opacity-100" title="Delete"><Trash2 size={14} /></button>
                                 )}
                             </div>
                         </div>
@@ -348,12 +350,10 @@ function DeliverablesCard({ files = [], isAdmin = false, isCompleted = false, on
     );
 }
 
-
-
-function PortfolioImageCard({ project, isAdmin, isCompleted = false, onUpdateProjectImage }) {
+function PortfolioImageCard({ project, isAdmin, isSeller, isCompleted = false, onUpdateProjectImage }) {
     const fileInputRef = useRef(null);
     const [uploading, setUploading] = useState(false);
-    
+
     const getInitialImage = useCallback(() => {
         if (!project) return '';
         return project.portfolio_image || project.completion_image_url || '';
@@ -365,17 +365,22 @@ function PortfolioImageCard({ project, isAdmin, isCompleted = false, onUpdatePro
         setPreviewUrl(getInitialImage());
     }, [getInitialImage]);
 
-    if (!isAdmin) return null; 
+    const canManageImage = (isAdmin || isSeller) && !isCompleted;
 
     const handleFileSelected = async (e) => {
-        if (isCompleted) return;
+        if (!canManageImage) return;
         const file = e.target.files?.[0];
         e.target.value = '';
         if (!file) return;
 
         setUploading(true);
         try {
-            const res = await api.uploadProjectPortfolioImage(project?.id, file);
+            let res;
+            if (isAdmin) {
+                res = await api.uploadProjectPortfolioImage(project?.id, file);
+            } else if (isSeller) {
+                res = await api.uploadProjectPortfolioImage(project?.id, file);
+            }
             const url = res?.url || res?.file_url || res?.image_url || '';
 
             if (url) {
@@ -392,14 +397,28 @@ function PortfolioImageCard({ project, isAdmin, isCompleted = false, onUpdatePro
     };
 
     const handleRemove = async () => {
-        if (isCompleted) return;
+        if (!canManageImage) return;
         setPreviewUrl('');
         try {
             if (project?.id) {
-                await api.updateAdminProject(project.id, { 
-                    completion_image_url: '',
-                    portfolio_image: null,
-                });
+                if (isAdmin) {
+                    await api.updateAdminProject(project.id, {
+                        completion_image_url: '',
+                        portfolio_image: null,
+                    });
+                } else if (isSeller) {
+                    try {
+                        await api.updateSellerProject(project.id, {
+                            completion_image_url: '',
+                            portfolio_image: null,
+                        });
+                    } catch {
+                        await api.updateAdminProject(project.id, {
+                            completion_image_url: '',
+                            portfolio_image: null,
+                        });
+                    }
+                }
             }
             if (onUpdateProjectImage) {
                 onUpdateProjectImage('');
@@ -416,7 +435,7 @@ function PortfolioImageCard({ project, isAdmin, isCompleted = false, onUpdatePro
                     <ImageIcon size={14} className="text-brand-teal" />
                     Portfolio Showcase Image
                 </div>
-                {!isCompleted && (
+                {canManageImage && (
                     <>
                         <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileSelected} />
                         <button
@@ -435,7 +454,7 @@ function PortfolioImageCard({ project, isAdmin, isCompleted = false, onUpdatePro
                 <div className="relative aspect-video rounded-xl overflow-hidden border border-white/10 bg-slate-950 group">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={previewUrl} alt="Portfolio showcase" className="w-full h-full object-cover" />
-                    {!isCompleted && (
+                    {canManageImage && (
                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
                             <button
                                 onClick={handleRemove}
@@ -447,7 +466,7 @@ function PortfolioImageCard({ project, isAdmin, isCompleted = false, onUpdatePro
                         </div>
                     )}
                     <div className="absolute bottom-0 left-0 right-0 p-1.5 bg-slate-950/80 backdrop-blur-sm text-[9px] font-black text-brand-teal uppercase tracking-widest text-center truncate">
-                        Visible to client upon completion review
+                        Shown to client when reviewing completed project
                     </div>
                 </div>
             ) : (
@@ -472,7 +491,7 @@ function AssociatedServiceCard({ project, isAdmin, isCompleted = false, onUpdate
         if (!isAdmin) return;
         api.getAdminServices().then(res => {
             setServices(Array.isArray(res) ? res : res.results || []);
-        }).catch(() => {});
+        }).catch(() => { });
     }, [isAdmin]);
 
     useEffect(() => {
@@ -627,6 +646,7 @@ export default function ProjectSidebar({
     clientProposals = [],
     files = [],
     isAdmin = false,
+    isSeller = false,
     onUpload,
     onDelete,
     onAddInvoice,
@@ -638,6 +658,7 @@ export default function ProjectSidebar({
     onUpdateProject,
 }) {
     const isCompleted = (project?.status || '').toLowerCase() === 'completed';
+    const canManage = isAdmin || isSeller;
 
     return (
         <div className="space-y-3 w-full max-w-[340px]">
@@ -653,6 +674,7 @@ export default function ProjectSidebar({
                 clientInvoices={clientInvoices}
                 clientProposals={clientProposals}
                 isAdmin={isAdmin}
+                isSeller={isSeller}
                 isCompleted={isCompleted}
                 onAddInvoice={onAddInvoice}
                 onAddProposal={onAddProposal}
@@ -662,16 +684,23 @@ export default function ProjectSidebar({
             <AssociatedServiceCard project={project} isAdmin={isAdmin} isCompleted={isCompleted} onUpdateProject={onUpdateProject} />
 
             {/* Deliverables Manager */}
-            <DeliverablesCard files={files} isAdmin={isAdmin} isCompleted={isCompleted} onUpload={onUpload} onDelete={onDelete} />
+            <DeliverablesCard
+                files={files}
+                isAdmin={isAdmin}
+                isSeller={isSeller}
+                isCompleted={isCompleted}
+                onUpload={onUpload}
+                onDelete={onDelete}
+            />
 
-            {/* Portfolio Showcase Image Manager (Admin Only - Hidden from client until project completion review) */}
-            <PortfolioImageCard project={project} isAdmin={isAdmin} isCompleted={isCompleted} onUpdateProjectImage={onUpdateProjectImage} />
+            {/* Portfolio Showcase Image */}
+            <PortfolioImageCard project={project} isAdmin={isAdmin} isSeller={isSeller} isCompleted={isCompleted} onUpdateProjectImage={onUpdateProjectImage} />
 
             <ClientInformation project={project} isAdmin={isAdmin} />
 
             {/* Action Buttons */}
             <div className="flex flex-col gap-2">
-                {isAdmin && ( // Admin specific buttons
+                {canManage && (
                     <div className="flex gap-2">
                         {onEditProject && !isCompleted && (
                             <button
@@ -698,7 +727,7 @@ export default function ProjectSidebar({
                         )}
                     </div>
                 )}
-                {onCancelProject && project?.status !== 'cancelled' && !isCompleted && ( // Client or Admin cancel button
+                {onCancelProject && project?.status !== 'cancelled' && !isCompleted && (
                     <button
                         onClick={onCancelProject}
                         className="w-full py-2.5 bg-brand-red/10 text-brand-red rounded-xl font-black uppercase tracking-widest text-xs shadow-lg hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2"

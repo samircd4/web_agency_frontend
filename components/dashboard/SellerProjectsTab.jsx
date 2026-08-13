@@ -1,25 +1,25 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Briefcase, ChevronRight, Clock, CheckCircle2, AlertCircle } from 'lucide-react';
 import { api } from '@/lib/api';
 import SellerEarningsCard from './SellerEarningsCard';
-import SellerProjectDrawer from './SellerProjectDrawer';
 
 const STATUS_STYLES = {
-    pending:     { dot: 'bg-yellow-400', badge: 'bg-yellow-500/15 text-yellow-300 border-yellow-500/30' },
-    in_progress: { dot: 'bg-blue-400',   badge: 'bg-blue-500/15 text-blue-300 border-blue-500/30' },
-    in_review:   { dot: 'bg-purple-400', badge: 'bg-purple-500/15 text-purple-300 border-purple-500/30' },
-    completed:   { dot: 'bg-emerald-400',badge: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30' },
-    cancelled:   { dot: 'bg-red-400',    badge: 'bg-red-500/15 text-red-300 border-red-500/30' },
+    pending: { dot: 'bg-yellow-400', badge: 'bg-yellow-500/15 text-yellow-300 border-yellow-500/30' },
+    in_progress: { dot: 'bg-blue-400', badge: 'bg-blue-500/15 text-blue-300 border-blue-500/30' },
+    in_review: { dot: 'bg-purple-400', badge: 'bg-purple-500/15 text-purple-300 border-purple-500/30' },
+    completed: { dot: 'bg-emerald-400', badge: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30' },
+    cancelled: { dot: 'bg-red-400', badge: 'bg-red-500/15 text-red-300 border-red-500/30' },
 };
 
 function ProjectCard({ project, onClick }) {
     const statusKey = (project.status || project.stage || 'pending').toLowerCase().replace(' ', '_');
-    const styles  = STATUS_STYLES[statusKey] || STATUS_STYLES['pending'];
-    const msDone  = (project.milestones || []).filter(m => m.completed || m.done).length;
+    const styles = STATUS_STYLES[statusKey] || STATUS_STYLES['pending'];
+    const msDone = (project.milestones || []).filter(m => m.completed || m.done).length;
     const msTotal = (project.milestones || []).length;
-    const pct     = msTotal > 0 ? Math.round((msDone / msTotal) * 100) : (project.progress || 0);
+    const pct = msTotal > 0 ? Math.round((msDone / msTotal) * 100) : (project.progress || 0);
 
     const titleText = project.name || project.title || 'Untitled Project';
     const clientText = project.client_name || project.client_profile?.company_name || project.client_profile?.contact_name || project.client?.full_name || '—';
@@ -82,9 +82,9 @@ function ProjectCard({ project, onClick }) {
 }
 
 export default function SellerProjectsTab() {
+    const router = useRouter();
     const [projects, setProjects] = useState([]);
-    const [loading, setLoading]   = useState(true);
-    const [selectedProject, setSelectedProject] = useState(null);
+    const [loading, setLoading] = useState(true);
     const [searchQuery, setSearchQuery] = useState('');
     const [filter, setFilter] = useState('all');
 
@@ -112,8 +112,8 @@ export default function SellerProjectsTab() {
         return matchSearch && matchFilter;
     });
 
-    const handleProjectUpdated = (updated) => {
-        setProjects(prev => prev.map(p => p.id === updated.id ? { ...p, ...updated } : p));
+    const handleOpenProject = (project) => {
+        router.push(`/dashboard/projects/${project.id}`);
     };
 
     return (
@@ -127,7 +127,7 @@ export default function SellerProjectsTab() {
                     <h2 className="text-2xl font-black text-white tracking-tight flex items-center gap-2">
                         <Briefcase className="text-purple-400" size={24} /> Active Orders
                     </h2>
-                    <p className="text-xs text-slate-400 mt-1">Manage your assigned projects, milestones, deliverables, proposals, and invoices.</p>
+                    <p className="text-xs text-slate-400 mt-1">Click any project card below to open the full project detail view with milestones, deliverables, proposals, and invoicing.</p>
                 </div>
                 <div className="flex items-center gap-2">
                     <input
@@ -146,11 +146,10 @@ export default function SellerProjectsTab() {
                     <button
                         key={s}
                         onClick={() => setFilter(s)}
-                        className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer ${
-                            filter === s
+                        className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-wider transition-all cursor-pointer ${filter === s
                                 ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/20'
                                 : 'bg-slate-900/80 border border-white/10 text-slate-400 hover:border-purple-500/30'
-                        }`}
+                            }`}
                     >
                         {s === 'all' ? 'All Orders' : s.replace('_', ' ')}
                     </button>
@@ -180,19 +179,10 @@ export default function SellerProjectsTab() {
                         <ProjectCard
                             key={p.id}
                             project={p}
-                            onClick={setSelectedProject}
+                            onClick={handleOpenProject}
                         />
                     ))}
                 </div>
-            )}
-
-            {/* Project Action Drawer */}
-            {selectedProject && (
-                <SellerProjectDrawer
-                    project={selectedProject}
-                    onClose={() => setSelectedProject(null)}
-                    onProjectUpdated={handleProjectUpdated}
-                />
             )}
         </div>
     );

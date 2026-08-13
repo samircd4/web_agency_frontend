@@ -17,7 +17,7 @@ import ConfirmDangerModal from '@/components/ConfirmDangerModal';
 import {
     Edit3, Loader2, Tag, CheckCircle2, Circle,
     Trash2, Upload, Download, Plus, AlertCircle,
-    FileText, DollarSign, Calendar, User, X
+    FileText, DollarSign, Calendar, User, X, GripVertical
 } from 'lucide-react';
 
 const STAGES = ['Analysis', 'Architecture', 'Dev', 'QA', 'Staging', 'Complete'];
@@ -106,7 +106,7 @@ export default function AdminProjectDetail() {
     useEffect(() => {
         api.getAdminServices().then(res => {
             setAllServices(Array.isArray(res) ? res : res.results || []);
-        }).catch(() => {});
+        }).catch(() => { });
     }, []);
 
     // Billing state
@@ -132,6 +132,46 @@ export default function AdminProjectDetail() {
     const [deleteLoading, setDeleteLoading] = useState(false);
     const [formErrors, setFormErrors] = useState({});
     const [newMilestoneLabel, setNewMilestoneLabel] = useState('');
+
+    // Milestone drag state
+    const [msDragIndex, setMsDragIndex] = useState(null);
+    const [msDragOverIndex, setMsDragOverIndex] = useState(null);
+    const handleMsDragStart = (idx) => {
+        if (isProjectCompleted) return;
+        setMsDragIndex(idx);
+    };
+    const handleMsDragOver = (e, idx) => {
+        e.preventDefault();
+        if (isProjectCompleted) return;
+        setMsDragOverIndex(idx);
+    };
+    const handleMsDragLeave = () => setMsDragOverIndex(null);
+    const handleMsDrop = async (dropIdx) => {
+        if (isProjectCompleted || msDragIndex === null || msDragIndex === dropIdx) {
+            setMsDragIndex(null);
+            setMsDragOverIndex(null);
+            return;
+        }
+        const newMs = [...milestones];
+        const [moved] = newMs.splice(msDragIndex, 1);
+        newMs.splice(dropIdx, 0, moved);
+        setProject(prev => ({ ...prev, milestones: newMs }));
+        setMsDragIndex(null);
+        setMsDragOverIndex(null);
+        try {
+            await Promise.all(newMs.map((m, i) =>
+                api.updateMilestone(project.id, m.id, { order_index: i })
+            ));
+            showToast('Milestone order saved successfully', 'success');
+        } catch (err) {
+            console.error('Failed to save milestone order:', err);
+            showToast(err?.message || 'Failed to save milestone order', 'error');
+        }
+    };
+    const handleMsDragEnd = () => {
+        setMsDragIndex(null);
+        setMsDragOverIndex(null);
+    };
 
     const handleCancelProject = async () => {
         if (!project?.id) return;
@@ -534,7 +574,27 @@ export default function AdminProjectDetail() {
                             {milestones.length > 0 ? (
                                 <div className="space-y-2">
                                     {milestones.map((m, mi) => (
-                                        <div key={m.id || mi} className={`flex items-center gap-3 p-2.5 rounded-xl border transition-all ${m.done ? 'bg-emerald-500/5 border-emerald-500/10' : 'bg-white/5 border-white/5 hover:border-white/10'}`}>
+                                        <div
+                                            key={m.id || mi}
+                                            draggable={!isProjectCompleted}
+                                            onDragStart={() => handleMsDragStart(mi)}
+                                            onDragOver={(e) => handleMsDragOver(e, mi)}
+                                            onDragLeave={handleMsDragLeave}
+                                            onDrop={() => handleMsDrop(mi)}
+                                            onDragEnd={handleMsDragEnd}
+                                            className={`flex items-center gap-2 p-2.5 rounded-xl border group transition-all ${msDragOverIndex === mi && msDragIndex !== mi
+                                                    ? 'bg-brand-teal/10 border-brand-teal/40 scale-[1.005]'
+                                                    : msDragIndex === mi
+                                                        ? 'opacity-50 border-white/10 bg-white/[0.01]'
+                                                        : m.done
+                                                            ? 'bg-emerald-500/5 border-emerald-500/10'
+                                                            : 'bg-white/5 border-white/5 hover:border-white/10'
+                                                } ${!isProjectCompleted ? 'cursor-grab active:cursor-grabbing' : ''}`}
+                                        >
+                                            <GripVertical
+                                                size={12}
+                                                className={`shrink-0 ${isProjectCompleted ? 'text-slate-700' : 'text-slate-600 hover:text-slate-400'} ${msDragIndex === mi ? 'text-brand-teal' : ''}`}
+                                            />
                                             <button
                                                 onClick={() => handleToggleMilestone(project.id, m.id, m.done)}
                                                 className={`shrink-0 p-0.5 rounded-lg hover:bg-white/5 transition-all text-left ${m.done ? 'text-emerald-400' : 'text-text-dim hover:text-text-primary'}`}
@@ -542,10 +602,10 @@ export default function AdminProjectDetail() {
                                             >
                                                 {m.done ? <CheckCircle2 size={16} /> : <Circle size={16} />}
                                             </button>
-                                            <span className={`text-xs font-bold flex-grow ${m.done ? 'text-text-muted line-through' : 'text-text-primary'}`}>{m.label}</span>
+                                            <span className={`text-xs font-bold flex-grow select-none ${m.done ? 'text-text-muted line-through' : 'text-text-primary'}`}>{m.label}</span>
                                             <button
                                                 onClick={() => handleDeleteMilestone(project.id, m.id, m.label)}
-                                                className="shrink-0 p-1.5 rounded-lg hover:bg-white/5 transition-all text-text-dim hover:text-brand-red"
+                                                className="shrink-0 p-1.5 rounded-lg hover:bg-white/5 transition-all text-text-dim hover:text-brand-red opacity-0 group-hover:opacity-100"
                                                 title="Delete milestone"
                                             >
                                                 <Trash2 size={14} />
