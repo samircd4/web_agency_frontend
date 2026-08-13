@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import {
     Layers, Plus, Trash2, Save, ArrowLeft, Loader2, Upload, X,
-    ChevronDown, Package, ShieldCheck
+    ChevronDown, Package, ShieldCheck, GripVertical
 } from 'lucide-react';
 import { api } from '@/lib/api';
 
@@ -318,8 +318,129 @@ function RoadmapEditor({ roadmap = [], onChange, disabled }) {
     );
 }
 
+// ── Tier Feature List (inline mini list editor with suggestions & drag) ─────
+function TierFeatureList({ features = [], onChange, disabled, suggestions = [] }) {
+    const [draft, setDraft] = useState('');
+    const [dragIndex, setDragIndex] = useState(null);
+    const [dragOverIndex, setDragOverIndex] = useState(null);
+
+    const add = (val) => {
+        const v = (val ?? draft).trim();
+        if (!v || features.includes(v)) return;
+        onChange([...features, v]);
+        setDraft('');
+    };
+    const remove = (idx) => onChange(features.filter((_, i) => i !== idx));
+
+    const handleDragStart = (idx) => {
+        if (disabled) return;
+        setDragIndex(idx);
+    };
+    const handleDragOver = (e, idx) => {
+        e.preventDefault();
+        if (disabled) return;
+        setDragOverIndex(idx);
+    };
+    const handleDragLeave = () => {
+        setDragOverIndex(null);
+    };
+    const handleDrop = (idx) => {
+        if (disabled || dragIndex === null || dragIndex === idx) {
+            setDragIndex(null);
+            setDragOverIndex(null);
+            return;
+        }
+        const newFeatures = [...features];
+        const [moved] = newFeatures.splice(dragIndex, 1);
+        newFeatures.splice(idx, 0, moved);
+        onChange(newFeatures);
+        setDragIndex(null);
+        setDragOverIndex(null);
+    };
+    const handleDragEnd = () => {
+        setDragIndex(null);
+        setDragOverIndex(null);
+    };
+
+    const available = suggestions.filter(s => !features.includes(s));
+
+    return (
+        <div className="space-y-2">
+            {features.map((f, idx) => (
+                <div
+                    key={idx}
+                    draggable={!disabled}
+                    onDragStart={() => handleDragStart(idx)}
+                    onDragOver={(e) => handleDragOver(e, idx)}
+                    onDragLeave={handleDragLeave}
+                    onDrop={() => handleDrop(idx)}
+                    onDragEnd={handleDragEnd}
+                    className={`flex items-center gap-2 px-2 py-1.5 rounded-lg border text-xs text-slate-300 group transition-all ${dragOverIndex === idx && dragIndex !== idx
+                        ? 'bg-brand-teal/10 border-brand-teal/40 scale-[1.01]'
+                        : dragIndex === idx
+                            ? 'opacity-50 border-white/10 bg-white/[0.01]'
+                            : 'bg-white/[0.03] border-white/5 hover:border-white/10'
+                        } ${!disabled ? 'cursor-grab active:cursor-grabbing' : ''}`}
+                >
+                    <GripVertical
+                        size={12}
+                        className={`shrink-0 ${disabled ? 'text-slate-700' : 'text-slate-600 hover:text-slate-400'} ${dragIndex === idx ? 'text-brand-teal' : ''}`}
+                    />
+                    <div className="w-1.5 h-1.5 rounded-full bg-brand-teal shrink-0" />
+                    <span className="flex-1 select-none">{f}</span>
+                    <button type="button" onClick={() => remove(idx)} disabled={disabled} className="text-slate-600 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-all">
+                        <X size={10} />
+                    </button>
+                </div>
+            ))}
+
+            {available.length > 0 && (
+                <div>
+                    <p className="text-[9px] font-black uppercase tracking-widest text-slate-600 mb-1.5">
+                        Click to add from Technical Highlights
+                    </p>
+                    <div className="flex flex-wrap gap-1.5">
+                        {available.map((suggestion, idx) => (
+                            <button
+                                key={idx}
+                                type="button"
+                                onClick={() => add(suggestion)}
+                                disabled={disabled}
+                                className="flex items-center gap-1 px-2.5 py-1 rounded-lg border border-brand-teal/20 bg-brand-teal/5 text-brand-teal text-[10px] font-bold hover:bg-brand-teal/15 hover:border-brand-teal/40 transition-all disabled:opacity-40 cursor-pointer"
+                            >
+                                <Plus size={9} />
+                                {suggestion}
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            )}
+
+            <div className="flex gap-1.5">
+                <input
+                    type="text"
+                    value={draft}
+                    onChange={e => setDraft(e.target.value)}
+                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); add(); } }}
+                    disabled={disabled}
+                    placeholder={suggestions.length > 0 ? 'Or type a custom feature...' : 'e.g. Custom domain setup'}
+                    className="flex-1 p-2 bg-slate-900 border border-white/10 rounded-lg text-white text-xs focus:border-brand-teal outline-none placeholder:text-slate-600"
+                />
+                <button
+                    type="button"
+                    onClick={() => add()}
+                    disabled={disabled || !draft.trim()}
+                    className="px-2.5 py-2 rounded-lg bg-brand-teal/10 border border-brand-teal/20 text-brand-teal hover:bg-brand-teal/20 transition-all disabled:opacity-40"
+                >
+                    <Plus size={12} />
+                </button>
+            </div>
+        </div>
+    );
+}
+
 // ── Tier Editor ───────────────────────────────────────────────────────────────
-function TierEditor({ tier, tierKey, onChange, disabled }) {
+function TierEditor({ tier, tierKey, onChange, disabled, suggestions = [] }) {
     return (
         <div className="p-4 rounded-xl bg-white/[0.02] border border-white/8 space-y-3">
             <div className="flex items-center gap-2 mb-1">
@@ -373,6 +494,29 @@ function TierEditor({ tier, tierKey, onChange, disabled }) {
                     />
                 </div>
             </div>
+            <div>
+                <label className="text-[9px] font-black uppercase tracking-widest text-slate-500">Description</label>
+                <textarea
+                    rows={2}
+                    value={tier?.description || ''}
+                    onChange={e => onChange({ ...tier, description: e.target.value })}
+                    disabled={disabled}
+                    placeholder="Brief description of what's included..."
+                    className="w-full mt-1 p-2.5 bg-slate-900 border border-white/10 rounded-lg text-white text-sm focus:border-brand-teal outline-none resize-none"
+                />
+            </div>
+
+            <div>
+                <label className="text-[9px] font-black uppercase tracking-widest text-slate-500 block mb-2">
+                    Feature Checklist <span className="text-slate-600 normal-case font-normal">(shown on pricing card)</span>
+                </label>
+                <TierFeatureList
+                    features={tier?.features || []}
+                    onChange={features => onChange({ ...tier, features })}
+                    disabled={disabled}
+                    suggestions={suggestions}
+                />
+            </div>
         </div>
     );
 }
@@ -402,9 +546,9 @@ export default function ServiceForm({ initialData = null, isSeller = false, back
             { step: 2, title: 'Development & Testing', desc: 'Build backend pipelines and perform test runs.' }
         ],
         tiers: {
-            basic: { name: 'Basic', price: 299, delivery_time: 'Up to 3 days', revisions: 1 },
-            standard: { name: 'Standard', price: 699, delivery_time: 'Up to 5 days', revisions: 2 },
-            premium: { name: 'Premium', price: 1499, delivery_time: 'Up to 10 days', revisions: 5 },
+            basic: { name: 'Basic', price: 299, description: 'Core features included', delivery_time: 'Up to 3 days', revisions: 1, features: ['Dr. Support'] },
+            standard: { name: 'Standard', price: 699, description: 'Advanced features and support', delivery_time: 'Up to 5 days', revisions: 2, features: ['Dr. Support'] },
+            premium: { name: 'Premium', price: 1499, description: 'Full solution with premium support', delivery_time: 'Up to 10 days', revisions: 5, features: ['Dr. Support'] },
         },
         cover_image_url: '',
         gallery: [],
@@ -464,7 +608,7 @@ export default function ServiceForm({ initialData = null, isSeller = false, back
     };
 
     return (
-        <form onSubmit={handleSave} className="space-y-6 max-w-5xl mx-auto pb-12">
+        <form onSubmit={handleSave} className="space-y-6 w-full pb-12">
             {/* Top Bar Navigation */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-6 rounded-2xl bg-slate-900/90 border border-white/10 backdrop-blur-xl">
                 <div className="flex items-center gap-3">
@@ -516,11 +660,10 @@ export default function ServiceForm({ initialData = null, isSeller = false, back
                         key={t.id}
                         type="button"
                         onClick={() => setActiveTab(t.id)}
-                        className={`px-4 py-2.5 rounded-t-xl text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${
-                            activeTab === t.id
-                                ? 'bg-slate-900 text-brand-teal border-t border-x border-brand-teal/30'
-                                : 'text-slate-500 hover:text-slate-300'
-                        }`}
+                        className={`px-4 py-2.5 rounded-t-xl text-xs font-black uppercase tracking-wider transition-all whitespace-nowrap cursor-pointer ${activeTab === t.id
+                            ? 'bg-slate-900 text-brand-teal border-t border-x border-brand-teal/30'
+                            : 'text-slate-500 hover:text-slate-300'
+                            }`}
                     >
                         {t.label}
                     </button>
@@ -637,21 +780,25 @@ export default function ServiceForm({ initialData = null, isSeller = false, back
                             disabled={saving}
                             placeholder="e.g. Proxy Rotation & Anti-bot Bypass"
                         />
-                        <div className="border-t border-white/10" />
-                        <ListEditor
-                            label="Service Badges"
-                            hint='Badges displayed on service cards (e.g. "Certified", "Best Seller").'
-                            items={formData.badges || []}
-                            onChange={badges => setFormData({ ...formData, badges })}
-                            disabled={saving}
-                            placeholder="e.g. Certified"
-                        />
+                        {!isSeller && (
+                            <>
+                                <div className="border-t border-white/10" />
+                                <ListEditor
+                                    label="Service Badges"
+                                    hint='Badges displayed on service cards (e.g. "Certified", "Best Seller").'
+                                    items={formData.badges || []}
+                                    onChange={badges => setFormData({ ...formData, badges })}
+                                    disabled={saving}
+                                    placeholder="e.g. Certified"
+                                />
+                            </>
+                        )}
                     </div>
                 )}
 
                 {activeTab === 'tiers' && (
                     <div className="space-y-4">
-                        <p className="text-xs text-slate-400">Configure pricing, delivery timelines, and revision limits for each tier package.</p>
+                        <p className="text-xs text-slate-400">Configure pricing, delivery timelines, and revision limits for each tier package. Use the Feature Checklist to define what's shown on each pricing card.</p>
                         {['basic', 'standard', 'premium'].map(tierKey => (
                             <TierEditor
                                 key={tierKey}
@@ -662,6 +809,7 @@ export default function ServiceForm({ initialData = null, isSeller = false, back
                                     tiers: { ...formData.tiers, [tierKey]: val }
                                 })}
                                 disabled={saving}
+                                suggestions={formData.features || []}
                             />
                         ))}
                     </div>
