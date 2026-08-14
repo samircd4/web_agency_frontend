@@ -117,7 +117,7 @@ export default function AdminProjectDetail() {
 
     // Create modals
     const [createProposalOpen, setCreateProposalOpen] = useState(false);
-    const [proposalForm, setProposalForm] = useState({ title: '', body_md: '' });
+    const [proposalForm, setProposalForm] = useState({ title: '', body_md: '', amount: '' });
     const [createInvoiceOpen, setCreateInvoiceOpen] = useState(false);
     const [invoiceForm, setInvoiceForm] = useState({ due_date: '', notes: '', currency: 'usd', item_description: 'Deposit', item_amount: '' });
     const [addItemOpen, setAddItemOpen] = useState(false);
@@ -299,13 +299,17 @@ export default function AdminProjectDetail() {
         const title = (proposalForm.title || '').trim();
         if (!title) return;
         try {
-            await api.createAdminProjectProposal(id, {
+            const payload = {
                 title,
                 body_md: proposalForm.body_md || '',
                 status: 'draft',
-            });
+            };
+            const amt = Number(proposalForm.amount);
+            if (Number.isFinite(amt) && amt > 0) payload.amount_cents = Math.round(amt * 100);
+
+            await api.createAdminProjectProposal(id, payload);
             setCreateProposalOpen(false);
-            setProposalForm({ title: '', body_md: '' });
+            setProposalForm({ title: '', body_md: '', amount: '' });
             await refreshBilling();
             showToast('Proposal created successfully');
         } catch (err) {
@@ -827,6 +831,25 @@ export default function AdminProjectDetail() {
                                     onChange={(e) => setProposalForm(p => ({ ...p, body_md: e.target.value }))}
                                     className="w-full min-h-48 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:border-brand-teal/50 font-bold resize-y"
                                     placeholder="Scope, timeline, milestones (50/30/20), revision policy…" />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Budget (optional)</label>
+                                    <input
+                                        type="number"
+                                        step="0.01"
+                                        min="0"
+                                        value={proposalForm.amount}
+                                        onChange={(e) => setProposalForm(p => ({ ...p, amount: e.target.value }))}
+                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm text-text-primary focus:outline-none focus:border-brand-teal/50 font-bold"
+                                        placeholder="0.00" />
+                                </div>
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Currency</label>
+                                    <select className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-text-primary focus:outline-none focus:border-brand-teal/50">
+                                        <option value="usd">USD</option>
+                                    </select>
+                                </div>
                             </div>
                             <div className="flex justify-end gap-2 pt-2">
                                 <button

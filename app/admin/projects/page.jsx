@@ -325,7 +325,7 @@ function ProjectDrawer({ project, onClose, onToggleMilestone, onDeleteMilestone,
     const [proposals, setProposals] = useState([]);
     const [invoices, setInvoices] = useState([]);
     const [createProposalOpen, setCreateProposalOpen] = useState(false);
-    const [proposalForm, setProposalForm] = useState({ title: '', body_md: '' });
+    const [proposalForm, setProposalForm] = useState({ title: '', body_md: '', amount: '' });
     const [createInvoiceOpen, setCreateInvoiceOpen] = useState(false);
     const [invoiceForm, setInvoiceForm] = useState({ due_date: '', notes: '', currency: 'usd', item_description: 'Deposit', item_amount: '' });
     const [addItemOpen, setAddItemOpen] = useState(false);
@@ -361,13 +361,17 @@ function ProjectDrawer({ project, onClose, onToggleMilestone, onDeleteMilestone,
         const title = (proposalForm.title || '').trim();
         if (!title) return;
         try {
-            await api.createAdminProjectProposal(project.id, {
+            const payload = {
                 title,
                 body_md: proposalForm.body_md || '',
                 status: 'draft',
-            });
+            };
+            const amt = Number(proposalForm.amount);
+            if (Number.isFinite(amt) && amt > 0) payload.amount_cents = Math.round(amt * 100);
+
+            await api.createAdminProjectProposal(project.id, payload);
             setCreateProposalOpen(false);
-            setProposalForm({ title: '', body_md: '' });
+            setProposalForm({ title: '', body_md: '', amount: '' });
             await refreshBilling();
         } catch (err) {
             console.error(err);

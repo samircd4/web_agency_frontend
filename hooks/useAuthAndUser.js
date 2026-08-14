@@ -9,6 +9,10 @@ export default function useAuthAndUser() {
     const router = useRouter();
     const [currentUser, setCurrentUser] = useState(null);
     const [loading, setLoading] = useState(true); // Initial loading for user data
+    const [activeRoleState, setActiveRoleState] = useState(() => {
+        if (typeof window !== 'undefined') return localStorage.getItem('active_role') || 'buyer';
+        return 'buyer';
+    });
     const mountedRef = useRef(false);
 
     const handleUserUpdate = (updatedUser) => {
@@ -63,6 +67,7 @@ export default function useAuthAndUser() {
                 const me = await api.getMe();
                 if (typeof window !== 'undefined' && me?.active_role) {
                     localStorage.setItem('active_role', me.active_role);
+                    setActiveRoleState(me.active_role);
                 }
                 setCurrentUser(me);
 
@@ -85,12 +90,14 @@ export default function useAuthAndUser() {
                 if (typeof window !== 'undefined') {
                     localStorage.setItem('active_role', res.user.active_role || targetRole);
                 }
+                setActiveRoleState(res.user.active_role || targetRole);
                 setCurrentUser(res.user);
             } else {
                 const me = await api.getMe();
                 if (typeof window !== 'undefined') {
                     localStorage.setItem('active_role', me.active_role || targetRole);
                 }
+                setActiveRoleState(me.active_role || targetRole);
                 setCurrentUser(me);
             }
             return true;
@@ -141,10 +148,10 @@ export default function useAuthAndUser() {
         handleSwitchRole,
         handleBecomeSeller,
         handleBecomeBuyer,
-        activeRole: currentUser?.active_role || 'buyer',
+        activeRole: activeRoleState || currentUser?.active_role || 'buyer',
         userRole: currentUser?.user_role || 'normal',
-        isBuyer: currentUser?.is_buyer || false,
-        isSeller: currentUser?.is_seller || false,
+        isBuyer: currentUser?.is_buyer || activeRoleState === 'buyer' || false,
+        isSeller: currentUser?.is_seller || activeRoleState === 'seller' || false,
         isBoth: currentUser?.is_both || false,
         settingsView,
         setSettingsView,

@@ -50,6 +50,8 @@ export default function ClientProjectDetail() {
     // Seller-specific state
     const [milestones, setMilestones] = useState([]);
     const [files, setFiles] = useState([]);
+    const [sellerInvoices, setSellerInvoices] = useState([]);
+    const [sellerProposals, setSellerProposals] = useState([]);
     const [newMilestoneName, setNewMilestoneName] = useState('');
     const [submitting, setSubmitting] = useState('');
 
@@ -70,6 +72,9 @@ export default function ClientProjectDetail() {
             setProject(p);
             setMilestones(p.milestones || []);
             setFiles(p.files || []);
+            // If backend includes invoices/proposals on seller detail, populate local lists
+            if (p.invoices) setSellerInvoices(p.invoices || []);
+            if (p.proposals) setSellerProposals(p.proposals || []);
         } catch (err) {
             console.error(err);
         }
@@ -81,19 +86,35 @@ export default function ClientProjectDetail() {
             try {
                 setProjectLoading(true);
                 let p;
-                if (isSellerView) {
-                    p = await api.getSellerProjectDetail(id);
+
+                // Determine whether to try seller endpoint first. Use localStorage (instant) as a hint
+                // so refreshing the page while in seller mode will attempt the seller API immediately.
+                const storedRole = typeof window !== 'undefined' ? localStorage.getItem('active_role') : null;
+                const trySellerFirst = storedRole === 'seller' || isSellerView;
+
+                if (trySellerFirst) {
+                    try {
+                        p = await api.getSellerProjectDetail(id);
+                    } catch (err) {
+                        // If seller endpoint fails (404/403), fall back to client endpoint before giving up
+                        console.warn('Seller project detail fetch failed, falling back to client endpoint:', err);
+                        p = await api.getClientProjectDetail(id);
+                    }
                 } else {
                     p = await api.getClientProjectDetail(id);
                 }
+
                 setProject(p);
-                if (isSellerView) {
+                if ((trySellerFirst || isSellerView) && p) {
                     setMilestones(p.milestones || []);
                     setFiles(p.files || []);
+                    if (p.invoices) setSellerInvoices(p.invoices || []);
+                    if (p.proposals) setSellerProposals(p.proposals || []);
                     const clientName = p.client_profile?.contact_name || 'Client';
                     setProposalForm({
                         title: 'Project Proposal',
-                        body_md: `Dear ${clientName},\n\nThank you for your project. Here is my proposal for...\n\nBest regards`,
+                            body_md: `Dear ${clientName},\n\nThank you for your project. Here is my proposal for...\n\nBest regards`,
+                            amount: '',
                     });
                 }
             } catch (err) {
@@ -112,6 +133,8 @@ export default function ClientProjectDetail() {
         try {
             if (currentUser?.is_staff) {
                 await api.cancelAdminProject(project.id);
+            } else if (isSellerView) {
+                await api.updateSellerProject(project.id, { status: 'cancelled' });
             } else {
                 await api.cancelClientProject(project.id);
             }
@@ -128,7 +151,13 @@ export default function ClientProjectDetail() {
         if (!project?.id) return;
         setIsCompleting(true);
         try {
-            await api.completeAdminProject(project.id, extraData);
+            if (currentUser?.is_staff) {
+                await api.completeAdminProject(project.id, extraData);
+            } else if (isSellerView) {
+                await api.updateSellerProject(project.id, { status: 'completed', ...extraData });
+            } else {
+                await api.completeAdminProject(project.id, extraData);
+            }
             setProject(prev => ({ ...prev, stage: 'Complete', ...extraData }));
             router.push('/dashboard/projects');
         } catch (err) {
@@ -142,10 +171,18 @@ export default function ClientProjectDetail() {
     // ─── Seller Milestone Actions (with drag order save) ──────────────
     const handleToggleMilestone = async (m) => {
         if (!project?.id) return;
-        const updated = { completed: !m.completed, done: !m.completed };
+        const newDone = !Boolean(m.done);
+        const payload = { done: newDone };
         try {
-            await api.updateSellerMilestone(project.id, m.id, updated);
-            setMilestones(prev => prev.map(x => x.id === m.id ? { ...x, completed: !x.completed, done: !x.done } : x));
+            await api.updateSellerMilestone(project.id, m.id, payload);
+            setMilestones(prev => {
+                const next = prev.map(x => x.id === m.id ? { ...x, done: newDone } : x);
+                // update project progress instantly (use `done`)
+                const doneCount = next.filter(ms => ms.done).length;
+                const prog = next.length > 0 ? Math.round((doneCount / next.length) * 100) : (project.progress || 0);
+                setProject(prevP => ({ ...prevP, milestones: next, progress: prog }));
+                return next;
+            });
         } catch (err) { console.error(err); }
     };
 
@@ -153,8 +190,14 @@ export default function ClientProjectDetail() {
         if (!project?.id || !newMilestoneName.trim()) return;
         setSubmitting('milestone');
         try {
-            const res = await api.addSellerMilestone(project.id, { name: newMilestoneName, completed: false, done: false, order_index: milestones.length });
-            setMilestones(prev => [...prev, res]);
+            const res = await api.addSellerMilestone(project.id, { name: newMilestoneName, done: false, order_index: milestones.length });
+            setMilestones(prev => {
+                const next = [...prev, res];
+                const doneCount = next.filter(ms => ms.done).length;
+                const prog = next.length > 0 ? Math.round((doneCount / next.length) * 100) : 0;
+                setProject(prevP => ({ ...prevP, milestones: next, progress: prog }));
+                return next;
+            });
             setNewMilestoneName('');
         } catch (err) { console.error(err); }
         finally { setSubmitting(''); }
@@ -164,7 +207,13 @@ export default function ClientProjectDetail() {
         if (!project?.id) return;
         try {
             await api.deleteSellerMilestone(project.id, mid);
-            setMilestones(prev => prev.filter(m => m.id !== mid));
+            setMilestones(prev => {
+                const next = prev.filter(m => m.id !== mid);
+                const doneCount = next.filter(ms => ms.done).length;
+                const prog = next.length > 0 ? Math.round((doneCount / next.length) * 100) : 0;
+                setProject(prevP => ({ ...prevP, milestones: next, progress: prog }));
+                return next;
+            });
         } catch (err) { console.error(err); }
     };
 
@@ -194,6 +243,10 @@ export default function ClientProjectDetail() {
             await Promise.all(newMs.map((m, i) =>
                 api.updateSellerMilestone(project.id, m.id, { order_index: i })
             ));
+            // update project progress in case order change affects UI expectations
+            const doneCount = newMs.filter(ms => ms.completed || ms.done).length;
+            const prog = newMs.length > 0 ? Math.round((doneCount / newMs.length) * 100) : 0;
+            setProject(prevP => ({ ...prevP, milestones: newMs, progress: prog }));
         } catch (err) {
             console.error('Failed to save milestone order:', err);
         }
@@ -236,13 +289,16 @@ export default function ClientProjectDetail() {
         if (!title) return;
         setSubmitting('proposal');
         try {
+            let created;
             try {
-                await api.sendSellerProposal(project.id, { content: bodyMd, title });
+                created = await api.sendSellerProposal(project.id, { content: bodyMd, title, amount: proposalForm.amount });
             } catch {
-                await api.sendSellerProposal(project.id, { content: bodyMd });
+                created = await api.sendSellerProposal(project.id, { content: bodyMd, amount: proposalForm.amount });
             }
             setCreateProposalOpen(false);
-            setProposalForm({ title: '', body_md: '' });
+            setProposalForm({ title: '', body_md: '', amount: '' });
+            // keep local list of seller proposals so sidebar shows pending items
+            if (created) setSellerProposals(prev => [created, ...prev]);
             await refreshSellerBilling();
             if (typeof window !== 'undefined') {
                 try {
@@ -265,24 +321,27 @@ export default function ClientProjectDetail() {
             if (Number.isFinite(amount) && amount > 0) {
                 items.push({
                     description: (invoiceForm.item_description || 'Service').trim() || 'Service',
-                    amount,
+                    quantity: 1,
+                    unit_amount: amount,
                 });
             }
+            let createdInv;
             try {
-                await api.sendSellerInvoice(project.id, {
-                    items: items.length > 0 ? items : [{ description: (invoiceForm.item_description || 'Service').trim() || 'Service', amount: 0 }],
+                createdInv = await api.sendSellerInvoice(project.id, {
+                    items: items.length > 0 ? items : [{ description: (invoiceForm.item_description || 'Service').trim() || 'Service', quantity: 1, unit_amount: 0 }],
                     notes: invoiceForm.notes || '',
                     total_amount: amount > 0 ? amount : 0,
                 });
             } catch {
-                await api.sendSellerInvoice(project.id, {
-                    items: items.length > 0 ? items : [{ description: 'Service', amount: 0 }],
+                createdInv = await api.sendSellerInvoice(project.id, {
+                    items: items.length > 0 ? items : [{ description: 'Service', quantity: 1, unit_amount: 0 }],
                     notes: invoiceForm.notes || '',
                     total_amount: amount > 0 ? amount : 0,
                 });
             }
             setCreateInvoiceOpen(false);
             setInvoiceForm({ due_date: '', notes: '', currency: 'usd', item_description: 'Project Delivery', item_amount: '' });
+            if (createdInv) setSellerInvoices(prev => [createdInv, ...prev]);
             await refreshSellerBilling();
             if (typeof window !== 'undefined') {
                 try {
@@ -520,8 +579,8 @@ export default function ClientProjectDetail() {
                     <div className="space-y-4 md:sticky md:top-[96px] z-20 order-1 md:order-2">
                         <ProjectSidebar
                             project={project}
-                            clientInvoices={clientInvoices}
-                            clientProposals={clientProposals}
+                            clientInvoices={isSellerView ? sellerInvoices : clientInvoices}
+                            clientProposals={isSellerView ? sellerProposals : clientProposals}
                             files={viewFiles}
                             isAdmin={currentUser?.is_staff}
                             isSeller={isSellerView}
@@ -592,6 +651,16 @@ export default function ClientProjectDetail() {
                                     className="w-full min-h-48 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-text-primary focus:outline-none focus:border-brand-teal/50 font-bold resize-y"
                                     placeholder="Scope, timeline, milestones, revision policy…" />
                             </div>
+                                    <div className="space-y-1.5">
+                                        <label className="text-[10px] font-black uppercase tracking-widest text-slate-500 ml-1">Proposed Budget (USD)</label>
+                                        <input
+                                            type="number"
+                                            step="0.01"
+                                            min="0"
+                                            value={proposalForm.amount}
+                                            onChange={(e) => setProposalForm(p => ({ ...p, amount: e.target.value }))}
+                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-text-primary focus:outline-none focus:border-brand-teal/50" />
+                                    </div>
                             <div className="flex justify-end gap-2 pt-2">
                                 <button
                                     type="button"

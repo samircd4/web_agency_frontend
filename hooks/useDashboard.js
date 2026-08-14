@@ -36,14 +36,14 @@ export default function useDashboard() {
 
 function useDashboardState() {
     // Auth and User state
-    const { currentUser, loading: userLoading, handleLogout, ...authAndUserSettings } = useAuthAndUser();
+    const { currentUser, loading: userLoading, handleLogout, activeRole, isSeller, ...authAndUserSettings } = useAuthAndUser();
 
     // Projects data and state
-    const projectsData = useProjectsData(currentUser);
+    const projectsData = useProjectsData(currentUser, activeRole);
     const { projects } = projectsData;
 
     // Billing state
-    const billingData = useBillingData(projects);
+    const billingData = useBillingData(projects, activeRole);
 
     // Navigation state
     const navigationData = useDashboardNavigation();

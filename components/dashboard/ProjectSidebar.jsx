@@ -78,6 +78,64 @@ function ClientInformation({ project, isAdmin }) {
 }
 
 
+function SellerInformation({ project, isAdmin }) {
+    const sellerProfile = project?.seller_profile;
+    const assignedName = project?.assigned_to_name;
+    const avatar = sellerProfile?.avatar || project?.assigned_to_avatar || null;
+
+    const [currentTime, setCurrentTime] = useState(() => new Date());
+
+    useEffect(() => {
+        const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+        return () => clearInterval(timer);
+    }, []);
+
+    const name = sellerProfile?.name || sellerProfile?.full_name || assignedName || 'Unassigned';
+    const country = sellerProfile?.country || 'Global';
+
+    if (!sellerProfile && !assignedName) return null;
+
+    return (
+        <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5 space-y-3">
+            <div>
+                <div className="text-xs font-black text-muted uppercase tracking-widest mb-1.5">
+                    Seller / Project Manager
+                </div>
+                <div className="flex items-center gap-2.5">
+                    <div className="w-9 h-9 rounded-xl bg-brand-teal/10 flex items-center justify-center text-brand-teal shrink-0 relative overflow-hidden">
+                        {avatar ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img src={avatar} alt="Seller Avatar" className="w-full h-full object-cover" />
+                        ) : (
+                            <User size={16} />
+                        )}
+                    </div>
+                    <div className="min-w-0">
+                        <div className="text-sm font-black text-white tracking-tight truncate">
+                            {name}
+                        </div>
+                        <div className="text-[11px] font-black text-brand-teal uppercase tracking-widest truncate">
+                            {country}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* Current Time Display */}
+            <div className="pt-2.5 border-t border-white/5">
+                <div className="flex items-center justify-between gap-2">
+                    <div className="text-xs font-black text-muted uppercase tracking-widest">Current Time</div>
+                    <div className="flex items-center gap-1.5">
+                        <Clock size={12} className="text-brand-teal" />
+                        <span className="text-xs font-bold text-white tabular-nums">{currentTime.toLocaleTimeString()}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+
 function ProjectStatusCard({ project }) {
     return (
         <div className="p-3.5 rounded-xl bg-white/[0.02] border border-white/5 flex flex-col justify-between h-[105px]">
@@ -698,6 +756,8 @@ export default function ProjectSidebar({
 
             <ClientInformation project={project} isAdmin={isAdmin} />
 
+            <SellerInformation project={project} isAdmin={isAdmin} />
+
             {/* Action Buttons */}
             <div className="flex flex-col gap-2">
                 {canManage && (
@@ -722,7 +782,10 @@ export default function ProjectSidebar({
                                             : 'bg-emerald-500/10 hover:-translate-y-0.5 transition-all'
                                     }`}
                             >
-                                {project?.status === 'completed' ? 'Completed' : 'Complete'} <CheckCircle size={12} />
+                                {project?.status === 'completed'
+                                    ? 'Completed'
+                                    : (isSeller ? 'Deliver Project' : 'Complete')}
+                                <CheckCircle size={12} />
                             </button>
                         )}
                     </div>

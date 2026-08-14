@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { api } from '@/lib/api';
 
-export default function useProjectsData(currentUser) {
+export default function useProjectsData(currentUser, activeRole) {
     const [projects, setProjects] = useState([]);
     const [selectedProject, setSelectedProject] = useState(null);
     const [searchQuery, setSearchQuery] = useState('');
@@ -17,11 +17,15 @@ export default function useProjectsData(currentUser) {
 
         const initProjects = async () => {
             try {
-                const compactProjects = await api.getClientProjects();
+                // Choose client vs seller project listing based on active role
+                const compactProjects = (activeRole === 'seller') ? await api.getSellerProjects() : await api.getClientProjects();
 
                 const detailedProjects = await Promise.all(
                     compactProjects.map(async (p) => {
                         try {
+                            if (activeRole === 'seller') {
+                                return await api.getSellerProjectDetail(p.id);
+                            }
                             return await api.getClientProjectDetail(p.id);
                         } catch (err) {
                             console.error(`Failed to fetch project detail for ${p.id}`, err);

@@ -15,7 +15,7 @@ const getApiBaseUrl = () => {
 };
 const API_BASE_URL = getApiBaseUrl().replace(/\/$/, "");
 
-export default function useBillingData(projects) {
+export default function useBillingData(projects, activeRole) {
     const [billingView, setBillingView] = useState('invoices');
     const [clientInvoices, setClientInvoices] = useState([]);
     const [clientProposals, setClientProposals] = useState([]);
@@ -133,6 +133,22 @@ export default function useBillingData(projects) {
 
                 const perProject = await Promise.all(
                     projects.map(async (p) => {
+                        try {
+                            if (activeRole === 'seller') {
+                                // Seller detail embeds invoices/proposals on the project detail
+                                const pd = await api.getSellerProjectDetail(p.id).catch(() => null);
+                                return {
+                                    projectId: p.id,
+                                    projectTitle: p.title,
+                                    projectValue: p.value,
+                                    invoices: normalizeList(pd?.invoices || []),
+                                    proposals: normalizeList(pd?.proposals || []),
+                                };
+                            }
+                        } catch (e) {
+                            // fallthrough to client fetch below
+                        }
+
                         const [invRes, propRes] = await Promise.all([
                             api.getClientProjectInvoices(p.id).catch(() => []),
                             api.getClientProjectProposals(p.id).catch(() => []),

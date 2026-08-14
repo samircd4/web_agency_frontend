@@ -5,6 +5,9 @@ import ReactMarkdown from 'react-markdown';
 
 import { centsToMoney, invoicePaymentLabel } from '@/lib/utils/formatters';
 import { canPayInvoice } from '@/lib/utils/billing-utils';
+import useDashboard from '@/hooks/useDashboard';
+import { api } from '@/lib/api';
+import { useState } from 'react';
 import ProjectDetailModal from './modals/ProjectDetailModal';
 
 export default function DashboardModals({
@@ -23,6 +26,15 @@ export default function DashboardModals({
     onPrintInvoice,
     router,
 }) {
+    const { currentUser, activeRole, isSeller } = useDashboard();
+    const isSellerView = activeRole === 'seller' && isSeller && !currentUser?.is_staff;
+    const [editingProposal, setEditingProposal] = useState(false);
+    const [proposalEditForm, setProposalEditForm] = useState({ title: '', body_md: '', amount: '' });
+    const [invoiceItemForm, setInvoiceItemForm] = useState({ description: '', quantity: 1, unit_amount: '' });
+
+    const showToast = (msg, type = 'success') => {
+        try { const t = window.__showToast; if (t) t(msg, type); else alert(msg); } catch { alert(msg); }
+    };
     return (
         <>
             <ProjectDetailModal selectedProject={selectedProject} setSelectedProject={setSelectedProject} router={router} />
@@ -89,6 +101,42 @@ export default function DashboardModals({
                                 <button type="button" onClick={() => onPrintInvoice(selectedInvoice)} className="px-4 py-2 bg-brand-teal/10 border border-brand-teal/20 text-brand-teal rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-brand-teal/15 transition-all">
                                     Print
                                 </button>
+                                {isSellerView && selectedInvoice && (
+                                    <>
+                                        {selectedInvoice.status === 'draft' && (
+                                            <button type="button" onClick={async () => {
+                                                try {
+                                                    const pid = selectedInvoice._projectId || selectedInvoice.project;
+                                                    await api.sendExistingSellerInvoice(pid, selectedInvoice.id);
+                                                    showToast('Invoice sent');
+                                                    setSelectedInvoice(prev => ({ ...prev, status: 'sent', issued_at: new Date().toISOString() }));
+                                                } catch (err) { console.error(err); showToast('Failed to send invoice', 'error'); }
+                                            }} className="px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 rounded-xl font-black uppercase tracking-widest text-[10px]">Send</button>
+                                        )}
+
+                                        {/* Add invoice item inline */}
+                                        <div className="flex items-center gap-2">
+                                            <input type="text" placeholder="Item description" value={invoiceItemForm.description} onChange={(e) => setInvoiceItemForm(f => ({ ...f, description: e.target.value }))} className="px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-sm" />
+                                            <input type="number" step="0.01" placeholder="Amount" value={invoiceItemForm.unit_amount} onChange={(e) => setInvoiceItemForm(f => ({ ...f, unit_amount: e.target.value }))} className="w-28 px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-sm" />
+                                            <button type="button" onClick={async () => {
+                                                try {
+                                                    const pid = selectedInvoice._projectId || selectedInvoice.project;
+                                                    const amt = Number(invoiceItemForm.unit_amount);
+                                                    if (!invoiceItemForm.description || !Number.isFinite(amt)) return showToast('Provide valid item and amount', 'error');
+                                                    await api.createSellerInvoiceItem(pid, selectedInvoice.id, { description: invoiceItemForm.description, quantity: invoiceItemForm.quantity || 1, unit_amount: amt });
+                                                    showToast('Item added');
+                                                    setInvoiceItemForm({ description: '', quantity: 1, unit_amount: '' });
+                                                    // refresh selectedInvoice locally
+                                                    const refreshed = await api.getSellerProjectDetail(pid).catch(() => null);
+                                                    if (refreshed && refreshed.invoices) {
+                                                        const inv = (refreshed.invoices || []).find(i => i.id === selectedInvoice.id);
+                                                        if (inv) setSelectedInvoice(inv);
+                                                    }
+                                                } catch (err) { console.error(err); showToast('Failed to add item', 'error'); }
+                                            }} className="px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-sm">Add</button>
+                                        </div>
+                                    </>
+                                )}
                                 {canPayInvoice(selectedInvoice.status) && (
                                     <button type="button" onClick={() => onPayInvoice(selectedInvoice)} className="px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-emerald-500/15 transition-all">
                                         Pay Now
@@ -117,25 +165,73 @@ export default function DashboardModals({
                             </div>
 
                             <div className="flex-grow overflow-y-auto p-6">
-                                <div className="prose prose-invert max-w-none prose-a:text-brand-teal prose-strong:text-white prose-p:text-slate-300">
-                                    <ReactMarkdown>{selectedProposal.body_md || ''}</ReactMarkdown>
-                                </div>
+                                {!editingProposal ? (
+                                    <div className="prose prose-invert max-w-none prose-a:text-brand-teal prose-strong:text-white prose-p:text-slate-300">
+                                        <ReactMarkdown>{selectedProposal.body_md || ''}</ReactMarkdown>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-3">
+                                        <input value={proposalEditForm.title} onChange={(e) => setProposalEditForm(p => ({ ...p, title: e.target.value }))} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-sm text-text-primary" />
+                                        <textarea value={proposalEditForm.body_md} onChange={(e) => setProposalEditForm(p => ({ ...p, body_md: e.target.value }))} className="w-full min-h-36 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-text-primary resize-y" />
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <input type="number" step="0.01" min="0" value={proposalEditForm.amount} onChange={(e) => setProposalEditForm(p => ({ ...p, amount: e.target.value }))} className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm" placeholder="Budget" />
+                                        </div>
+                                    </div>
+                                )}
                             </div>
 
                             {proposalActionError && (
                                 <div className="mx-6 p-4 rounded-xl bg-brand-red/10 border border-brand-red/20 text-brand-red text-sm">{proposalActionError}</div>
                             )}
 
-                            {selectedProposal.status === 'sent' && (
-                                <div className="p-4 bg-white/[0.02] border-t border-white/5 flex items-center justify-end gap-2">
-                                    <button type="button" onClick={() => setShowDeclineConfirm(true)} disabled={proposalActionInProgress !== null} className="px-4 py-2 bg-white/5 border border-white/15 text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-brand-red/10 hover:border-brand-red/30 hover:text-brand-red transition-all disabled:opacity-50">
-                                        Decline
-                                    </button>
-                                    <button type="button" onClick={() => handleProposalRespond(selectedProposal._projectId, selectedProposal.id, 'accept')} disabled={proposalActionInProgress !== null} className="px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-emerald-500/20 transition-all disabled:opacity-50 flex items-center gap-2">
-                                        {proposalActionInProgress?.action === 'accept' ? (<><Loader2 size={12} className="animate-spin" />Accepting…</>) : 'Accept Proposal'}
-                                    </button>
-                                </div>
-                            )}
+                            <div className="p-4 bg-white/[0.02] border-t border-white/5 flex items-center justify-end gap-2">
+                                {/* Client actions when proposal is sent */}
+                                {selectedProposal.status === 'sent' && (
+                                    <>
+                                        <button type="button" onClick={() => setShowDeclineConfirm(true)} disabled={proposalActionInProgress !== null} className="px-4 py-2 bg-white/5 border border-white/15 text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-brand-red/10 hover:border-brand-red/30 hover:text-brand-red transition-all disabled:opacity-50">
+                                            Decline
+                                        </button>
+                                        <button type="button" onClick={() => handleProposalRespond(selectedProposal._projectId, selectedProposal.id, 'accept')} disabled={proposalActionInProgress !== null} className="px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-emerald-500/20 transition-all disabled:opacity-50 flex items-center gap-2">
+                                            {proposalActionInProgress?.action === 'accept' ? (<><Loader2 size={12} className="animate-spin" />Accepting…</>) : 'Accept Proposal'}
+                                        </button>
+                                    </>
+                                )}
+
+                                {/* Seller actions: edit / save / send */}
+                                {isSellerView && selectedProposal && (
+                                    <>
+                                        {!editingProposal ? (
+                                            <button type="button" onClick={() => {
+                                                setEditingProposal(true);
+                                                setProposalEditForm({ title: selectedProposal.title || '', body_md: selectedProposal.body_md || '', amount: selectedProposal.amount_cents ? (Number(selectedProposal.amount_cents) / 100).toFixed(2) : '' });
+                                            }} className="px-4 py-2 bg-white/5 border border-white/15 text-white rounded-xl font-black uppercase tracking-widest text-[10px]">Edit</button>
+                                        ) : (
+                                            <button type="button" onClick={async () => {
+                                                try {
+                                                    const pid = selectedProposal._projectId || selectedProposal.project;
+                                                    const payload = { title: proposalEditForm.title, body_md: proposalEditForm.body_md };
+                                                    if (proposalEditForm.amount && proposalEditForm.amount !== '') payload.amount = Number(proposalEditForm.amount);
+                                                    await api.updateSellerProposal(pid, selectedProposal.id, payload);
+                                                    setEditingProposal(false);
+                                                    showToast('Proposal updated');
+                                                    setSelectedProposal(prev => ({ ...prev, ...payload, amount_cents: payload.amount ? Math.round(payload.amount * 100) : prev.amount_cents }));
+                                                } catch (err) { console.error(err); showToast('Failed to update proposal', 'error'); }
+                                            }} className="px-4 py-2 bg-brand-teal text-white rounded-xl font-black uppercase tracking-widest text-[10px]">Save</button>
+                                        )}
+
+                                        {selectedProposal.status === 'draft' && (
+                                            <button type="button" onClick={async () => {
+                                                try {
+                                                    const pid = selectedProposal._projectId || selectedProposal.project;
+                                                    await api.sendExistingSellerProposal(pid, selectedProposal.id);
+                                                    showToast('Proposal sent');
+                                                    setSelectedProposal(prev => ({ ...prev, status: 'sent', sent_at: new Date().toISOString() }));
+                                                } catch (err) { console.error(err); showToast('Failed to send', 'error'); }
+                                            }} className="px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 rounded-xl font-black uppercase tracking-widest text-[10px]">Send</button>
+                                        )}
+                                    </>
+                                )}
+                            </div>
 
                             {showDeclineConfirm && (
                                 <div className="p-4 bg-brand-red/10 border-t border-brand-red/20 flex items-center justify-between gap-4">

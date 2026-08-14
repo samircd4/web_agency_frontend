@@ -9,7 +9,7 @@ export default function ProjectActivityLogSection({ activities }) {
     return (
         <section>
             <h4 className="text-[8px] font-black text-slate-600 uppercase tracking-widest mb-3 flex items-center gap-2"><Activity size={11} className="text-brand-indigo" /> Activity Log</h4>
-            <div className="space-y-3 border-l border-white/5 ml-1.5 pl-4">
+            <div className="space-y-3 border-l border-white/5 ml-1.5 pl-4 max-h-[320px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-white/6">
                 {activities.map((log) => (
                     <div key={log.id} className="relative">
                         <div className="absolute -left-[21px] top-1.5 w-1.5 h-1.5 rounded-full bg-brand-teal" />

@@ -178,7 +178,7 @@ export default function BillingTab({
                                             <tr key={`${p._projectId}-${p.id}`} className={`${idx % 2 === 0 ? 'bg-white/[0.01]' : ''} hover:bg-white/[0.04] transition-colors`}>
                                                 <td className="px-6 py-4 font-black text-white text-xs">{p.title || `#${p.id}`}</td>
                                                 <td className="px-6 py-4 text-primary text-xs uppercase font-bold">{p._projectTitle || p.project}</td>
-                                                <td className="px-6 py-4 text-primary text-xs font-bold">USD {valueToMoney(p._projectValue)}</td>
+                                                <td className="px-6 py-4 text-primary text-xs font-bold">USD {p.amount_cents ? valueToMoney((Number(p.amount_cents) || 0) / 100) : valueToMoney(p._projectValue)}</td>
                                                 <td className="px-6 py-4 text-secondary text-xs">{p.sent_at ? new Date(p.sent_at).toLocaleDateString() : '—'}</td>
                                                 <td className="px-6 py-4">
                                                     <span className={`px-2.5 py-1 rounded-md text-[9px] font-black uppercase tracking-[0.14em] border ${p.status === 'draft' ? 'bg-slate-500/10 text-slate-300 border-slate-500/20' : p.status === 'sent' ? 'bg-amber-500/10 text-amber-300 border-amber-500/20' : p.status === 'accepted' ? 'bg-emerald-500/10 text-emerald-300 border-emerald-500/20' : p.status === 'rejected' ? 'bg-red-500/10 text-red-300 border-red-500/20' : 'bg-white/5 text-primary border-white/10'}`}>
