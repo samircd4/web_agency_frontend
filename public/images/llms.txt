@@ -1,0 +1,29 @@
+# Dr Python Solutions
+
+> Enterprise data extraction, high-throughput web automation, custom API architecture, and full-stack software engineering.
+
+## Metadata
+
+- **Organization:** Dr Python Solutions
+- **Website:** https://drpythonsolutions.com
+- **Contact:** contact@drpythonsolutions.com
+- **Full Context:** https://drpythonsolutions.com/llms-full.txt
+
+## Primary Capabilities
+
+- [Services Overview](https://drpythonsolutions.com/services): Complete technical capabilities, service packages, and engineering specs.
+- [Industrial Scraping](https://drpythonsolutions.com/services): Enterprise-grade data ingestion pipelines, anti-bot navigation, proxy rotation, and headful/headless browser clusters.
+- [API Architectures](https://drpythonsolutions.com/services): High-performance, low-latency REST APIs designed with FastAPI and Django REST Framework.
+- [E-commerce Engines](https://drpythonsolutions.com/services): Custom full-stack web platforms, automated product/inventory sync, and backend integrations.
+
+## System & Information
+
+- [Portfolio](https://drpythonsolutions.com/portfolio): Verified case studies, architecture breakdowns, and client technical implementations.
+- [Pricing & Engagement](https://drpythonsolutions.com/pricing): Milestone-based project tiers, retainer models, and scope estimations.
+- [Our Methodology](https://drpythonsolutions.com/our-process): System design workflow, testing strategies, deployment cycles, and maintenance.
+- [Technical Journal](https://drpythonsolutions.com/blog): Deep dives into web crawling resilience, Next.js optimization, and Python backend performance.
+
+## Project Execution & Inquiries
+
+- [Start a Project](https://drpythonsolutions.com/start-project): Submit custom project requirements, dynamic scope parameters, and technical specs.
+- [Contact Page](https://drpythonsolutions.com/contact): General inquiry form, email details, and direct communication channels.

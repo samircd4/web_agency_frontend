@@ -1,0 +1,73 @@
+# Dr Python Solutions — Full Technical & Architecture Specification
+
+> **Organization:** Dr Python Solutions  
+> **Domain:** https://drpythonsolutions.com  
+> **Email:** contact@drpythonsolutions.com  
+> **Location:** Dhaka, Bangladesh  
+> **Primary Tech Stack:** Python (FastAPI, Django REST Framework, Playwright, Scrapy), Next.js, React, PostgreSQL, Docker, Nginx.
+
+---
+
+## 1. Overview & Business Summary
+
+Dr Python Solutions is a boutique software engineering agency specializing in complex web automation, enterprise-scale web scraping, custom REST API design, and modern full-stack web applications. 
+
+We solve high-friction technical challenges—such as bypassing sophisticated anti-bot systems, managing high-throughput asynchronous data streams, and delivering zero-lag client interfaces.
+
+---
+
+## 2. Core Technical Competencies
+
+### A. Advanced Web Scraping & Ingestion Pipelines
+- **Anti-Bot & WAF Evasion:** Expertise in navigating Cloudflare, Akamai, Datadome, PerimeterX, and Incapsula protections using browser fingerprint masking, TLS fingerprint matching, and dynamic header mutation.
+- **Browser Automation:** Headless/Headful browser cluster management using Playwright, Selenium, and Puppeteer with residential and mobile proxy rotation.
+- **Parsing & Data Structuring:** High-speed HTML/XML/JSON parsing utilizing BeautifulSoup4, Selectolax, lxml, and pydantic schema validation.
+- **Resilience & Storage:** Asynchronous job execution (Celery, Redis), automatic retry loops with exponential backoff, and ingestion into PostgreSQL, MongoDB, or S3/minio targets.
+
+### B. Scalable API & Backend Engineering
+- **Frameworks:** Python 3.12+ (FastAPI, Django, Django REST Framework), Node.js / Next.js server routes.
+- **Architecture:** Asynchronous event loops, RESTful endpoint standards, OpenAPI/Swagger documentation generation, microservice orchestration.
+- **Database & Caching:** PostgreSQL query optimization, Redis key-value caching, relational index tuning, and migration safety.
+- **Security & Infrastructure:** JWT/OAuth2 authentication, CORS policy management, rate limiting, systemd service management, and Nginx reverse proxy configuration with HTTP/2 and Brotli compression.
+
+### C. Full-Stack Web Development
+- **Frontend Stack:** Next.js (App Router), React, Tailwind CSS, Framer Motion, TypeScript, JavaScript.
+- **Performance Standards:** Server-Side Rendering (SSR), React Server Components (RSC), code-splitting, critical-path CSS optimization, zero-layout-shift (CLS) UI engineering.
+
+---
+
+## 3. Technology Stack & Tooling
+
+| Category | Preferred Stack / Tools |
+| :--- | :--- |
+| **Languages** | Python, JavaScript (ES6+), TypeScript, SQL, HTML5, CSS3 |
+| **Python Package Manager** | `uv` (Ultra-fast Python package installer and dependency resolver) |
+| **Backend Frameworks** | FastAPI, Django, Django REST Framework |
+| **Frontend Frameworks** | Next.js (App Router), React, Tailwind CSS |
+| **Scraping / Automation** | Playwright, BeautifulSoup4, Scrapy, Requests, httpx, Selenium |
+| **Databases / Caching** | PostgreSQL, Redis, SQLite, MongoDB |
+| **DevOps & Server** | Docker, Nginx, Ubuntu Linux, Systemd, Git |
+
+---
+
+## 4. Standard Engineering Lifecycle
+
+1. **Discovery & Feasibility:** Requirements analysis, target site anti-bot evaluation, schema mapping, and rate-limit profiling.
+2. **Phase 1 Execution (Frontend / API Contracts):** Delivering early mock endpoints, database schemas, or frontend UI layout shells.
+3. **Core Engine Construction:** Crawler/API logic implementation, proxy rotation integration, and error recovery setup.
+4. **Resilience & Security Hardening:** Load testing, stress testing asynchronous worker pools, and memory leak checks.
+5. **Deployment:** Docker containerization or systemd background service deployment on Ubuntu VPS with automated restart policies.
+
+---
+
+## 5. Site Map & Endpoint Directory
+
+- **Homepage:** https://drpythonsolutions.com
+- **Services:** https://drpythonsolutions.com/services
+- **Portfolio:** https://drpythonsolutions.com/portfolio
+- **Pricing:** https://drpythonsolutions.com/pricing
+- **Blog:** https://drpythonsolutions.com/blog
+- **Initialize Project:** https://drpythonsolutions.com/start-project
+- **Contact:** https://drpythonsolutions.com/contact
+- **Privacy Policy:** https://drpythonsolutions.com/privacy
+- **Terms of Service:** https://drpythonsolutions.com/terms
