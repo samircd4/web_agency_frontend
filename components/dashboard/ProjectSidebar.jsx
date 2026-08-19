@@ -490,7 +490,7 @@ function PortfolioImageCard({ project, isAdmin, isSeller, isCompleted = false, o
         <div className="p-4 rounded-xl bg-white/[0.02] border border-white/5 space-y-3">
             <div className="flex items-center justify-between gap-2">
                 <div className="text-xs font-black text-muted uppercase tracking-widest flex items-center gap-1.5">
-                    <ImageIcon size={14} className="text-brand-teal" />
+                    <ImageIcon size={14} className="text-brand-teal" priority/>
                     Portfolio Showcase Image
                 </div>
                 {canManageImage && (

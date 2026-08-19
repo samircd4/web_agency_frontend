@@ -307,6 +307,7 @@ const ClientMap = ({ data: dataProp }) => {
                                             height="12" width="12"
                                             clipPath="url(#avatar-clip)"
                                             className="pointer-events-none"
+                                            priority
                                         />
                                         {/* Enlarged transparent hitbox for easier targeting */}
                                         <circle r={12} fill="transparent" />

@@ -302,7 +302,7 @@ export default function ServiceDetailPage() {
                                                     onClick={() => setActiveImage(idx)}
                                                     className={`relative w-20 md:w-28 aspect-video rounded-lg overflow-hidden border-2 transition-all flex-shrink-0 ${activeImage === idx ? 'border-brand-teal' : 'border-transparent opacity-50 hover:opacity-100'}`}
                                                 >
-                                                    <Image src={img} alt={`Gallery ${idx}`} fill unoptimized className="object-cover" />
+                                                    <Image src={img} alt={`Gallery ${idx}`} fill unoptimized className="object-cover" priority />
                                                 </button>
                                             ))}
                                         </div>
@@ -588,7 +588,7 @@ export default function ServiceDetailPage() {
                                                                         {/* Bigger User Avatar */}
                                                                         <div className="w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-gradient-to-br from-brand-teal/20 via-brand-blue/20 to-slate-900 flex items-center justify-center text-white text-xl md:text-2xl font-black border-2 border-brand-teal/40 shadow-xl shadow-brand-teal/10 overflow-hidden relative flex-shrink-0">
                                                                             {review.image || review.client_avatar ? (
-                                                                                <Image src={review.image || review.client_avatar} alt={review.name} fill className="object-cover" />
+                                                                                <Image src={review.image || review.client_avatar} alt={review.name} fill className="object-cover" priority/>
                                                                             ) : (
                                                                                 <span>{(review.name || 'C').charAt(0)}</span>
                                                                             )}

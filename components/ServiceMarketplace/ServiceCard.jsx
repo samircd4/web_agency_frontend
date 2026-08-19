@@ -175,6 +175,7 @@ export default function ServiceCard({ service }) {
                       unoptimized
                       sizes="32px"
                       className="object-cover" 
+                      priority
                     />
                   </div>
                 ))}

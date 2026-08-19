@@ -55,6 +55,7 @@ export default function MockupSection() {
                                     src="/dashboard_mockup_preview.png"
                                     alt="Mobile Mockup"
                                     className="object-contain object-left opacity-90"
+                                    priority
                                 />
                                 {/* AI Glow Pulse */}
                                 <div className="absolute inset-0 bg-indigo-500/5 animate-pulse" />

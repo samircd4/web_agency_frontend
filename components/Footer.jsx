@@ -21,6 +21,7 @@ export default function Footer() {
                                         fill 
                                         sizes="48px"
                                         className="object-contain p-2"
+                                        priority
                                     />
                                 </div>
                             </div>

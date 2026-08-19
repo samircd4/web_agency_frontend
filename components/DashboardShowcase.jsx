@@ -93,6 +93,7 @@ export default function DashboardShowcase() {
                                         fill
                                         sizes="192px"
                                         className="object-cover object-top "
+                                        priority
                                     />
 
                                     <div className="absolute top-2 left-1/2 -translate-x-1/2 w-12 h-1.5 bg-slate-800 rounded-full" />

@@ -190,6 +190,7 @@ export default function Navbar() {
                                         fill
                                         sizes="48px"
                                         className="object-contain"
+                                        priority
                                     />
                                 </div>
                                 <span className="text-white font-black text-xs uppercase tracking-widest">Menu</span>

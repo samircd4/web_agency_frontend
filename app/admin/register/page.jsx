@@ -132,7 +132,7 @@ function RegisterForm() {
                 >
                     <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-white/5 border border-border-light mb-4 relative">
                         <div className="absolute inset-0 rounded-2xl bg-brand-teal/10 blur-xl" />
-                        <Image src="/images/logo/logo.png" alt="Dr. Python" fill sizes="64px" className="object-contain p-2" />
+                        <Image priority src="/images/logo/logo.png" alt="Dr. Python" fill sizes="64px" className="object-contain p-2" />
                     </div>
                     <div className="flex items-center justify-center gap-2 mb-2">
                         <Shield size={14} className="text-brand-teal" />
