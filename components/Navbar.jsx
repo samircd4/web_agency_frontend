@@ -1,12 +1,12 @@
+// Navbar.jsx
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    Menu, X, ArrowRight, ChevronRight, Zap, Code2,
-    LayoutDashboard, ShieldCheck, Store, Settings, LogOut, User
+    Menu, X, ChevronRight, Zap, Settings, LogOut, User, Store, LayoutDashboard
 } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import { api, getFullAvatarUrl } from '@/lib/api';
@@ -60,8 +60,6 @@ export default function Navbar() {
         return () => { document.body.style.overflow = 'unset'; };
     }, [isMenuOpen]);
 
-
-
     const handleLogout = async () => {
         await api.logout();
         setCurrentUser(null);
@@ -95,7 +93,7 @@ export default function Navbar() {
                 <div className={`glass border-white/10 rounded-none lg:rounded-2xl px-4 md:px-5 py-3 flex items-center justify-between transition-all duration-500 ${scrolled ? 'shadow-2xl bg-slate-950/90 backdrop-blur-md border-white/20' : 'bg-white/5'}`}>
 
                     {/* Logo */}
-                    <Link href="/" className="flex items-center gap-2 group relative z-10">
+                    <Link href="/" prefetch={false} className="flex items-center gap-2 group relative z-10">
                         <div className="relative w-10 h-10 group-hover:scale-105 transition-transform duration-500">
                             <Image
                                 src="/images/logo/logo.png"
@@ -116,8 +114,19 @@ export default function Navbar() {
                     <div className="hidden md:flex items-center gap-3">
                         <div className="flex items-center gap-1 px-1.5 py-1 rounded-full glass border-white/5 bg-slate-900/50">
                             {navLinks.map((link) => (
-                                <Link key={link.name} href={link.href} className={`text-[10px] font-bold uppercase tracking-wider transition-colors hover:text-white relative px-3 py-1.5 z-10 ${pathname === link.href ? 'text-white' : 'text-slate-400'}`}>
-                                    {pathname === link.href && <motion.div layoutId="activeNavBg" className="absolute inset-0 bg-white/10 rounded-full -z-10" transition={{ type: "spring", stiffness: 380, damping: 30 }} />}
+                                <Link 
+                                    key={link.name} 
+                                    href={link.href} 
+                                    prefetch={false}
+                                    className={`text-[10px] font-bold uppercase tracking-wider transition-colors hover:text-white relative px-3 py-1.5 z-10 ${pathname === link.href ? 'text-white' : 'text-slate-400'}`}
+                                >
+                                    {pathname === link.href && (
+                                        <motion.div 
+                                            layoutId="activeNavBg" 
+                                            className="absolute inset-0 bg-white/10 rounded-full -z-10" 
+                                            transition={{ type: "spring", stiffness: 380, damping: 30 }} 
+                                        />
+                                    )}
                                     {link.name}
                                 </Link>
                             ))}
@@ -132,10 +141,18 @@ export default function Navbar() {
                             />
                         ) : (
                             <div className="flex items-center gap-2 ml-1 relative">
-                                <Link href="/start-project" className="px-4 py-1.5 bg-brand-teal text-white rounded-full font-black text-[10px] uppercase tracking-widest transition-all shadow-glow-teal hover:bg-brand-teal/90 hover:scale-105 active:scale-95">
+                                <Link 
+                                    href="/start-project" 
+                                    prefetch={false}
+                                    className="px-4 py-1.5 bg-brand-teal text-white rounded-full font-black text-[10px] uppercase tracking-widest transition-all shadow-glow-teal hover:bg-brand-teal/90 hover:scale-105 active:scale-95"
+                                >
                                     Start Project
                                 </Link>
-                                <Link href="/admin/login" className="px-4 py-1.5 bg-white/5 hover:bg-white/10 text-white rounded-full font-black text-[10px] uppercase tracking-widest transition-all border border-white/10 hover:scale-105 active:scale-95">
+                                <Link 
+                                    href="/admin/login" 
+                                    prefetch={false}
+                                    className="px-4 py-1.5 bg-white/5 hover:bg-white/10 text-white rounded-full font-black text-[10px] uppercase tracking-widest transition-all border border-white/10 hover:scale-105 active:scale-95"
+                                >
                                     Sign In
                                 </Link>
                             </div>
@@ -189,7 +206,12 @@ export default function Navbar() {
                         <div className="flex-1 overflow-y-auto px-6 py-8 flex flex-col gap-2">
                             {navLinks.map((link, i) => (
                                 <motion.div key={link.name} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
-                                    <Link href={link.href} onClick={() => setIsMenuOpen(false)} className="flex items-center justify-between p-4 glass rounded-lg border-white/5 text-white active:bg-white/10">
+                                    <Link 
+                                        href={link.href} 
+                                        prefetch={false} 
+                                        onClick={() => setIsMenuOpen(false)} 
+                                        className="flex items-center justify-between p-4 glass rounded-lg border-white/5 text-white active:bg-white/10"
+                                    >
                                         <span className="text-sm font-black uppercase tracking-widest">{link.name}</span>
                                         <ChevronRight size={14} className="text-slate-500" />
                                     </Link>
@@ -214,13 +236,28 @@ export default function Navbar() {
                                     </div>
 
                                     {/* Mobile Links */}
-                                    <Link href="/services" onClick={() => setIsMenuOpen(false)} className="w-full flex items-center gap-3 p-4 glass border-white/5 text-white rounded-lg font-black uppercase tracking-widest text-[10px] active:bg-white/10">
+                                    <Link 
+                                        href="/services" 
+                                        prefetch={false} 
+                                        onClick={() => setIsMenuOpen(false)} 
+                                        className="w-full flex items-center gap-3 p-4 glass border-white/5 text-white rounded-lg font-black uppercase tracking-widest text-[10px] active:bg-white/10"
+                                    >
                                         <Store size={14} className="text-brand-teal" /> Marketplace
                                     </Link>
-                                    <Link href={currentUser.is_staff ? "/admin" : "/dashboard/settings"} onClick={() => setIsMenuOpen(false)} className="w-full flex items-center gap-3 p-4 glass border-white/5 text-white rounded-lg font-black uppercase tracking-widest text-[10px] active:bg-white/10">
+                                    <Link 
+                                        href={currentUser.is_staff ? "/admin" : "/dashboard/settings"} 
+                                        prefetch={false} 
+                                        onClick={() => setIsMenuOpen(false)} 
+                                        className="w-full flex items-center gap-3 p-4 glass border-white/5 text-white rounded-lg font-black uppercase tracking-widest text-[10px] active:bg-white/10"
+                                    >
                                         <Settings size={14} className="text-brand-teal" /> Settings
                                     </Link>
-                                    <Link href={currentUser.is_staff ? "/admin" : "/dashboard"} onClick={() => setIsMenuOpen(false)} className="w-full flex items-center gap-3 p-4 glass border-white/10 text-white rounded-lg font-black uppercase tracking-widest text-[10px] active:bg-white/10">
+                                    <Link 
+                                        href={currentUser.is_staff ? "/admin" : "/dashboard"} 
+                                        prefetch={false} 
+                                        onClick={() => setIsMenuOpen(false)} 
+                                        className="w-full flex items-center gap-3 p-4 glass border-white/10 text-white rounded-lg font-black uppercase tracking-widest text-[10px] active:bg-white/10"
+                                    >
                                         <LayoutDashboard size={14} className="text-brand-teal" /> {currentUser.is_staff ? 'Admin Dashboard' : 'Buyer Dashboard'}
                                     </Link>
                                     <button onClick={handleLogout} className="w-full flex items-center justify-center gap-2 py-4 bg-brand-red/10 border border-brand-red/25 hover:bg-brand-red/20 text-brand-red rounded-lg font-black uppercase tracking-widest text-[10px] cursor-pointer mt-2">
@@ -229,10 +266,20 @@ export default function Navbar() {
                                 </motion.div>
                             ) : (
                                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="mt-4 flex flex-col gap-2">
-                                    <Link href="/start-project" onClick={() => setIsMenuOpen(false)} className="w-full flex items-center justify-center gap-2 py-4 bg-brand-teal text-white rounded-lg font-black uppercase tracking-widest text-[10px] shadow-glow-teal">
+                                    <Link 
+                                        href="/start-project" 
+                                        prefetch={false} 
+                                        onClick={() => setIsMenuOpen(false)} 
+                                        className="w-full flex items-center justify-center gap-2 py-4 bg-brand-teal text-white rounded-lg font-black uppercase tracking-widest text-[10px] shadow-glow-teal"
+                                    >
                                         Start Your Project <Zap size={14} />
                                     </Link>
-                                    <Link href="/admin/login" onClick={() => setIsMenuOpen(false)} className="w-full flex items-center justify-center gap-2 py-4 glass border-white/10 text-white rounded-lg font-black uppercase tracking-widest text-[10px] active:bg-white/10">
+                                    <Link 
+                                        href="/admin/login" 
+                                        prefetch={false} 
+                                        onClick={() => setIsMenuOpen(false)} 
+                                        className="w-full flex items-center justify-center gap-2 py-4 glass border-white/10 text-white rounded-lg font-black uppercase tracking-widest text-[10px] active:bg-white/10"
+                                    >
                                         <User size={14} className="text-brand-teal" /> Sign In
                                     </Link>
                                 </motion.div>
