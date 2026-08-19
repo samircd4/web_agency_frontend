@@ -1,16 +1,16 @@
-'use client';
-
-import React from 'react';
+import dynamic from 'next/dynamic';
 import Hero from '@/components/Hero';
 import Expertise from '@/components/Expertise';
 import ServicesGrid from '@/components/ServicesGrid';
-import DashboardShowcase from '@/components/DashboardShowcase';
 import Stats from '@/components/Stats';
-import Contact from '@/components/Contact';
 import Portfolio from '@/components/Portfolio';
 import Process from '@/components/Process';
 import Testimonials from '@/components/Testimonials';
 import ScrollReveal from '@/components/ScrollReveal';
+
+// Dynamic import heavy/interactive components below the fold
+const DashboardShowcase = dynamic(() => import('@/components/DashboardShowcase'));
+const Contact = dynamic(() => import('@/components/Contact'));
 
 export default function HomeView() {
     return (

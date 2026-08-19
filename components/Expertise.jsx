@@ -57,7 +57,7 @@ export default function Expertise() {
                         </ScrollReveal>
                         <ScrollReveal delay={0.2}>
                             <p className="text-slate-400 text-lg mb-8 leading-relaxed max-w-md">
-                                We turn complex business ideas into lightning-fast digital solutions that are easy to use and scale with your growth.
+                                We engineer mission-critical systems where speed, uptime, and data integrity matter. No bloated templates—just modular, high-efficiency code built to scale.
                             </p>
                         </ScrollReveal>
                         <ScrollReveal delay={0.3}>

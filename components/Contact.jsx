@@ -86,7 +86,7 @@ export default function Contact() {
                                     <span className="text-gradient-teal">next project.</span>
                                 </h2>
                                 <p className="text-slate-400 text-sm md:text-lg mb-8 leading-relaxed max-w-md">
-                                    Ready to scale your operations? Our team is here to help you build the right solution.
+                                    ell us about your data pipeline, custom Shopify store, or web application. We'll analyze your requirements and deliver a technical scope and milestone estimate within 1-2 hours.
                                 </p>
 
                                 <div className="space-y-6">
@@ -218,7 +218,7 @@ export default function Contact() {
               transition-all flex items-center justify-center gap-2
               shadow-lg shadow-teal-500/20 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
                                 >
-                                    {submitting ? 'Sending...' : 'Send Message'}
+                                    {submitting ? 'Requesting...' : 'Request Technical Scope'}
                                     <Send size={16} />
                                 </button>
 

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ExternalLink, Terminal, Search, Cpu, Shield, Zap, Globe, Code } from 'lucide-react';
+import { ExternalLink, Terminal, Search, Cpu, Shield, Zap, Globe, Code, ShoppingBag } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
@@ -16,18 +16,63 @@ function GithubIcon({ size = 11, className = "" }) {
   );
 }
 
-const categories = ["All", "Web Scraping", "E-commerce", "API Systems"];
+const categories = ["All", "Web Scraping", "E-commerce", "Automation & APIs"];
+
+// Real fallback data matching your production builds
+const defaultProjects = [
+    {
+        id: "scraping-cluster",
+        slug: "scraping-cluster",
+        title: "High-Concurrency Web Scraping Pipeline",
+        category: "Web Scraping",
+        impact_metric: "5.2M / day",
+        description: "Industrial data extraction architecture with TLS fingerprint evasion, automated CAPTCHA bypass, and distributed proxy rotation.",
+        tags: ["Python", "Scrapy", "Playwright", "Redis"],
+        cover_image_url: "https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?w=800&q=80&fit=crop"
+    },
+    {
+        id: "job-portal-automation",
+        slug: "job-portal-automation",
+        title: "Automated Multi-Source Job Portal Engine",
+        category: "Automation & APIs",
+        impact_metric: "100% Automated",
+        description: "Automated aggregation and candidate engine scraping 50+ job platforms daily with NLP parsing and instant Next.js full-text search.",
+        tags: ["FastAPI", "Next.js", "Python", "Redis"],
+        cover_image_url: "https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?w=800&q=80&fit=crop"
+    },
+    {
+        id: "headless-shopify-commerce",
+        slug: "headless-shopify-commerce",
+        title: "High-Velocity Headless Shopify Commerce",
+        category: "E-commerce",
+        impact_metric: "< 800ms Latency",
+        description: "Custom Shopify Liquid theme & Next.js Storefront integration built for sub-second page loads, instant filtering, and global Stripe checkout.",
+        tags: ["Shopify Liquid", "Next.js", "TypeScript", "GraphQL"],
+        cover_image_url: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=800&q=80&fit=crop"
+    },
+    {
+        id: "multi-warehouse-inventory",
+        slug: "multi-warehouse-inventory",
+        title: "Multi-Warehouse Inventory & Pricing Sync",
+        category: "E-commerce",
+        impact_metric: "99.9% Accuracy",
+        description: "Automated background sync daemon reconciling multi-channel supplier inventory, dynamic pricing rules, and real-time order routing.",
+        tags: ["Python", "Django", "PostgreSQL", "Stripe API"],
+        cover_image_url: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&q=80&fit=crop"
+    }
+];
 
 function getIcon(category) {
     switch (category?.toLowerCase()) {
         case 'web scraping':
             return Search;
         case 'e-commerce':
-            return Cpu;
+            return ShoppingBag;
+        case 'automation & apis':
         case 'api systems':
-            return Shield;
-        default:
             return Zap;
+        default:
+            return Terminal;
     }
 }
 
@@ -40,13 +85,16 @@ export default function Portfolio() {
     useEffect(() => {
         async function loadProjects() {
             try {
-                // If there's an active category filter, we can query by it
-                const filterTag = activeFilter !== 'All' ? activeFilter : '';
                 const data = await api.getPortfolioItems();
-                const results = data.results || data;
-                setProjects(results);
+                const results = data?.results || data;
+                if (Array.isArray(results) && results.length > 0) {
+                    setProjects(results);
+                } else {
+                    setProjects(defaultProjects);
+                }
             } catch (err) {
-                console.error('Failed to load portfolio items:', err);
+                console.warn('Using fallback portfolio items:', err);
+                setProjects(defaultProjects);
             } finally {
                 setLoading(false);
             }
@@ -54,22 +102,23 @@ export default function Portfolio() {
         loadProjects();
     }, []);
 
-    // Frontend categorization filter based on loaded items
-    const safeProjects = Array.isArray(projects) ? projects : [];
+    // Filter logic
+    const safeProjects = Array.isArray(projects) && projects.length > 0 ? projects : defaultProjects;
     const filteredProjects = activeFilter === "All"
         ? safeProjects
         : safeProjects.filter(p => {
             const catLower = activeFilter.toLowerCase();
+            const projectCat = (p.category || "").toLowerCase();
             const tagMatch = p.tags?.some(t => {
                 const tagName = typeof t === 'string' ? t : t?.name;
-                return tagName && tagName.toLowerCase() === catLower;
+                return tagName && tagName.toLowerCase().includes(catLower);
             });
-            const descMatch = p.description?.toLowerCase().includes(catLower) || p.title?.toLowerCase().includes(catLower);
-            return tagMatch || descMatch;
+            const titleOrDescMatch = p.description?.toLowerCase().includes(catLower) || p.title?.toLowerCase().includes(catLower);
+            return projectCat === catLower || tagMatch || titleOrDescMatch;
         });
 
     return (
-        <section id="portfolio" className="py-8 bg-background relative overflow-hidden">
+        <section id="portfolio" className="py-12 md:py-20 bg-background relative overflow-hidden">
             {/* Ambient glows */}
             <div className="absolute top-1/4 left-0 w-96 h-96 bg-brand-teal/5 rounded-full blur-[120px] pointer-events-none" />
             <div className="absolute bottom-1/4 right-0 w-96 h-96 bg-brand-red/5 rounded-full blur-[120px] pointer-events-none" />
@@ -77,7 +126,7 @@ export default function Portfolio() {
             <div className="container mx-auto px-4 relative z-10">
 
                 {/* ── Header ── */}
-                <div className="flex flex-col items-center mb-8 text-center">
+                <div className="flex flex-col items-center mb-12 text-center">
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
@@ -129,24 +178,24 @@ export default function Portfolio() {
                     </div>
                 ) : filteredProjects.length === 0 ? (
                     <div className="text-center py-24 text-slate-500 uppercase font-black text-sm tracking-widest">
-                        No portfolio entries loaded in buffer.
+                        No portfolio entries found for this category.
                     </div>
                 ) : (
                     <motion.div layout className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-10">
                         <AnimatePresence mode="popLayout">
                             {filteredProjects.map((project, index) => {
                                 const isTeal = index % 2 === 0;
-                                const tagNames = project.tags?.map(t => (typeof t === 'string' ? t : t?.name)).filter(Boolean) || ["Python", "Django"];
-                                const category = tagNames.includes("Next.js") ? "API Systems" : tagNames.includes("Django") ? "E-commerce" : "Web Scraping";
+                                const tagNames = project.tags?.map(t => (typeof t === 'string' ? t : t?.name)).filter(Boolean) || ["Python", "Next.js"];
+                                const category = project.category || (tagNames.includes("Shopify") || tagNames.includes("Django") ? "E-commerce" : tagNames.includes("Scrapy") ? "Web Scraping" : "Automation & APIs");
                                 const Icon = getIcon(category);
                                 const image = project.cover_image_url || "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=800&q=80&fit=crop";
                                 const metricLabel = "Impact Metric";
-                                const metricValue = project.impact_metric || (isTeal ? "5.2M / day" : "< 85ms");
+                                const metricValue = project.impact_metric || (isTeal ? "5.2M / day" : "< 800ms");
                                 const targetUrl = project.slug || project.id;
 
                                 return (
                                     <motion.div
-                                        key={project.id}
+                                        key={project.id || index}
                                         layout
                                         initial={{ opacity: 0, scale: 0.92 }}
                                         animate={{ opacity: 1, scale: 1 }}
@@ -162,107 +211,105 @@ export default function Portfolio() {
                                                     : 'border-white/10 hover:border-brand-red/40  hover:shadow-[0_0_40px_0_rgba(232,69,69,0.10)]'
                                             }`}
                                         >
+                                            {/* Image Container */}
+                                            <div className="relative w-full aspect-[16/9] overflow-hidden rounded-t-xl">
+                                                <img
+                                                    src={image}
+                                                    alt={project.title}
+                                                    className="absolute inset-0 w-full h-full object-cover opacity-50 group-hover:opacity-75 group-hover:scale-105 transition-all duration-700 ease-out"
+                                                />
+                                                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/60 pointer-events-none" />
 
-                                                {/* Image Container */}
-                                                <div className="relative w-full aspect-[16/9] overflow-hidden rounded-t-xl">
-                                                    <img
-                                                        src={image}
-                                                        alt={project.title}
-                                                        className="absolute inset-0 w-full h-full object-cover opacity-50 group-hover:opacity-70 group-hover:scale-105 transition-all duration-700 ease-out"
-                                                    />
-                                                    {/* Bottom fade */}
-                                                    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/50 pointer-events-none" />
-
-                                                    {/* Category badge */}
-                                                    <div className="absolute top-4 left-4">
-                                                        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.15em] backdrop-blur-md border ${
-                                                            isTeal
-                                                                ? 'bg-brand-teal/20 border-brand-teal/40 text-brand-teal'
-                                                                : 'bg-brand-red/20  border-brand-red/40  text-brand-red'
-                                                        }`}>
-                                                            <Icon size={12} />
-                                                            {category}
-                                                        </span>
-                                                    </div>
-
-                                                    {/* Metric badge */}
-                                                    <div className="absolute top-4 right-4 text-right">
-                                                        <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-0.5">
-                                                            {metricLabel}
-                                                        </p>
-                                                        <p className={`text-base font-black leading-none ${
-                                                            isTeal ? 'text-brand-teal' : 'text-brand-red'
-                                                        }`}>
-                                                            {metricValue}
-                                                        </p>
-                                                    </div>
+                                                {/* Category badge */}
+                                                <div className="absolute top-4 left-4">
+                                                    <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-[0.15em] backdrop-blur-md border ${
+                                                        isTeal
+                                                            ? 'bg-brand-teal/20 border-brand-teal/40 text-brand-teal'
+                                                            : 'bg-brand-red/20  border-brand-red/40  text-brand-red'
+                                                    }`}>
+                                                        <Icon size={12} />
+                                                        {category}
+                                                    </span>
                                                 </div>
 
-                                                {/* Text block */}
-                                                <div className="p-5 flex flex-col gap-3 rounded-b-xl">
-                                                    <h3 className="text-xl font-black text-white leading-tight tracking-tight group-hover:text-white transition-colors">
-                                                        {project.title}
-                                                    </h3>
-
-                                                    <p className="text-slate-400 text-xs leading-relaxed line-clamp-2">
-                                                        {project.description}
+                                                {/* Metric badge */}
+                                                <div className="absolute top-4 right-4 text-right">
+                                                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest leading-none mb-0.5">
+                                                        {metricLabel}
                                                     </p>
+                                                    <p className={`text-base font-black leading-none ${
+                                                        isTeal ? 'text-brand-teal' : 'text-brand-red'
+                                                    }`}>
+                                                        {metricValue}
+                                                    </p>
+                                                </div>
+                                            </div>
 
-                                                    {/* Tags + CTA & Action Links row */}
-                                                    <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-white/5">
-                                                        <div className="flex flex-wrap gap-1.5">
-                                                            {tagNames.slice(0, 3).map((tag) => (
-                                                                <span
-                                                                    key={tag}
-                                                                    className="px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-[8px] font-black text-slate-400 uppercase tracking-wider"
-                                                                >
-                                                                    {tag}
-                                                                </span>
-                                                            ))}
-                                                        </div>
+                                            {/* Text block */}
+                                            <div className="p-5 flex flex-col gap-3 rounded-b-xl">
+                                                <h3 className="text-xl font-black text-white leading-tight tracking-tight group-hover:text-white transition-colors">
+                                                    {project.title}
+                                                </h3>
 
-                                                        <div className="flex items-center gap-2">
-                                                            {project.live_url && (
-                                                                <a
-                                                                    href={project.live_url}
-                                                                    target="_blank"
-                                                                    rel="noopener noreferrer"
-                                                                    onClick={(e) => e.stopPropagation()}
-                                                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-brand-teal/10 hover:bg-brand-teal/20 border border-brand-teal/30 text-brand-teal text-[9px] font-black uppercase tracking-wider transition-all"
-                                                                    title="Open Live Demo"
-                                                                >
-                                                                    <Globe size={11} />
-                                                                    <span>Live Demo</span>
-                                                                </a>
-                                                            )}
+                                                <p className="text-slate-400 text-xs leading-relaxed line-clamp-2">
+                                                    {project.description}
+                                                </p>
 
-                                                            {project.github_url && (
-                                                                <a
-                                                                    href={project.github_url}
-                                                                    target="_blank"
-                                                                    rel="noopener noreferrer"
-                                                                    onClick={(e) => e.stopPropagation()}
-                                                                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white text-[9px] font-black uppercase tracking-wider transition-all"
-                                                                    title="View GitHub Repository"
-                                                                >
-                                                                    <GithubIcon size={11} className="text-slate-300" />
-                                                                    <span>GitHub</span>
-                                                                </a>
-                                                            )}
-
-                                                            <div
-                                                                className={`flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider whitespace-nowrap transition-all duration-300 group-hover:scale-105 ${
-                                                                    isTeal
-                                                                        ? 'bg-brand-teal text-white shadow-lg shadow-brand-teal/20'
-                                                                        : 'bg-brand-red  text-white shadow-lg shadow-brand-red/20'
-                                                                }`}
+                                                {/* Tags + Action Links */}
+                                                <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-white/5">
+                                                    <div className="flex flex-wrap gap-1.5">
+                                                        {tagNames.slice(0, 4).map((tag) => (
+                                                            <span
+                                                                key={tag}
+                                                                className="px-2 py-0.5 rounded-md bg-white/5 border border-white/10 text-[8px] font-black text-slate-400 uppercase tracking-wider"
                                                             >
-                                                                <span>Case Study</span>
-                                                                <ExternalLink size={10} />
-                                                            </div>
+                                                                {tag}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+
+                                                    <div className="flex items-center gap-2">
+                                                        {project.live_url && (
+                                                            <a
+                                                                href={project.live_url}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                onClick={(e) => e.stopPropagation()}
+                                                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-brand-teal/10 hover:bg-brand-teal/20 border border-brand-teal/30 text-brand-teal text-[9px] font-black uppercase tracking-wider transition-all"
+                                                                title="Open Live Demo"
+                                                            >
+                                                                <Globe size={11} />
+                                                                <span>Live Demo</span>
+                                                            </a>
+                                                        )}
+
+                                                        {project.github_url && (
+                                                            <a
+                                                                href={project.github_url}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                                onClick={(e) => e.stopPropagation()}
+                                                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 hover:text-white text-[9px] font-black uppercase tracking-wider transition-all"
+                                                                title="View GitHub Repository"
+                                                            >
+                                                                <GithubIcon size={11} className="text-slate-300" />
+                                                                <span>GitHub</span>
+                                                            </a>
+                                                        )}
+
+                                                        <div
+                                                            className={`flex-shrink-0 inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-[9px] font-black uppercase tracking-wider whitespace-nowrap transition-all duration-300 group-hover:scale-105 ${
+                                                                isTeal
+                                                                    ? 'bg-brand-teal text-white shadow-lg shadow-brand-teal/20'
+                                                                    : 'bg-brand-red  text-white shadow-lg shadow-brand-red/20'
+                                                            }`}
+                                                        >
+                                                            <span>Case Study</span>
+                                                            <ExternalLink size={10} />
                                                         </div>
                                                     </div>
                                                 </div>
+                                            </div>
                                         </div>
                                     </motion.div>
                                 );

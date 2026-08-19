@@ -7,9 +7,10 @@ import { ArrowRight, Sparkles, ShoppingCart, Code2, Database, Zap, Terminal, Act
 import { motion, AnimatePresence, useTransform, useMotionValue } from 'framer-motion';
 
 const slidingTexts = [
-    "E-commerce Ecosystems",
-    "Scalable API Infrastructures",
-    "Industrial Web Automation"
+    "Industrial Web Scraping Networks",
+    "Headless Next.js & Custom Shopify Engines",
+    "High-Concurrency Python APIs",
+    "Automated Workflow & Data Pipelines"
 ];
 
 export default function Hero() {
@@ -108,7 +109,7 @@ export default function Hero() {
                             transition={{ delay: 0.4, duration: 0.8 }}
                             className="max-w-xl text-slate-400 text-sm md:text-lg mb-8 leading-relaxed"
                         >
-                            We build proprietary scraping networks and commerce engines that turn complex business logic into scalable digital assets.
+                            We engineer distributed Python scrapers, custom Shopify & headless commerce platforms, and modern web applications built for raw speed, clean architecture, and zero downtime.
                         </motion.p>
 
                         <motion.div
@@ -124,7 +125,7 @@ export default function Hero() {
 
                             <button className="px-8 py-4 glass border-white/10 text-white rounded-xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-3 transition-all hover:bg-white/10 active:scale-95 group">
                                 <Code2 size={16} className="text-slate-400 group-hover:text-brand-teal transition-colors" />
-                                View Systems
+                                VIEW PRODUCTION BUILDS
                             </button>
                         </motion.div>
                     </div>

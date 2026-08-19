@@ -6,20 +6,20 @@ import { Search, Cpu, Rocket, CheckCircle2 } from 'lucide-react';
 
 const steps = [
     {
-        title: "Discovery",
-        description: "In-depth analysis of your data requirements and business logic.",
+        title: "Architecture & Scope",
+        description: "We map database schemas, proxy networks, and API contracts before coding. You get a fixed-scope blueprint and milestone timeline.",
         icon: <Search size={24} className="text-brand-teal" />,
         color: "brand-teal"
     },
     {
-        title: "Engineering",
-        description: "Architecting the proprietary engine using our battle-tested stack.",
+        title: "Sprint Engineering",
+        description: "Rapid bi-weekly builds with clean, type-safe code. Every milestone deploys to an isolated staging environment for real-time client QA.",
         icon: <Cpu size={24} className="text-brand-red" />,
         color: "brand-red"
     },
     {
-        title: "Scale",
-        description: "Deploying and scaling your solution across distributed networks.",
+        title: "Production & Scale",
+        description: "Automated CI/CD pipelines, 99.9% uptime deployments, and complete IP transfer with 100% source code ownership handed over to you.",
         icon: <Rocket size={24} className="text-brand-indigo" />,
         color: "brand-indigo"
     }

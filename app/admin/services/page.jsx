@@ -600,7 +600,7 @@ export default function AdminServicesPage() {
                 title: s.title,
                 category_name: s.category_name || s.category || 'Development',
                 seller_name: s.seller_name || s.seller?.name || 'Dr. Python',
-                seller_level: s.seller_level || s.seller?.level || 'Top Rated Seller',
+                seller_level: s.seller_level || s.seller?.level || 'Top Rated',
                 description: s.description || '',
                 long_description: s.long_description || s.longDescription || '',
                 about_service: s.about_service || s.aboutService || '',

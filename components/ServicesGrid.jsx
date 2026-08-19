@@ -7,39 +7,39 @@ import ScrollReveal from './ScrollReveal';
 
 const services = [
     {
-        title: "Industrial Scraping",
-        description: "Large-scale extraction systems designed for distributed networks and high-concurrency throughput.",
+        title: "Industrial Web Scraping",
+        description: "High-volume data extraction networks with automated proxy rotation, CAPTCHA bypass, and TLS fingerprint evasion with zero IP bans.",
         icon: <Database className="text-brand-teal" size={28} />,
         color: "brand-teal"
     },
     {
-        title: "Proprietary Engines",
-        description: "Custom-built e-commerce cores and algorithmic systems engineered for maximum velocity.",
+        title: "Custom Shopify & Commerce",
+        description: "Tailored Shopify Liquid themes, private custom apps, headless Next.js storefronts, and multi-channel inventory sync engines.",
         icon: <Cpu className="text-brand-red" size={28} />,
         color: "brand-red"
     },
     {
-        title: "API Ecosystems",
-        description: "Robust, secure, and scalable API architectures for seamless enterprise integration.",
+        title: "High-Concurrency Python APIs",
+        description: "Asynchronous, type-safe FastAPI and Django architectures engineered for heavy database loads, high throughput, and third-party integrations.",
         icon: <Code2 className="text-brand-teal" size={28} />,
         color: "brand-teal"
     },
     {
-        title: "Cloud Automation",
-        description: "Automated distributed workflows and cloud infrastructure management for mission-critical apps.",
-        icon: <Zap className="text-brand-red" size={28} />,
+        title: "Full-Stack Web Applications",
+        description: "Modern, performant web platforms built with Next.js, React, and TypeScript paired with clean, accessible design systems.",
+        icon: <Globe className="text-brand-red" size={28} />,
         color: "brand-red"
     },
     {
-        title: "Cyber Security",
-        description: "Advanced security protocols and encrypted data pipelines for financial-grade applications.",
-        icon: <Shield className="text-brand-teal" size={28} />,
+        title: "AI & Workflow Automation",
+        description: "Intelligent document processing, custom LLM integrations, automated job aggregation portals, and background worker queues.",
+        icon: <Zap className="text-brand-teal" size={28} />,
         color: "brand-teal"
     },
     {
-        title: "Global Scalability",
-        description: "Optimizing legacy systems for modern cloud performance and international user bases.",
-        icon: <Globe className="text-brand-red" size={28} />,
+        title: "Cloud Infrastructure & DevOps",
+        description: "Production Docker containerization, automated CI/CD deployment pipelines, serverless scaling, and 99.9% uptime SLA management.",
+        icon: <Shield className="text-brand-red" size={28} />,
         color: "brand-red"
     }
 ];

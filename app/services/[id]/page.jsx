@@ -156,7 +156,7 @@ export default function ServiceDetailPage() {
                                             <span className="text-sm text-white font-bold">{service.seller.name}</span>
                                             <div className="flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-brand-teal/10 border border-brand-teal/30">
                                                 <div className="w-1.5 h-1.5 rounded-full bg-brand-teal animate-pulse" />
-                                                <span className="text-[9px] font-black uppercase text-brand-teal tracking-widest">Seller Online</span>
+                                                <span className="text-[9px] font-black uppercase text-brand-teal tracking-widest">Online</span>
                                             </div>
                                             <span className="px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-[8px] font-black uppercase text-slate-400 tracking-widest">
                                                 {service.seller.level || 'Pro'}

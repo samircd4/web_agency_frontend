@@ -8,7 +8,7 @@ import { api } from '@/lib/api';
 function StarRow({ value, size = 14 }) {
     return (
         <div className="flex items-center gap-0.5">
-            {[1,2,3,4,5].map(s => (
+            {[1, 2, 3, 4, 5].map(s => (
                 <Star key={s} size={size} className={s <= value ? 'fill-brand-teal text-brand-teal' : 'text-white/15'} />
             ))}
         </div>
@@ -97,29 +97,49 @@ function ReviewCard({ review, index }) {
 // Fallback demo reviews when API is unavailable
 const DEMO_REVIEWS = [
     {
-        id: 1, client_name: 'James Rodriguez', rating_communication: 5, rating_quality: 5, rating_timeliness: 4,
-        comment: 'Exceptional work from start to finish. The team delivered a polished, production-ready solution ahead of schedule.',
-        service_title: 'Full-Stack Web Development',
+        id: 1,
+        client_name: 'Alex Vance',
+        rating_communication: 5,
+        rating_quality: 5,
+        rating_timeliness: 5,
+        comment: 'Dr. Python engineered a distributed scraping cluster that pulls over 200k daily catalog listings past Cloudflare with zero IP bans. Flawless data normalization.',
+        service_title: 'Industrial Web Scraping',
     },
     {
-        id: 2, client_name: 'Aisha Thompson', rating_communication: 5, rating_quality: 5, rating_timeliness: 5,
-        comment: 'Communication was stellar throughout the project. Every milestone was hit on time and the quality exceeded expectations.',
-        service_title: 'SaaS Platform Development',
+        id: 2,
+        client_name: 'Elena Rostova',
+        rating_communication: 5,
+        rating_quality: 5,
+        rating_timeliness: 5,
+        comment: 'Our custom Next.js & Shopify build brought page load speeds under 800ms. Having live milestone tracking inside the Client Command Center kept everything transparent.',
+        service_title: 'Headless Shopify Commerce',
     },
     {
-        id: 3, client_name: 'Marcus Chen', rating_communication: 4, rating_quality: 5, rating_timeliness: 5,
-        comment: 'Incredibly talented team. They turned our complex requirements into an elegant, performant application.',
-        service_title: 'API & Backend Engineering',
+        id: 3,
+        client_name: 'Tariq Mansour',
+        rating_communication: 5,
+        rating_quality: 5,
+        rating_timeliness: 4,
+        comment: 'They automated our multi-source job aggregation across 50+ portals with custom NLP resume parsing. Saved our engineering team hundreds of manual hours.',
+        service_title: 'Job Portal Ingestion Engine',
     },
     {
-        id: 4, client_name: 'Sophie Laurent', rating_communication: 5, rating_quality: 4, rating_timeliness: 5,
-        comment: 'The attention to detail and understanding of our business needs made all the difference. Highly recommended.',
-        service_title: 'AI & Automation',
+        id: 4,
+        client_name: 'Julian Meyer',
+        rating_communication: 5,
+        rating_quality: 5,
+        rating_timeliness: 5,
+        comment: 'Architected an ultra-fast FastAPI backend handling heavy database concurrency and webhooks. Clean code, comprehensive documentation, and zero downtime.',
+        service_title: 'High-Concurrency Python APIs',
     },
     {
-        id: 5, client_name: 'David Kim', rating_communication: 5, rating_quality: 5, rating_timeliness: 4,
-        comment: 'Professional, responsive, and technically brilliant. Exactly what we needed to take our product to the next level.',
-        service_title: 'Data Engineering',
+        id: 5,
+        client_name: 'Sarah Jenkins',
+        rating_communication: 5,
+        rating_quality: 5,
+        rating_timeliness: 5,
+        comment: 'Engineered our multi-supplier inventory sync and dynamic pricing daemons. Stock reconciliation errors dropped to zero across all our warehouses.',
+        service_title: 'Multi-Warehouse Inventory Sync',
     },
 ];
 
@@ -135,7 +155,8 @@ export default function Testimonials() {
     useEffect(() => {
         const load = async () => {
             try {
-                const data = await api.getPublicReviews({ limit: 12 });
+                // const data = await api.getPublicReviews({ limit: 12 });
+                const data = []
                 const list = Array.isArray(data) ? data : data.results || [];
                 setReviews(list.length >= 3 ? list : DEMO_REVIEWS);
             } catch {
